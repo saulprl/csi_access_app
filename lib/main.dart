@@ -31,9 +31,12 @@ class MyApp extends StatelessWidget {
         title: 'CSI PRO Access Logs',
         theme: ThemeData(
           colorScheme: lightScheme,
+          fontFamily: "Poppins",
         ),
         debugShowCheckedModeBanner: false,
-        home: const MainScreen(),
+        home: snapshot.connectionState == ConnectionState.waiting
+            ? const CircularProgressIndicator()
+            : const MainScreen(),
       ),
     );
   }
