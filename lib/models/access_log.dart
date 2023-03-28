@@ -25,6 +25,18 @@ class AccessLog {
         : null;
   }
 
+  AccessLog.fromValue(dynamic key, dynamic value) {
+    this.key = key.toString();
+    csiId = value["csiId"];
+    accessed = value["accessed"];
+    timestamp = value["timestamp"];
+    attemptData = value["attemptData"] != null
+        ? Attempt(
+            csiId: value["attemptData"]["csiId"],
+            passcode: value["attemptData"]["passcode"])
+        : null;
+  }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> json = <String, dynamic>{};
     Map<String, dynamic> data = <String, dynamic>{};
@@ -32,9 +44,9 @@ class AccessLog {
     data["csiId"] = csiId;
     data["accessed"] = accessed;
     data["timestamp"] = timestamp;
-    data["attemptData"] = attemptData ?? attemptData!.toJson();
+    data["attemptData"] = attemptData != null ? attemptData!.toJson() : null;
 
-    json[key!] = key;
+    json[key!] = data;
 
     return json;
   }

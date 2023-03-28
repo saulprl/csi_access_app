@@ -1,4 +1,4 @@
-package com.example.csi_door_logs
+package com.csipro.access_logs
 
 import io.flutter.embedding.android.FlutterActivity
 

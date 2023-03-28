@@ -1,7 +1,8 @@
 import "dart:async";
 
-import "package:firebase_database/firebase_database.dart";
 import "package:flutter/material.dart";
+import "package:firebase_database/firebase_database.dart";
+import "package:skeleton_animation/skeleton_animation.dart";
 
 import "package:csi_door_logs/models/models.dart";
 
@@ -37,7 +38,11 @@ class _AccessLogItemState extends State<AccessLogItem> {
         .equalTo(widget.csiId)
         .limitToFirst(1)
         .onValue
-        .listen((event) => setUser(event.snapshot));
+        .listen((event) {
+      if (event.snapshot.exists) {
+        setUser(event.snapshot);
+      }
+    });
   }
 
   @override
@@ -57,57 +62,103 @@ class _AccessLogItemState extends State<AccessLogItem> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.0),
-      child: _user != null
-          ? ListTile(
-              title: Text(
-                _user!.name ?? "Loading",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 32.0,
-                ),
+      child: ListTile(
+        tileColor: widget.accessed
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.secondary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        style: ListTileStyle.list,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 2.0,
+        ),
+        title: widget.accessed
+            ? _user != null
+                ? Text(
+                    _user!.name!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 32.0,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  )
+                : Skeleton(
+                    textColor: Colors.white24,
+                    style: SkeletonStyle.text,
+                    height: 32.0,
+                  )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Usuario desconocido",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18.0,
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        widget.date
+                            .toIso8601String()
+                            .split("T")
+                            .last
+                            .split(".")
+                            .first,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.0,
+                        ),
+                      ),
+                      Text(
+                        widget.date.toIso8601String().split("T").first,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+        subtitle: widget.accessed
+            ? RichText(
                 textAlign: TextAlign.center,
-              ),
-              subtitle: Text(
-                widget.date.toIso8601String().split("T").join(" "),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.0,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: widget.date.toIso8601String().split("T").first,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                      ),
+                    ),
+                    const TextSpan(text: " "),
+                    TextSpan(
+                      text: widget.date
+                          .toIso8601String()
+                          .split("T")
+                          .last
+                          .split(".")
+                          .first,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                      ),
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-              ),
-              contentPadding: const EdgeInsets.only(bottom: 4.0),
-              style: ListTileStyle.list,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              tileColor: Theme.of(context).colorScheme.primary,
-            )
-          : ListTile(
-              title: const Text(
-                "Usuario desconocido",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              subtitle: Text(
-                widget.date.toIso8601String().split("T").join(" "),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.0,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              contentPadding: const EdgeInsets.only(bottom: 4.0),
-              style: ListTileStyle.list,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              tileColor: Theme.of(context).colorScheme.secondary,
-            ),
+              )
+            : null,
+      ),
     );
   }
 }

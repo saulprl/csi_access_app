@@ -1,10 +1,24 @@
+import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 import "package:csi_door_logs/firebase_options.dart";
 
+@pragma("vm:entry-point")
+Future<void> _bgMessageHandler(RemoteMessage message) async {
+  print("Incoming message: ${message.notification!.body}");
+}
+
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // FirebaseMessaging.onMessage.listen((message) {
+  //   print(message.data);
+  //   return;
+  // });
+  FirebaseMessaging.onBackgroundMessage(_bgMessageHandler);
+
   runApp(const MyApp());
 }
 
@@ -35,7 +49,7 @@ class MyApp extends StatelessWidget {
         ),
         debugShowCheckedModeBanner: false,
         home: snapshot.connectionState == ConnectionState.waiting
-            ? const CircularProgressIndicator()
+            ? const Center(child: CircularProgressIndicator())
             : const MainScreen(),
       ),
     );
