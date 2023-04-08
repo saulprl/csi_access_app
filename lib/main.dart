@@ -1,3 +1,4 @@
+import "package:csi_door_logs/utils/routes.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
@@ -32,17 +33,26 @@ class MyApp extends StatelessWidget {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
+    firebaseApp.then((_) {
+      final fcm = FirebaseMessaging.instance;
+      fcm.subscribeToTopic("access_logs");
+      fcm.subscribeToTopic("event_logs");
+    });
+
     const lightScheme = ColorScheme.light(
       primary: Color(0xFF7145D6),
       secondary: Color(0xFFE91E63),
+      tertiary: Color(0xFF09814A),
+      error: Color(0xFFFCD80C),
       background: Colors.white,
       onPrimary: Colors.white,
+      onBackground: Colors.black87,
     );
 
     return FutureBuilder(
       future: firebaseApp,
       builder: (ctx, snapshot) => MaterialApp(
-        title: 'CSI PRO Access Logs',
+        title: 'CSI PRO Access',
         theme: ThemeData(
           colorScheme: lightScheme,
           fontFamily: "Poppins",
@@ -50,7 +60,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         home: snapshot.connectionState == ConnectionState.waiting
             ? const Center(child: CircularProgressIndicator())
-            : const MainScreen(),
+            : const DashboardScreen(),
+        routes: Routes.getAppRoutes(),
       ),
     );
   }

@@ -1,9 +1,10 @@
 import "dart:async";
 
-import "package:csi_door_logs/widgets/access_logs/access_log_item.dart";
-import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter/material.dart";
+
 import "package:firebase_database/firebase_database.dart";
+
+import "package:csi_door_logs/widgets/access_logs/access_log_item.dart";
 
 import 'package:csi_door_logs/models/models.dart';
 
@@ -15,7 +16,6 @@ class AccessList extends StatefulWidget {
 }
 
 class _AccessListState extends State<AccessList> {
-  final fcm = FirebaseMessaging.instance;
   final query = FirebaseDatabase.instance
       .ref("history")
       .orderByChild("timestamp")
@@ -36,9 +36,6 @@ class _AccessListState extends State<AccessList> {
     // logRemove = query.onChildRemoved.listen((event) {
     //   onLogRemoved(event.snapshot);
     // });
-
-    fcm.subscribeToTopic("access_logs");
-    fcm.subscribeToTopic("event_logs");
   }
 
   // void onLogAdded(DataSnapshot snapshot) {
@@ -66,24 +63,25 @@ class _AccessListState extends State<AccessList> {
         builder: (ctx, snapshot) {
           final logItems = <Widget>[];
           if (snapshot.hasData) {
-            (snapshot.data!.snapshot.value as Map<dynamic, dynamic>)
-                .forEach((key, value) {
-              final accessLog = AccessLog.fromValue(key, value);
-              print(accessLog.toJson());
-              final logItem = AccessLogItem(
-                key: ValueKey(accessLog.timestamp),
-                csiId: accessLog.csiId!,
-                date: DateTime.fromMillisecondsSinceEpoch(accessLog.timestamp!),
-                accessed: accessLog.accessed!,
-              );
+            final accessLogs =
+                AccessLog.fromStreamSnapshot(snapshot.data!.snapshot);
 
-              logItems.add(logItem);
-            });
+            for (final log in accessLogs) {
+              logItems.insert(
+                0,
+                AccessLogItem(
+                  key: ValueKey(log.timestamp!),
+                  csiId: log.csiId!,
+                  date: DateTime.fromMillisecondsSinceEpoch(log.timestamp!),
+                  accessed: log.accessed!,
+                ),
+              );
+            }
           }
 
           return ListView(
             padding: const EdgeInsets.symmetric(
-              horizontal: 8.0,
+              horizontal: 4.0,
               vertical: 4.0,
             ),
             children: logItems,

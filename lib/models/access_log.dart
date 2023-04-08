@@ -50,4 +50,14 @@ class AccessLog {
 
     return json;
   }
+
+  static List<AccessLog> fromStreamSnapshot(DataSnapshot snapshot) {
+    final List<AccessLog> accessLogs = [];
+
+    snapshot.children.forEach((log) {
+      accessLogs.add(AccessLog.fromSnapshot(log));
+    });
+
+    return accessLogs;
+  }
 }
