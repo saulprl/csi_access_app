@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 0.4.2+1
 
 environment:
   sdk: ">=2.19.2 <3.0.0"
@@ -38,12 +38,16 @@ dependencies:
   firebase_database: ^10.0.16
   skeleton_animation: ^0.1.4
   firebase_messaging: ^14.3.0
-  flutter_blue: ^0.8.0
   local_auth: ^2.1.6
-  flutter_bluetooth_serial: ^0.4.0
+  flutter_blue_plus: ^1.4.0
+  flutter_native_splash: ^2.2.19
+  firebase_auth: ^4.2.2
+  email_validator: ^2.1.17
+  flutter_bcrypt: ^1.0.8
+  flutter_secure_storage: ^8.0.0
+  permission_handler: ^10.2.0
 
 dev_dependencies:
-  flutter_native_splash: ^2.2.19
   flutter_launcher_icons: ^0.12.0
   change_app_package_name: ^1.1.0
   flutter_test:
@@ -59,11 +63,11 @@ dev_dependencies:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/CSI_Access_Logs.png"
+  image_path: "assets/CSI_PRO_Access.png"
 
 flutter_native_splash:
   color: "#7145D6"
-  image: "assets/CSI_Access_Logs.png"
+  image: "assets/CSI_PRO_Access.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -81,6 +85,9 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/CSI_Access_Logs.png
+    - assets/CSI_PRO_Access.png
+    - assets/CSI_PRO_Access_Logotipo.png
+    - assets/CSI_PRO_Access_Logotipo_inverted.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

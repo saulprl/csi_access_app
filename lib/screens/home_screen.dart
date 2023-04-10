@@ -3,13 +3,21 @@ import "dart:convert";
 import "dart:io";
 import "dart:typed_data";
 
+import "package:csi_door_logs/models/models.dart";
+import "package:csi_door_logs/screens/screens.dart";
+import "package:csi_door_logs/utils/routes.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "package:firebase_database/firebase_database.dart";
 import "package:flutter/material.dart";
+import "package:flutter_blue_plus/flutter_blue_plus.dart";
+
 import "package:local_auth/local_auth.dart";
-// import "package:flutter_blue/flutter_blue.dart";
-import "package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart";
+
+import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
 import "package:csi_door_logs/widgets/main/csi_drawer.dart";
 import "package:csi_door_logs/widgets/dashboard/summary/summary.dart";
+import "package:permission_handler/permission_handler.dart";
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,96 +27,59 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // FlutterBlue flutterBlue = FlutterBlue.instance;
-  final auth = LocalAuthentication();
-  bool? canCheckBiometrics;
-  List<BiometricType>? _availableBiometrics;
-  String _authorized = "Not authorized";
-  bool _isAuthenticating = false;
-  StreamSubscription<BluetoothDiscoveryResult>? discoverySub;
-  BluetoothConnection? connection;
-  late FlutterBluetoothSerial btInstance;
+  final _storage = const FlutterSecureStorage();
+
+  bool _isLoading = false;
+  bool _hasStorage = false;
 
   @override
   void initState() {
     super.initState();
 
-    btInstance = FlutterBluetoothSerial.instance;
+    _readStorage();
   }
 
-  void _handleBluetoothConnection(BluetoothDevice host) async {
-    print("Handling connection");
-    connection = await BluetoothConnection.toAddress(host.address);
-    print(connection!.isConnected);
-
-    connection!.input!.listen((Uint8List data) async {
-      print("Incoming data");
-
-      String dataString = String.fromCharCodes(data);
-      print(dataString);
-
-      await _checkBiometrics();
-    });
-  }
-
-  Future<void> _checkBiometrics() async {
-    print("Checking");
-    final result = await auth.authenticate(
-      localizedReason: "Identify yourself!",
-      options: const AuthenticationOptions(
-        biometricOnly: true,
-        stickyAuth: true,
-        sensitiveTransaction: true,
-        useErrorDialogs: false,
-      ),
-    );
-
-    if (result && connection != null) {
-      connection!.output.add(Uint8List.fromList(utf8.encode("1#112C83")));
-      await connection!.output.allSent;
-      await connection!.close();
-
-      _removeBottomSheet();
+  void _readStorage() {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
     }
-  }
+    _storage.readAll().then((value) async {
+      if (value.isNotEmpty) {
+        final dbUser = await FirebaseDatabase.instance
+            .ref("users/${FirebaseAuth.instance.currentUser!.uid}")
+            .get();
+        final csiUser = CSIUser.fromDirectSnapshot(dbUser);
+        final validCredentials = await csiUser.compareCredentials(
+          value["CSIPRO-UNISONID"]!,
+          value["CSIPRO-CSIID"]!,
+          value["CSIPRO-PASSCODE"]!,
+        );
 
-  void _startDiscovering() {
-    discoverySub = btInstance.startDiscovery().listen((discovered) async {
-      if (discovered.device.name == "raspberrypi") {
-        print("Found device: ${discovered.device.toString()}");
-        _handleBluetoothConnection(discovered.device);
+        if (!validCredentials) {
+          _storage.deleteAll();
+        }
+
+        if (mounted) {
+          setState(() {
+            _hasStorage = validCredentials;
+            _isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _hasStorage = value.isNotEmpty;
+            _isLoading = false;
+          });
+        }
       }
     });
-
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return Container(
-          height: 250.0,
-          child: Column(
-            children: [
-              const Text("Connecting..."),
-              CircularProgressIndicator(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _removeBottomSheet() {
-    print("remove");
-    Navigator.of(context).pop();
   }
 
   @override
   void dispose() {
-    if (discoverySub != null) {
-      discoverySub!.cancel();
-    }
-
     super.dispose();
   }
 
@@ -118,7 +89,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text("Dashboard"),
       ),
-      drawer: const CSIDrawer(),
+      drawer: CSIDrawer(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -131,9 +102,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _startDiscovering,
+        onPressed: _isLoading
+            ? () {}
+            : _hasStorage
+                ? () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (ctx) => const PibleScreen(),
+                      ),
+                    )
+                : () async {
+                    await Navigator.of(context)
+                        .pushNamed(Routes.csiCredentials);
+                    _readStorage();
+                  },
         backgroundColor: Theme.of(context).colorScheme.primary,
-        child: const Icon(Icons.fingerprint, color: Colors.white),
+        child: _isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Icon(
+                _hasStorage ? Icons.fingerprint : Icons.warning,
+                color: Colors.white,
+              ),
       ),
     );
   }

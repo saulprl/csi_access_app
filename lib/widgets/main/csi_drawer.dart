@@ -1,7 +1,14 @@
+import "package:csi_door_logs/utils/routes.dart";
+import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
+import "package:flutter_secure_storage/flutter_secure_storage.dart";
+
 class CSIDrawer extends StatelessWidget {
-  const CSIDrawer({super.key});
+  final _auth = FirebaseAuth.instance;
+  final _storage = const FlutterSecureStorage();
+
+  CSIDrawer({super.key});
 
   Widget _buildTile(String title, IconData icon, VoidCallback tapHandler) {
     return ListTile(
@@ -27,18 +34,30 @@ class CSIDrawer extends StatelessWidget {
           _buildTile(
             "Dashboard",
             Icons.dashboard_outlined,
-            () => Navigator.of(context).pushReplacementNamed("/"),
+            () => Navigator.of(context).pushReplacementNamed(Routes.dashboard),
           ),
           _buildTile(
-            "Historial de acceso",
+            "Access Logs",
             Icons.list_alt,
-            () => Navigator.of(context).pushReplacementNamed("/access-logs"),
+            () => Navigator.of(context).pushReplacementNamed(Routes.accessLogs),
+          ),
+          _buildTile(
+            "CSI Credentials",
+            Icons.settings,
+            () => Navigator.of(context).pushNamed(
+              Routes.csiCredentials,
+              arguments: {"edit": true},
+            ),
           ),
           const Expanded(child: SizedBox()),
           _buildTile(
-            "Cerrar sesión",
+            "Sign out",
             Icons.logout,
-            () => print("Log out"),
+            () async {
+              await _storage.deleteAll();
+
+              await _auth.signOut();
+            },
           ),
         ],
       ),

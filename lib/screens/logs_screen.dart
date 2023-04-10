@@ -11,7 +11,7 @@ class LogsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Historial de acceso"),
       ),
-      drawer: const CSIDrawer(),
+      drawer: CSIDrawer(),
       body: const SafeArea(
         child: AccessList(),
       ),

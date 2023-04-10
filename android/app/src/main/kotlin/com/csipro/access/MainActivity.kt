@@ -1,4 +1,4 @@
-package com.csipro.access_logs
+package com.csipro.access
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

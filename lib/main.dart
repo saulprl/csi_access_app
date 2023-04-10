@@ -1,4 +1,5 @@
 import "package:csi_door_logs/utils/routes.dart";
+import "package:firebase_auth/firebase_auth.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
@@ -58,9 +59,22 @@ class MyApp extends StatelessWidget {
           fontFamily: "Poppins",
         ),
         debugShowCheckedModeBanner: false,
-        home: snapshot.connectionState == ConnectionState.waiting
-            ? const Center(child: CircularProgressIndicator())
-            : const DashboardScreen(),
+        home: snapshot.connectionState != ConnectionState.done
+            ? const SplashScreen()
+            : StreamBuilder(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (ctx, AsyncSnapshot<User?> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const SplashScreen();
+                  }
+
+                  if (snapshot.hasData) {
+                    return const DashboardScreen();
+                  }
+
+                  return const LoginScreen();
+                },
+              ),
         routes: Routes.getAppRoutes(),
       ),
     );

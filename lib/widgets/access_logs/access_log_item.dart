@@ -26,7 +26,7 @@ class AccessLogItem extends StatefulWidget {
 
 class _AccessLogItemState extends State<AccessLogItem> {
   final ref = FirebaseDatabase.instance.ref("users");
-  User? _user;
+  CSIUser? _user;
   late StreamSubscription<DatabaseEvent> updates;
 
   @override
@@ -54,7 +54,7 @@ class _AccessLogItemState extends State<AccessLogItem> {
 
   void setUser(DataSnapshot snapshot) {
     setState(() {
-      _user = User.fromSnapshot(snapshot);
+      _user = CSIUser.fromSnapshot(snapshot);
     });
   }
 
