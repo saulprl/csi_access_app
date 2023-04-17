@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.4.2+1
+version: 0.7.3+1
 
 environment:
   sdk: ">=2.19.2 <3.0.0"
@@ -65,7 +65,7 @@ dev_dependencies:
 flutter_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/Access_logo.png"
+  image_path: "assets/CSI_PRO_Access_icon.png"
 
 flutter_native_splash:
   color: "#7145D6"
@@ -89,11 +89,11 @@ flutter:
     - .env
     - assets/Access_logo.png
     - assets/Access_splash.png
+    - assets/CSI_PRO_Access_icon.png
     - assets/CSI_PRO_Access_Logotipo.png
     - assets/CSI_PRO_Access_Logotipo_inverted.png
     #  - assets/CSI_Access_Logs.png
     #  - assets/CSI_PRO_Access.png
-    #  - assets/CSI_PRO_Access_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
