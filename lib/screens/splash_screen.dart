@@ -12,7 +12,7 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset("assets/CSI_PRO_Access.png", height: 300.0),
+              Image.asset("assets/Access_splash.png", height: 300.0),
               const CircularProgressIndicator.adaptive(
                 backgroundColor: Colors.white,
               ),

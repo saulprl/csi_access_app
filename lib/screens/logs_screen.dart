@@ -1,6 +1,6 @@
-import "package:csi_door_logs/widgets/access_logs/access_list.dart";
-import "package:csi_door_logs/widgets/main/csi_drawer.dart";
 import "package:flutter/material.dart";
+
+import "package:csi_door_logs/widgets/access_logs/access_list.dart";
 
 class LogsScreen extends StatelessWidget {
   const LogsScreen({super.key});
@@ -9,9 +9,8 @@ class LogsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Historial de acceso"),
+        title: const Text("Access Logs"),
       ),
-      drawer: CSIDrawer(),
       body: const SafeArea(
         child: AccessList(),
       ),

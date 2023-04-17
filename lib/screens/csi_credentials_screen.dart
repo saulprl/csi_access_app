@@ -95,6 +95,10 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
       }
 
       await _storage.deleteAll();
+      await _storage.write(
+        key: "CSIPRO-ACCESS-FIREBASE-UID",
+        value: existingUser.key,
+      );
       await _storage.write(key: "CSIPRO-UNISONID", value: unisonId);
       await _storage.write(key: "CSIPRO-CSIID", value: csiId);
       await _storage.write(key: "CSIPRO-PASSCODE", value: csiPasscode);

@@ -3,6 +3,7 @@ import "package:firebase_auth/firebase_auth.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
 import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
+import "package:flutter_dotenv/flutter_dotenv.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 import "package:csi_door_logs/firebase_options.dart";
@@ -12,8 +13,9 @@ Future<void> _bgMessageHandler(RemoteMessage message) async {
   print("Incoming message: ${message.notification!.body}");
 }
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
   // FirebaseMessaging.onMessage.listen((message) {
   //   print(message.data);
@@ -43,8 +45,8 @@ class MyApp extends StatelessWidget {
     const lightScheme = ColorScheme.light(
       primary: Color(0xFF7145D6),
       secondary: Color(0xFFE91E63),
-      tertiary: Color(0xFF09814A),
-      error: Color(0xFFFCD80C),
+      tertiary: Color(0xFF0080FF),
+      error: Color(0xFFFF6F00),
       background: Colors.white,
       onPrimary: Colors.white,
       onBackground: Colors.black87,

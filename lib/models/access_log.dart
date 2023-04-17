@@ -7,14 +7,22 @@ class AccessLog {
   int? csiId;
   bool? accessed;
   int? timestamp;
+  bool? bluetooth;
   Attempt? attemptData;
 
-  AccessLog({this.csiId, this.accessed, this.timestamp, this.attemptData});
+  AccessLog({
+    this.csiId,
+    this.accessed,
+    this.bluetooth,
+    this.timestamp,
+    this.attemptData,
+  });
 
   AccessLog.fromSnapshot(DataSnapshot snapshot) {
     key = snapshot.key;
     csiId = (snapshot.value as Map)["csiId"];
     accessed = (snapshot.value as Map)["accessed"];
+    bluetooth = (snapshot.value as Map)["bluetooth"] ?? false;
     timestamp = (snapshot.value as Map)["timestamp"];
     attemptData = (snapshot.value as Map)["attemptData"] != null
         ? Attempt(
@@ -29,6 +37,7 @@ class AccessLog {
     this.key = key.toString();
     csiId = value["csiId"];
     accessed = value["accessed"];
+    bluetooth = value["bluetooth"] ?? false;
     timestamp = value["timestamp"];
     attemptData = value["attemptData"] != null
         ? Attempt(
@@ -43,6 +52,7 @@ class AccessLog {
 
     data["csiId"] = csiId;
     data["accessed"] = accessed;
+    data["bluetooth"] = bluetooth;
     data["timestamp"] = timestamp;
     data["attemptData"] = attemptData != null ? attemptData!.toJson() : null;
 

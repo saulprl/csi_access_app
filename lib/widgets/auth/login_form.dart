@@ -74,9 +74,14 @@ class _LoginFormState extends State<LoginForm> {
     final enteredPassword = _passCtrl.text;
 
     try {
-      await _auth.signInWithEmailAndPassword(
+      UserCredential user = await _auth.signInWithEmailAndPassword(
         email: enteredEmail,
         password: enteredPassword,
+      );
+
+      await _storage.write(
+        key: "CSIPRO-ACCESS-FIREBASE-UID",
+        value: user.user!.uid,
       );
     } on FirebaseAuthException catch (error) {
       var message = "An error occurred, please check your credentials!";

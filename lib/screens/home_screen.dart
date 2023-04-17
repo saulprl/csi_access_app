@@ -1,23 +1,12 @@
-import "dart:async";
-import "dart:convert";
-import "dart:io";
-import "dart:typed_data";
-
-import "package:csi_door_logs/models/models.dart";
-import "package:csi_door_logs/screens/screens.dart";
-import "package:csi_door_logs/utils/routes.dart";
-import "package:firebase_auth/firebase_auth.dart";
-import "package:firebase_database/firebase_database.dart";
 import "package:flutter/material.dart";
-import "package:flutter_blue_plus/flutter_blue_plus.dart";
-
-import "package:local_auth/local_auth.dart";
-
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
+
+import "package:csi_door_logs/screens/screens.dart";
 
 import "package:csi_door_logs/widgets/main/csi_drawer.dart";
 import "package:csi_door_logs/widgets/dashboard/summary/summary.dart";
-import "package:permission_handler/permission_handler.dart";
+
+import "package:csi_door_logs/utils/routes.dart";
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -47,30 +36,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     _storage.readAll().then((value) async {
       if (value.isNotEmpty) {
-        final dbUser = await FirebaseDatabase.instance
-            .ref("users/${FirebaseAuth.instance.currentUser!.uid}")
-            .get();
-        final csiUser = CSIUser.fromDirectSnapshot(dbUser);
-        final validCredentials = await csiUser.compareCredentials(
-          value["CSIPRO-UNISONID"]!,
-          value["CSIPRO-CSIID"]!,
-          value["CSIPRO-PASSCODE"]!,
-        );
-
-        if (!validCredentials) {
-          _storage.deleteAll();
-        }
-
         if (mounted) {
           setState(() {
-            _hasStorage = validCredentials;
+            _hasStorage = value.containsKey("CSIPRO-PASSCODE");
             _isLoading = false;
           });
         }
       } else {
         if (mounted) {
           setState(() {
-            _hasStorage = value.isNotEmpty;
+            _hasStorage = false;
             _isLoading = false;
           });
         }
@@ -91,14 +66,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       drawer: CSIDrawer(),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              Summary(),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            Summary(),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -118,10 +90,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : Icon(
-                _hasStorage ? Icons.fingerprint : Icons.warning,
-                color: Colors.white,
-              ),
+            : _hasStorage
+                ? Image.asset("assets/Access_logo.png")
+                : const Icon(
+                    Icons.error_rounded,
+                    size: 40.0,
+                    color: Colors.white,
+                  ),
       ),
     );
   }

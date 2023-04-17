@@ -141,6 +141,10 @@ class _SignupFormState extends State<SignupForm> {
       });
 
       await _storage.deleteAll();
+      await _storage.write(
+        key: "CSIPRO-ACCESS-FIREBASE-UID",
+        value: authenticatedUser.user!.uid,
+      );
       await _storage.write(key: "CSIPRO-UNISONID", value: unisonId);
       await _storage.write(key: "CSIPRO-CSIID", value: csiId);
       await _storage.write(key: "CSIPRO-PASSCODE", value: csiPasscode);

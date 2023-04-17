@@ -39,7 +39,7 @@ class CSIDrawer extends StatelessWidget {
           _buildTile(
             "Access Logs",
             Icons.list_alt,
-            () => Navigator.of(context).pushReplacementNamed(Routes.accessLogs),
+            () => Navigator.of(context).pushNamed(Routes.accessLogs),
           ),
           _buildTile(
             "CSI Credentials",
