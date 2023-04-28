@@ -84,12 +84,10 @@ class _PibleScreenState extends State<PibleScreen> {
     setState(() {
       pibleState = BTConnectionState.discovering;
     });
-    flutterBlue
-        .startScan(
+    flutterBlue.startScan(
       timeout: const Duration(seconds: 6),
-      // macAddresses: [pibleAddress!],
-    )
-        .then((_) {
+      macAddresses: [pibleAddress!],
+    ).then((_) {
       if (mounted) {
         if (pible == null) {
           setState(() {
@@ -101,7 +99,7 @@ class _PibleScreenState extends State<PibleScreen> {
 
     flutterBlue.scanResults.listen((results) {
       for (ScanResult r in results) {
-        if (r.device.name == "FedoraBLE") {
+        if (r.device.name == "PiBLE") {
           // print("Found PiBLE!");
           if (mounted) {
             setState(() {
@@ -127,7 +125,6 @@ class _PibleScreenState extends State<PibleScreen> {
         return;
       }
 
-      print("prior to connection");
       await pible!.connect(
         autoConnect: true,
         timeout: const Duration(seconds: 8),
@@ -152,7 +149,7 @@ class _PibleScreenState extends State<PibleScreen> {
                 await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ?? "";
             String passcode = await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
             int expiryDate = DateTime.now()
-                .subtract(const Duration(seconds: 30))
+                .add(const Duration(seconds: 30))
                 .millisecondsSinceEpoch;
             String concatenated = "$nonce:$uid:$passcode:$expiryDate";
             final cipher = AesCrypt(
