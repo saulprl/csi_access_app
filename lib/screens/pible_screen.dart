@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import "dart:math";
 import "dart:convert";
@@ -83,10 +84,12 @@ class _PibleScreenState extends State<PibleScreen> {
     setState(() {
       pibleState = BTConnectionState.discovering;
     });
-    flutterBlue.startScan(
+    flutterBlue
+        .startScan(
       timeout: const Duration(seconds: 6),
-      macAddresses: [pibleAddress!],
-    ).then((_) {
+      // macAddresses: [pibleAddress!],
+    )
+        .then((_) {
       if (mounted) {
         if (pible == null) {
           setState(() {
@@ -98,7 +101,7 @@ class _PibleScreenState extends State<PibleScreen> {
 
     flutterBlue.scanResults.listen((results) {
       for (ScanResult r in results) {
-        if (r.device.name == "PiBLE") {
+        if (r.device.name == "FedoraBLE") {
           // print("Found PiBLE!");
           if (mounted) {
             setState(() {
@@ -115,62 +118,87 @@ class _PibleScreenState extends State<PibleScreen> {
   }
 
   Future<void> handleConnection() async {
-    if (pible == null) {
-      setState(() {
-        pibleState = BTConnectionState.done;
-      });
-
-      return;
-    }
-
-    await pible!.connect(autoConnect: false);
-    List<BluetoothService> services = await pible!.discoverServices();
-    for (final svc in services) {
-      // print(svc.uuid);
-      if (svc.uuid.toString() == serviceUuid) {
-        // print("Found the service!");
-
-        final auth = await handleAuthentication();
+    try {
+      if (pible == null) {
         setState(() {
-          pibleState = BTConnectionState.authenticating;
+          pibleState = BTConnectionState.done;
         });
 
-        if (auth) {
-          String nonce = generateNonce();
-          String uid =
-              await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ?? "";
-          String passcode = await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
-          String concatenated = "$nonce:$uid:$passcode";
-          final cipher = AesCrypt(
-            padding: PaddingAES.pkcs7,
-            key: base64.encode(encryptionString!.codeUnits),
-          );
+        return;
+      }
 
-          final encryptedString = base64.encode(cipher.cbc
-              .encrypt(
-                inp: concatenated,
-                iv: base64.encode(ivValue!.codeUnits),
-              )
-              .codeUnits);
+      print("prior to connection");
+      await pible!.connect(
+        autoConnect: true,
+        timeout: const Duration(seconds: 8),
+      );
 
-          final tokenCharacteristic = svc.characteristics.firstWhere(
-            (cha) => cha.uuid.toString() == tokenCharacteristicUuid,
-          );
+      List<BluetoothService> services = await pible!.discoverServices();
+      bool foundService = false;
+      for (final svc in services) {
+        // print(svc.uuid);
+        if (svc.uuid.toString() == serviceUuid) {
+          // print("Found the service!");
+          foundService = true;
 
-          await tokenCharacteristic.write(encryptedString.codeUnits);
-        } else {
-          popBack();
+          final auth = await handleAuthentication();
+          setState(() {
+            pibleState = BTConnectionState.authenticating;
+          });
+
+          if (auth) {
+            String nonce = generateNonce();
+            String uid =
+                await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ?? "";
+            String passcode = await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
+            int expiryDate = DateTime.now()
+                .subtract(const Duration(seconds: 30))
+                .millisecondsSinceEpoch;
+            String concatenated = "$nonce:$uid:$passcode:$expiryDate";
+            final cipher = AesCrypt(
+              padding: PaddingAES.pkcs7,
+              key: base64.encode(encryptionString!.codeUnits),
+            );
+
+            final encryptedString = base64.encode(cipher.cbc
+                .encrypt(
+                  inp: concatenated,
+                  iv: base64.encode(ivValue!.codeUnits),
+                )
+                .codeUnits);
+
+            final tokenCharacteristic = svc.characteristics.firstWhere(
+              (cha) => cha.uuid.toString() == tokenCharacteristicUuid,
+            );
+
+            await tokenCharacteristic.write(encryptedString.codeUnits);
+          } else {
+            popBack();
+          }
         }
       }
-    }
 
-    await pible!.disconnect();
-    if (mounted) {
+      await pible!.disconnect();
+      if (mounted) {
+        if (foundService) {
+          setState(() {
+            pibleState = BTConnectionState.done;
+          });
+          Future.delayed(const Duration(seconds: 3), () => popBack());
+        } else {
+          setState(() {
+            pibleState = BTConnectionState.failed;
+          });
+        }
+      }
+    } on TimeoutException catch (error) {
+      print(error.toString());
       setState(() {
-        pibleState = BTConnectionState.done;
+        pibleState = BTConnectionState.failed;
       });
+    } catch (error) {
+      print(error.toString());
     }
-    Future.delayed(const Duration(seconds: 3), () => popBack());
   }
 
   Future<bool> handleAuthentication() async {
@@ -374,6 +402,50 @@ class _PibleScreenState extends State<PibleScreen> {
                       RichText(
                         text: TextSpan(
                           text: "Unable to find ",
+                          style: const TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.black54,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: "PiBLE",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          padding: const MaterialStatePropertyAll(
+                            EdgeInsets.all(12.0),
+                          ),
+                          shape: MaterialStatePropertyAll(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        ),
+                        onPressed: discoverDevices,
+                        child: const Text(
+                          "Retry",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                if (pibleState == BTConnectionState.failed)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          text: "Unable to connect to ",
                           style: const TextStyle(
                             fontSize: 20.0,
                             color: Colors.black54,
