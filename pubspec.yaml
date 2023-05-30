@@ -66,6 +66,8 @@ flutter_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/CSI_PRO_Access_icon.png"
+  adaptive_icon_background: "#7145D6"
+  adaptive_icon_foreground: "assets/CSI_PRO_Access_icon.png"
 
 flutter_native_splash:
   color: "#7145D6"
