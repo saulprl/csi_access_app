@@ -1,3 +1,4 @@
+import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:flutter/material.dart";
 
 import "package:csi_door_logs/widgets/access_logs/access_list.dart";
@@ -8,9 +9,7 @@ class LogsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Access Logs"),
-      ),
+      appBar: CSIAppBar("Access Logs"),
       body: const SafeArea(
         child: AccessList(),
       ),

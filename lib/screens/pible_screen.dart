@@ -3,6 +3,7 @@ import 'dart:io';
 import "dart:math";
 import "dart:convert";
 
+import 'package:csi_door_logs/widgets/main/csi_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:local_auth/local_auth.dart";
@@ -99,7 +100,8 @@ class _PibleScreenState extends State<PibleScreen> {
 
     flutterBlue.scanResults.listen((results) {
       for (ScanResult r in results) {
-        if (r.device.name == "PiBLE") {
+        print("Advertisement data: ${r.advertisementData.localName}");
+        if (r.advertisementData.localName == "PiBLE") {
           // print("Found PiBLE!");
           if (mounted) {
             setState(() {
@@ -238,9 +240,7 @@ class _PibleScreenState extends State<PibleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("PiBLE"),
-      ),
+      appBar: CSIAppBar("PiBLE"),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),

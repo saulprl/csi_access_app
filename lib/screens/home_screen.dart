@@ -1,3 +1,5 @@
+import "package:csi_door_logs/widgets/dashboard/personal/personal_summary.dart";
+import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:flutter/material.dart";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
@@ -61,16 +63,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Dashboard"),
-      ),
+      appBar: CSIAppBar("Dashboard"),
       drawer: CSIDrawer(),
       body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
-            Summary(),
-          ],
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding:
+              const EdgeInsets.all(8.0) + const EdgeInsets.only(bottom: 80.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: const [
+              Summary(),
+              PersonalSummary(),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(

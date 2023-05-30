@@ -10,14 +10,22 @@ class CSIDrawer extends StatelessWidget {
 
   CSIDrawer({super.key});
 
-  Widget _buildTile(String title, IconData icon, VoidCallback tapHandler) {
+  Widget _buildTile(
+    BuildContext ctx,
+    String title,
+    IconData icon,
+    VoidCallback tapHandler,
+  ) {
     return ListTile(
       leading: Icon(icon, size: 24.0, color: Colors.black87),
       title: Text(
         title,
         style: const TextStyle(fontSize: 20.0),
       ),
-      onTap: tapHandler,
+      onTap: () {
+        Navigator.of(ctx).pop();
+        tapHandler();
+      },
     );
   }
 
@@ -32,16 +40,19 @@ class CSIDrawer extends StatelessWidget {
           ),
           const SizedBox(height: 8.0),
           _buildTile(
+            context,
             "Dashboard",
             Icons.dashboard_outlined,
             () => Navigator.of(context).pushReplacementNamed(Routes.dashboard),
           ),
           _buildTile(
+            context,
             "Access Logs",
             Icons.list_alt,
             () => Navigator.of(context).pushNamed(Routes.accessLogs),
           ),
           _buildTile(
+            context,
             "CSI Credentials",
             Icons.settings,
             () => Navigator.of(context).pushNamed(
@@ -51,6 +62,7 @@ class CSIDrawer extends StatelessWidget {
           ),
           const Expanded(child: SizedBox()),
           _buildTile(
+            context,
             "Sign out",
             Icons.logout,
             () async {

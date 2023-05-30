@@ -14,6 +14,7 @@ class Summary extends StatefulWidget {
 }
 
 class _SummaryState extends State<Summary> {
+  final skeletonHeight = 145.0;
   late Query query;
 
   @override
@@ -58,245 +59,170 @@ class _SummaryState extends State<Summary> {
             }
           }
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 8.0,
-                right: 8.0,
-                bottom: 16.0,
-                left: 8.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Bubble(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32.0,
-                              vertical: 16.0,
-                            ),
-                            borderRadius: BorderRadius.circular(32.0),
-                            color: Theme.of(context).colorScheme.primary,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  accessCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 56.0,
-                                  ),
-                                ),
-                                const Text(
-                                  'successful attempts',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Bubble(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32.0,
+                          vertical: 16.0,
                         ),
+                        borderRadius: BorderRadius.circular(32.0),
+                        color: Theme.of(context).colorScheme.primary,
+                        data: accessCount,
+                        label: 'successful attempts',
+                        crossAlignment: CrossAxisAlignment.end,
+                        reversed: true,
+                        textAlign: TextAlign.end,
                       ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Bubble(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32.0,
-                              vertical: 16.0,
-                            ),
-                            borderRadius: BorderRadius.circular(32.0),
-                            color: Theme.of(context).colorScheme.tertiary,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  bluetoothCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 56.0,
-                                  ),
-                                ),
-                                const Text(
-                                  'bluetooth attempts',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20.0,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: Bubble(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(32.0),
-                              topRight: Radius.circular(12.0),
-                              bottomRight: Radius.circular(32.0),
-                              bottomLeft: Radius.circular(12.0),
-                            ),
-                            color: Theme.of(context).colorScheme.secondary,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  failedCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 52.0,
-                                  ),
-                                ),
-                                const Text(
-                                  'failed\nattempts',
-                                  textAlign: TextAlign.end,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20.0,
-                                    overflow: TextOverflow.clip,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                            left: 4.0,
-                            top: 4.0,
-                            right: 4.0,
-                            bottom: 4.0,
-                          ),
-                          child: Bubble(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12.0),
-                              topRight: Radius.circular(32.0),
-                              bottomRight: Radius.circular(12.0),
-                              bottomLeft: Radius.circular(32.0),
-                            ),
-                            color: Theme.of(context).colorScheme.error,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  unknownCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 52.0,
-                                  ),
-                                ),
-                                const Text(
-                                  'unknown\nattempts',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20.0,
-                                    overflow: TextOverflow.clip,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Bubble(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32.0,
+                          vertical: 16.0,
+                        ),
+                        borderRadius: BorderRadius.circular(32.0),
+                        color: Theme.of(context).colorScheme.tertiary,
+                        data: bluetoothCount,
+                        label: 'bluetooth attempts',
+                        crossAlignment: CrossAxisAlignment.start,
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Bubble(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32.0),
+                          topRight: Radius.circular(12.0),
+                          bottomRight: Radius.circular(32.0),
+                          bottomLeft: Radius.circular(12.0),
+                        ),
+                        color: Theme.of(context).colorScheme.secondary,
+                        data: failedCount,
+                        label: 'failed attempts',
+                        crossAlignment: CrossAxisAlignment.start,
+                        reversed: true,
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        left: 4.0,
+                        top: 4.0,
+                        right: 4.0,
+                        bottom: 4.0,
+                      ),
+                      child: Bubble(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12.0),
+                          topRight: Radius.circular(32.0),
+                          bottomRight: Radius.circular(12.0),
+                          bottomLeft: Radius.circular(32.0),
+                        ),
+                        color: Theme.of(context).colorScheme.error,
+                        data: unknownCount,
+                        reversed: true,
+                        label: 'unknown attempts',
+                        crossAlignment: CrossAxisAlignment.end,
+                        textAlign: TextAlign.end,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           );
         }
 
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Skeleton(
-                          height: 150.0,
-                          borderRadius: BorderRadius.circular(32.0),
+        return SizedBox(
+          width: double.infinity,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Skeleton(
+                        height: skeletonHeight,
+                        borderRadius: BorderRadius.circular(32.0),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Skeleton(
+                        height: skeletonHeight,
+                        borderRadius: BorderRadius.circular(32.0),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Skeleton(
+                        height: skeletonHeight * 1.2,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32.0),
+                          topRight: Radius.circular(12.0),
+                          bottomRight: Radius.circular(32.0),
+                          bottomLeft: Radius.circular(12.0),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Skeleton(
-                          height: 150.0,
-                          borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Skeleton(
+                        height: skeletonHeight * 1.2,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12.0),
+                          topRight: Radius.circular(32.0),
+                          bottomRight: Radius.circular(12.0),
+                          bottomLeft: Radius.circular(32.0),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Skeleton(
-                          height: 150.0,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(32.0),
-                            topRight: Radius.circular(12.0),
-                            bottomRight: Radius.circular(32.0),
-                            bottomLeft: Radius.circular(12.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Skeleton(
-                          height: 150.0,
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(12.0),
-                            topRight: Radius.circular(32.0),
-                            bottomRight: Radius.circular(12.0),
-                            bottomLeft: Radius.circular(32.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },

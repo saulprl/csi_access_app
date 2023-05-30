@@ -1,5 +1,6 @@
 import "package:csi_door_logs/models/models.dart";
 import "package:csi_door_logs/utils/styles.dart";
+import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:firebase_database/firebase_database.dart";
 import "package:flutter/material.dart";
 
@@ -177,10 +178,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("CSI Credentials"),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
+      appBar: CSIAppBar("CSI Credentials"),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

@@ -30,8 +30,7 @@ class CSIUser {
     passcode = (snapshot.value as Map)[actualKey]["passcode"];
   }
 
-  CSIUser.fromDirectSnapshot(DataSnapshot snapshot) {
-    key = (snapshot.value as Map)["unisonId"];
+  CSIUser.fromDirectSnapshot(DataSnapshot snapshot, String this.key) {
     csiId = (snapshot.value as Map)["csiId"];
     name = (snapshot.value as Map)["name"];
     unisonId = (snapshot.value as Map)["unisonId"];
