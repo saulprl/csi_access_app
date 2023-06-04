@@ -5,6 +5,7 @@ import "dart:convert";
 
 import 'package:csi_door_logs/widgets/main/csi_appbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:local_auth/local_auth.dart";
 import 'package:permission_handler/permission_handler.dart';
@@ -88,29 +89,31 @@ class _PibleScreenState extends State<PibleScreen> {
     flutterBlue.startScan(
       timeout: const Duration(seconds: 6),
       macAddresses: [pibleAddress!],
-    ).then((_) {
-      if (mounted) {
-        if (pible == null) {
-          setState(() {
-            pibleState = BTConnectionState.done;
-          });
-        }
-      }
-    });
+    );
 
     flutterBlue.scanResults.listen((results) {
       for (ScanResult r in results) {
-        print("Advertisement data: ${r.advertisementData.localName}");
-        if (r.advertisementData.localName == "PiBLE") {
+        print("Advertisement data: ${r.advertisementData}");
+        if (r.advertisementData.localName == "PiBLE" &&
+            r.advertisementData.connectable) {
           // print("Found PiBLE!");
           if (mounted) {
             setState(() {
               pible = r.device;
               pibleState = BTConnectionState.connecting;
             });
-
             flutterBlue.stopScan();
-            handleConnection();
+
+            pible!.connect(
+              autoConnect: true,
+              timeout: const Duration(seconds: 8),
+            );
+
+            pible!.state.listen((event) async {
+              if (event == BluetoothDeviceState.connected) {
+                await handleConnection();
+              }
+            });
           }
         }
       }
@@ -121,16 +124,11 @@ class _PibleScreenState extends State<PibleScreen> {
     try {
       if (pible == null) {
         setState(() {
-          pibleState = BTConnectionState.done;
+          pibleState = BTConnectionState.failed;
         });
 
         return;
       }
-
-      await pible!.connect(
-        autoConnect: true,
-        timeout: const Duration(seconds: 8),
-      );
 
       List<BluetoothService> services = await pible!.discoverServices();
       bool foundService = false;
@@ -190,6 +188,11 @@ class _PibleScreenState extends State<PibleScreen> {
           });
         }
       }
+    } on PlatformException catch (error) {
+      print(error.toString());
+      setState(() {
+        pibleState = BTConnectionState.failed;
+      });
     } on TimeoutException catch (error) {
       print(error.toString());
       setState(() {

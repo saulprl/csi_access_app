@@ -1,10 +1,13 @@
 import "package:flutter/material.dart";
+
 import 'package:firebase_database/firebase_database.dart';
+
 import 'package:skeleton_animation/skeleton_animation.dart';
 
 import 'package:csi_door_logs/widgets/dashboard/summary/bubble.dart';
 
 import 'package:csi_door_logs/models/access_log.dart';
+import 'package:csi_door_logs/utils/enums.dart';
 
 class Summary extends StatefulWidget {
   const Summary({super.key});
@@ -16,6 +19,7 @@ class Summary extends StatefulWidget {
 class _SummaryState extends State<Summary> {
   final skeletonHeight = 145.0;
   late Query query;
+  EncryptionState encryptionState = EncryptionState.encrypting;
 
   @override
   void initState() {
