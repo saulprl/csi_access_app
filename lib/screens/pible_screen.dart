@@ -6,6 +6,7 @@ import "dart:convert";
 import 'package:csi_door_logs/widgets/main/csi_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import "package:local_auth/local_auth.dart";
 import 'package:permission_handler/permission_handler.dart';
@@ -130,64 +131,82 @@ class _PibleScreenState extends State<PibleScreen> {
         return;
       }
 
-      List<BluetoothService> services = await pible!.discoverServices();
-      bool foundService = false;
-      for (final svc in services) {
-        // print(svc.uuid);
-        if (svc.uuid.toString() == serviceUuid) {
-          // print("Found the service!");
-          foundService = true;
+      try {
+        await pible!.connect(
+          autoConnect: true,
+          timeout: const Duration(seconds: 8),
+        );
+      } on PlatformException catch (error) {
+        print(error);
+        await flutterBlue.stopScan();
+        await discoverDevices();
+      }
 
-          final auth = await handleAuthentication();
-          setState(() {
-            pibleState = BTConnectionState.authenticating;
-          });
+      pible!.state.listen((event) async {
+        if (pible != null && event == BluetoothDeviceState.connected) {
+          List<BluetoothService> services = await pible!.discoverServices();
+          bool foundService = false;
+          for (final svc in services) {
+            // print(svc.uuid);
+            if (svc.uuid.toString() == serviceUuid) {
+              // print("Found the service!");
+              foundService = true;
 
-          if (auth) {
-            String nonce = generateNonce();
-            String uid =
-                await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ?? "";
-            String passcode = await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
-            int expiryDate = DateTime.now()
-                .add(const Duration(seconds: 30))
-                .millisecondsSinceEpoch;
-            String concatenated = "$nonce:$uid:$passcode:$expiryDate";
-            final cipher = AesCrypt(
-              padding: PaddingAES.pkcs7,
-              key: base64.encode(encryptionString!.codeUnits),
-            );
+              final auth = await handleAuthentication();
+              setState(() {
+                pibleState = BTConnectionState.authenticating;
+              });
 
-            final encryptedString = base64.encode(cipher.cbc
-                .encrypt(
-                  inp: concatenated,
-                  iv: base64.encode(ivValue!.codeUnits),
-                )
-                .codeUnits);
+              if (auth) {
+                String nonce = generateNonce();
+                String uid =
+                    await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ??
+                        "";
+                String passcode =
+                    await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
+                int expiryDate = DateTime.now()
+                    .add(const Duration(seconds: 30))
+                    .millisecondsSinceEpoch;
+                String concatenated = "$nonce:$uid:$passcode:$expiryDate";
+                final cipher = AesCrypt(
+                  padding: PaddingAES.pkcs7,
+                  key: base64.encode(encryptionString!.codeUnits),
+                );
 
-            final tokenCharacteristic = svc.characteristics.firstWhere(
-              (cha) => cha.uuid.toString() == tokenCharacteristicUuid,
-            );
+                final encryptedString = base64.encode(cipher.cbc
+                    .encrypt(
+                      inp: concatenated,
+                      iv: base64.encode(ivValue!.codeUnits),
+                    )
+                    .codeUnits);
 
-            await tokenCharacteristic.write(encryptedString.codeUnits);
-          } else {
-            popBack();
+                final tokenCharacteristic = svc.characteristics.firstWhere(
+                  (cha) => cha.uuid.toString() == tokenCharacteristicUuid,
+                );
+
+                await tokenCharacteristic.write(encryptedString.codeUnits);
+              } else {
+                popBack();
+              }
+            }
+          }
+
+          await pible!.disconnect();
+          pible = null;
+          if (mounted) {
+            if (foundService) {
+              setState(() {
+                pibleState = BTConnectionState.done;
+              });
+              Future.delayed(const Duration(seconds: 3), () => popBack());
+            } else {
+              setState(() {
+                pibleState = BTConnectionState.failed;
+              });
+            }
           }
         }
-      }
-
-      await pible!.disconnect();
-      if (mounted) {
-        if (foundService) {
-          setState(() {
-            pibleState = BTConnectionState.done;
-          });
-          Future.delayed(const Duration(seconds: 3), () => popBack());
-        } else {
-          setState(() {
-            pibleState = BTConnectionState.failed;
-          });
-        }
-      }
+      });
     } on PlatformException catch (error) {
       print(error.toString());
       setState(() {
@@ -200,6 +219,7 @@ class _PibleScreenState extends State<PibleScreen> {
       });
     } catch (error) {
       print(error.toString());
+      print(error.hashCode);
     }
   }
 
@@ -216,9 +236,9 @@ class _PibleScreenState extends State<PibleScreen> {
     final authenticated = await localAuth.authenticate(
       localizedReason: "PiBLE requires authentication in order to continue.",
       options: const AuthenticationOptions(
-        biometricOnly: false,
+        biometricOnly: true,
         stickyAuth: true,
-        sensitiveTransaction: false,
+        sensitiveTransaction: true,
         useErrorDialogs: true,
       ),
     );
