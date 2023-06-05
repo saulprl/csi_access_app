@@ -68,7 +68,7 @@ class CSIDrawer extends StatelessWidget {
             logoutIcon,
             () async {
               await _storage.deleteAll();
-
+      
               await _auth.signOut();
             },
           ),

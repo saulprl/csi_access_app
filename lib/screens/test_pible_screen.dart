@@ -4,6 +4,7 @@ import "dart:io";
 import "dart:math";
 
 import "package:csi_door_logs/utils/enums.dart";
+import "package:csi_door_logs/utils/routes.dart";
 import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:csi_door_logs/widgets/pible/index.dart";
 import "package:flutter/material.dart";
@@ -57,12 +58,12 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
         (state) => setState(() => isScanning = state),
       );
 
-      flutterBlue.connectedDevices.then((devices) {
-        if (mounted) {
-          debugPrint("Found connected devices: $devices");
-          devices.firstWhere((device) => device.name == "PiBLE").disconnect();
-        }
-      });
+      // flutterBlue.connectedDevices.then((devices) {
+      //   if (mounted) {
+      //     debugPrint("Found connected devices: $devices");
+      //     devices.firstWhere((device) => device.name == "PiBLE").disconnect();
+      //   }
+      // });
       // const duration = Duration(seconds: 4);
       // Future.delayed(
       //   duration,
@@ -112,7 +113,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
 
   void popBack() {
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacementNamed(Routes.dashboard);
     }
   }
 
@@ -148,21 +149,21 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
       macAddresses: [pibleAddress!],
     );
 
-    scanResultsSub = flutterBlue.scanResults.listen((result) {
+    scanResultsSub = flutterBlue.scanResults.skip(1).listen((result) {
       for (ScanResult scanResult in result) {
-        debugPrint("Advertisement data: ${scanResult.advertisementData}");
+        // debugPrint("Advertisement data: ${scanResult.advertisementData}");
         if (scanResult.advertisementData.localName == "PiBLE" &&
             scanResult.advertisementData.connectable) {
           if (mounted) {
             flutterBlue.stopScan();
 
-            try {
-              pible = scanResult.device;
-              pible!.connect(
-                autoConnect: true,
-                timeout: const Duration(seconds: 8),
-              );
+            pible = scanResult.device;
+            pible!.connect(
+              autoConnect: true,
+              timeout: const Duration(seconds: 8),
+            );
 
+            try {
               deviceStateSub = pible!.state.listen(
                 (state) {
                   if (mounted) {
@@ -222,6 +223,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
       setState(() => servicesState = BTServiceState.failed);
     } catch (error) {
       debugPrint(error.toString());
+      rethrow;
     }
   }
 
@@ -233,7 +235,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
     final authenticated = await localAuth.authenticate(
       localizedReason: "PiBLE requires authentication in order to continue.",
       options: AuthenticationOptions(
-        biometricOnly: isBiometricSupported,
+        biometricOnly: false,
         stickyAuth: true,
       ),
     );
@@ -280,8 +282,8 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
 
     if (deviceState != BluetoothDeviceState.disconnected && pible != null) {
       pible!.disconnect();
-      pible = null;
     }
+    pible = null;
 
     super.dispose();
   }
