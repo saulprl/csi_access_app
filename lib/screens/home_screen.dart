@@ -1,12 +1,12 @@
-import "package:csi_door_logs/widgets/dashboard/personal/personal_summary.dart";
-import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:flutter/material.dart";
+
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 
-import "package:csi_door_logs/widgets/main/csi_drawer.dart";
+import "package:csi_door_logs/widgets/dashboard/personal/personal_summary.dart";
 import "package:csi_door_logs/widgets/dashboard/summary/summary.dart";
+import "package:csi_door_logs/widgets/main/index.dart";
 
 import "package:csi_door_logs/utils/routes.dart";
 
@@ -95,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: _isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
+            ? const AdaptiveSpinner(color: Colors.white)
             : _hasStorage
                 ? Image.asset("assets/Access_logo.png")
                 : const Icon(

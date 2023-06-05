@@ -8,10 +8,10 @@ class PibleBubble extends StatefulWidget {
   final BorderRadiusGeometry? borderRadius;
   final BoxShape? shape;
   final VoidCallback? onTap;
-  final Widget child;
+  final List<Widget> children;
 
   const PibleBubble({
-    required this.child,
+    required this.children,
     required this.backgroundColor,
     this.backgroundIcon,
     this.onTap,
@@ -58,17 +58,7 @@ class _PibleBubbleState extends State<PibleBubble> {
               ),
               child: Stack(
                 alignment: Alignment.center,
-                children: [
-                  Opacity(
-                    opacity: 0.24,
-                    child: Icon(
-                      widget.backgroundIcon,
-                      color: Colors.white,
-                      size: 40.0,
-                    ),
-                  ),
-                  widget.child,
-                ],
+                children: widget.children,
               ),
             ),
           ),

@@ -1,15 +1,20 @@
-import "package:csi_door_logs/utils/styles.dart";
-import "package:csi_door_logs/widgets/pible/pible_bubble.dart";
 import "package:flutter/material.dart";
 
 import "package:flutter_blue_plus/flutter_blue_plus.dart";
 
+import "package:csi_door_logs/widgets/animations/index.dart";
+import "package:csi_door_logs/widgets/main/index.dart";
+import "package:csi_door_logs/widgets/pible/pible_bubble.dart";
+
+import "package:csi_door_logs/utils/styles.dart";
+
 class DeviceBubble extends StatelessWidget {
   final BluetoothDeviceState state;
+  final VoidCallback? onTap;
   final double iconSize = 30.0;
   final Color iconColor = Colors.white;
 
-  const DeviceBubble({required this.state, super.key});
+  const DeviceBubble({required this.state, this.onTap, super.key});
 
   Color generateColor(BuildContext context) {
     switch (state) {
@@ -24,7 +29,7 @@ class DeviceBubble extends StatelessWidget {
     }
   }
 
-  String generateText() {
+  String get generateText {
     switch (state) {
       case BluetoothDeviceState.connected:
         return "Connected to PiBLE";
@@ -37,7 +42,7 @@ class DeviceBubble extends StatelessWidget {
     }
   }
 
-  Widget generateTrailingWidget() {
+  Widget get generateTrailingWidget {
     switch (state) {
       case BluetoothDeviceState.connected:
         return doneIcon;
@@ -45,25 +50,34 @@ class DeviceBubble extends StatelessWidget {
         return failedIcon;
       case BluetoothDeviceState.connecting:
       case BluetoothDeviceState.disconnecting:
-        return const CircularProgressIndicator.adaptive(
-          backgroundColor: lightGray,
-          valueColor: AlwaysStoppedAnimation(Colors.white),
-        );
+        return const AdaptiveSpinner();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final statusText = generateText;
+
     return PibleBubble(
       backgroundColor: generateColor(context),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(generateText(), style: pibleBubbleTextStyle),
-          generateTrailingWidget(),
-        ],
-      ),
+      onTap: onTap,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: CustomSwitcher(child: generateTrailingWidget),
+        ),
+        CustomSwitcher(
+          transitionBuilder: (child, animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: Text(
+            statusText,
+            key: ValueKey("Device $statusText"),
+            style: pibleBubbleTextStyle,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }

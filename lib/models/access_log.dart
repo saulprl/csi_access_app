@@ -64,9 +64,9 @@ class AccessLog {
   static List<AccessLog> fromStreamSnapshot(DataSnapshot snapshot) {
     final List<AccessLog> accessLogs = [];
 
-    snapshot.children.forEach((log) {
+    for (final log in snapshot.children) {
       accessLogs.add(AccessLog.fromSnapshot(log));
-    });
+    }
 
     return accessLogs;
   }

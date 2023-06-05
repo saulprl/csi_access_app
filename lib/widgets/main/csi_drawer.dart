@@ -1,4 +1,5 @@
 import "package:csi_door_logs/utils/routes.dart";
+import "package:csi_door_logs/utils/utils.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
@@ -42,19 +43,19 @@ class CSIDrawer extends StatelessWidget {
           _buildTile(
             context,
             "Dashboard",
-            Icons.dashboard_outlined,
+            dashboardIcon,
             () => Navigator.of(context).pushReplacementNamed(Routes.dashboard),
           ),
           _buildTile(
             context,
             "Access Logs",
-            Icons.list_alt,
+            listIcon,
             () => Navigator.of(context).pushNamed(Routes.accessLogs),
           ),
           _buildTile(
             context,
             "CSI Credentials",
-            Icons.settings,
+            settingsIcon,
             () => Navigator.of(context).pushNamed(
               Routes.csiCredentials,
               arguments: {"edit": true},
@@ -64,7 +65,7 @@ class CSIDrawer extends StatelessWidget {
           _buildTile(
             context,
             "Sign out",
-            Icons.logout,
+            logoutIcon,
             () async {
               await _storage.deleteAll();
 

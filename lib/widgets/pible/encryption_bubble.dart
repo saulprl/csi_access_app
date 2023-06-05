@@ -1,5 +1,8 @@
-import "package:csi_door_logs/widgets/pible/pible_bubble.dart";
 import "package:flutter/material.dart";
+
+import "package:csi_door_logs/widgets/animations/index.dart";
+import "package:csi_door_logs/widgets/main/index.dart";
+import "package:csi_door_logs/widgets/pible/pible_bubble.dart";
 
 import "package:csi_door_logs/utils/enums.dart";
 import "package:csi_door_logs/utils/styles.dart";
@@ -18,13 +21,13 @@ class EncryptionBubble extends StatelessWidget {
       case EncryptionState.encrypting:
         return orange;
       case EncryptionState.done:
-        return Theme.of(context).colorScheme.primary;
+        return Theme.of(context).colorScheme.tertiary;
       case EncryptionState.failed:
         return deepGray;
     }
   }
 
-  String generateText() {
+  String get generateText {
     switch (state) {
       case EncryptionState.waiting:
         return "Waiting for auth...";
@@ -37,22 +40,18 @@ class EncryptionBubble extends StatelessWidget {
     }
   }
 
-  Widget generateTrailingWidget() {
+  Widget get generateTrailingWidget {
     switch (state) {
-      case EncryptionState.waiting:
-      case EncryptionState.encrypting:
-        return const CircularProgressIndicator.adaptive(
-          backgroundColor: lightGray,
-          valueColor: AlwaysStoppedAnimation(Colors.white),
-        );
       case EncryptionState.done:
         return doneIcon;
       case EncryptionState.failed:
         return failedIcon;
+      default:
+        return const AdaptiveSpinner();
     }
   }
 
-  Widget generateChild(bool isEncrypted) {
+  Widget get generateChild {
     switch (state) {
       case EncryptionState.done:
         return SingleChildScrollView(
@@ -75,13 +74,10 @@ class EncryptionBubble extends StatelessWidget {
           ),
         );
       default:
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(generateText(), style: pibleBubbleTextStyle),
-            if (!isEncrypted) generateTrailingWidget(),
-          ],
+        return Text(
+          generateText,
+          style: pibleBubbleTextStyle,
+          textAlign: TextAlign.center,
         );
     }
   }
@@ -97,7 +93,21 @@ class EncryptionBubble extends StatelessWidget {
       backgroundColor: generateColor(context),
       height: height,
       borderRadius: borderRadius,
-      child: generateChild(isEncrypted),
+      children: [
+        AnimatedAlign(
+          curve: Curves.easeInOut,
+          duration: const Duration(milliseconds: 400),
+          alignment:
+              isEncrypted ? Alignment.bottomCenter : Alignment.centerRight,
+          child: generateTrailingWidget,
+        ),
+        CustomSwitcher(
+          transitionBuilder: (child, animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: generateChild,
+        ),
+      ],
     );
   }
 }

@@ -1,10 +1,17 @@
-import 'package:csi_door_logs/models/models.dart';
-import 'package:csi_door_logs/utils/styles.dart';
-import 'package:email_validator/email_validator.dart';
+import 'package:flutter/material.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:flutter/material.dart';
+
+import 'package:email_validator/email_validator.dart';
+
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
+
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
+
+import 'package:csi_door_logs/models/models.dart';
+
+import 'package:csi_door_logs/utils/styles.dart';
 
 class SignupForm extends StatefulWidget {
   const SignupForm({super.key});
@@ -200,7 +207,7 @@ class _SignupFormState extends State<SignupForm> {
               TextFormField(
                 controller: emailCtrl,
                 decoration: mainInputDecoration.copyWith(
-                  prefixIcon: const Icon(Icons.email),
+                  prefixIcon: Icon(emailIcon),
                   label: const Text("Email address"),
                 ),
                 autocorrect: false,
@@ -224,7 +231,7 @@ class _SignupFormState extends State<SignupForm> {
               TextFormField(
                 controller: passwordCtrl,
                 decoration: mainInputDecoration.copyWith(
-                  prefixIcon: const Icon(Icons.lock),
+                  prefixIcon: Icon(passwordIcon),
                   label: const Text("Password"),
                   suffixIcon: IconButton(
                     icon: Icon(_showPassword
@@ -252,7 +259,7 @@ class _SignupFormState extends State<SignupForm> {
               TextFormField(
                 focusNode: cPwdFocus,
                 decoration: mainInputDecoration.copyWith(
-                  prefixIcon: const Icon(Icons.lock),
+                  prefixIcon: Icon(passwordIcon),
                   label: const Text("Confirm password"),
                   suffixIcon: IconButton(
                     icon: Icon(_showPassword
@@ -287,7 +294,7 @@ class _SignupFormState extends State<SignupForm> {
                 controller: unisonIdCtrl,
                 focusNode: unisonIdFocus,
                 decoration: mainInputDecoration.copyWith(
-                  prefixIcon: const Icon(Icons.badge),
+                  prefixIcon: Icon(unisonIdIcon),
                   label: const Text("UniSon ID"),
                   hintText: "e.g. 217200160",
                 ),
@@ -312,7 +319,7 @@ class _SignupFormState extends State<SignupForm> {
                     child: TextFormField(
                       controller: csiIdCtrl,
                       decoration: mainInputDecoration.copyWith(
-                        prefixIcon: const Icon(Icons.badge),
+                        prefixIcon: Icon(csiIdIcon),
                         label: const Text("CSI ID"),
                         hintText: "e.g. 1",
                       ),
@@ -338,7 +345,7 @@ class _SignupFormState extends State<SignupForm> {
                     child: TextFormField(
                       controller: passcodeCtrl,
                       decoration: mainInputDecoration.copyWith(
-                        prefixIcon: const Icon(Icons.pin),
+                        prefixIcon: Icon(passcodeIcon),
                         label: const Text("CSI Passcode"),
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 17.0),
@@ -368,7 +375,7 @@ class _SignupFormState extends State<SignupForm> {
               ),
               const SizedBox(height: 16.0),
               _isLoading
-                  ? CircularProgressIndicator(
+                  ? AdaptiveSpinner(
                       color: Theme.of(context).colorScheme.primary,
                     )
                   : ElevatedButton.icon(
@@ -382,7 +389,7 @@ class _SignupFormState extends State<SignupForm> {
                           ),
                         ),
                       ),
-                      icon: const Icon(Icons.how_to_reg),
+                      icon: Icon(signupIcon),
                       label: const Text("Sign up"),
                       onPressed: _saveForm,
                     ),

@@ -1,8 +1,11 @@
-import "package:csi_door_logs/utils/styles.dart";
-import "package:csi_door_logs/widgets/pible/pible_bubble.dart";
 import "package:flutter/material.dart";
 
+import "package:csi_door_logs/widgets/animations/index.dart";
+import "package:csi_door_logs/widgets/main/index.dart";
+import "package:csi_door_logs/widgets/pible/pible_bubble.dart";
+
 import "package:csi_door_logs/utils/enums.dart";
+import "package:csi_door_logs/utils/styles.dart";
 
 class AuthBubble extends StatelessWidget {
   final LocalAuthState state;
@@ -24,7 +27,7 @@ class AuthBubble extends StatelessWidget {
     }
   }
 
-  String generateText() {
+  String get generateText {
     switch (state) {
       case LocalAuthState.waiting:
         return "Waiting for service...";
@@ -37,33 +40,40 @@ class AuthBubble extends StatelessWidget {
     }
   }
 
-  Widget generateTrailingWidget() {
+  Widget get generateTrailingWidget {
     switch (state) {
-      case LocalAuthState.waiting:
-      case LocalAuthState.authenticating:
-        return const CircularProgressIndicator.adaptive(
-          backgroundColor: lightGray,
-          valueColor: AlwaysStoppedAnimation(Colors.white),
-        );
       case LocalAuthState.done:
         return doneIcon;
       case LocalAuthState.failed:
         return failedIcon;
+      default:
+        return const AdaptiveSpinner();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final statusText = generateText;
+
     return PibleBubble(
       backgroundColor: generateColor(context),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(generateText(), style: pibleBubbleTextStyle),
-          generateTrailingWidget(),
-        ],
-      ),
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: CustomSwitcher(child: generateTrailingWidget),
+        ),
+        CustomSwitcher(
+          transitionBuilder: (child, animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: Text(
+            statusText,
+            key: ValueKey("Auth $statusText"),
+            style: pibleBubbleTextStyle,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 }

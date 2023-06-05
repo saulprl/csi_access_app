@@ -1,4 +1,3 @@
-import 'package:csi_door_logs/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
@@ -8,6 +7,9 @@ import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
 import 'package:email_validator/email_validator.dart';
 
+import 'package:csi_door_logs/widgets/main/index.dart';
+
+import 'package:csi_door_logs/utils/styles.dart';
 import 'package:csi_door_logs/utils/routes.dart';
 
 class LoginForm extends StatefulWidget {
@@ -91,7 +93,7 @@ class _LoginFormState extends State<LoginForm> {
 
       showModal(message);
     } catch (error) {
-      print(error);
+      debugPrint(error.toString());
     } finally {
       if (mounted) {
         setState(() {
@@ -123,7 +125,7 @@ class _LoginFormState extends State<LoginForm> {
             TextFormField(
               controller: _emailCtrl,
               decoration: mainInputDecoration.copyWith(
-                prefixIcon: const Icon(Icons.email),
+                prefixIcon: Icon(emailIcon),
                 label: const Text("Email address"),
               ),
               autocorrect: false,
@@ -147,7 +149,7 @@ class _LoginFormState extends State<LoginForm> {
             TextFormField(
               controller: _passCtrl,
               decoration: mainInputDecoration.copyWith(
-                prefixIcon: const Icon(Icons.lock),
+                prefixIcon: Icon(passwordIcon),
                 label: const Text("Password"),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -171,9 +173,7 @@ class _LoginFormState extends State<LoginForm> {
             ),
             const SizedBox(height: 16.0),
             _isLoading
-                ? CircularProgressIndicator(
-                    color: Theme.of(context).colorScheme.primary,
-                  )
+                ? AdaptiveSpinner(color: Theme.of(context).colorScheme.primary)
                 : ElevatedButton.icon(
                     style: ButtonStyle(
                       padding: const MaterialStatePropertyAll(

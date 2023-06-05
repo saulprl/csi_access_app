@@ -56,6 +56,13 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
       scanningSub = flutterBlue.isScanning.listen(
         (state) => setState(() => isScanning = state),
       );
+
+      flutterBlue.connectedDevices.then((devices) {
+        if (mounted) {
+          debugPrint("Found connected devices: $devices");
+          devices.firstWhere((device) => device.name == "PiBLE").disconnect();
+        }
+      });
       // const duration = Duration(seconds: 4);
       // Future.delayed(
       //   duration,
@@ -143,7 +150,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
 
     scanResultsSub = flutterBlue.scanResults.listen((result) {
       for (ScanResult scanResult in result) {
-        print("Advertisement data: ${scanResult.advertisementData}");
+        debugPrint("Advertisement data: ${scanResult.advertisementData}");
         if (scanResult.advertisementData.localName == "PiBLE" &&
             scanResult.advertisementData.connectable) {
           if (mounted) {
@@ -158,7 +165,9 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
 
               deviceStateSub = pible!.state.listen(
                 (state) {
-                  setState(() => deviceState = state);
+                  if (mounted) {
+                    setState(() => deviceState = state);
+                  }
 
                   if (state == BluetoothDeviceState.connected) {
                     handleConnection();
@@ -166,7 +175,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
                 },
               );
             } on PlatformException catch (error) {
-              print("Error code: ${error.code}");
+              debugPrint("Error code: ${error.code}");
 
               if (error.code != "already_connected") {
                 rethrow;
@@ -194,6 +203,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
         setState(() => authState = LocalAuthState.failed);
         popBack();
       }
+      setState(() => authState = LocalAuthState.done);
 
       try {
         await encryptData(service);
@@ -205,13 +215,13 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
         schedulePopBack();
       }
     } on PlatformException catch (error) {
-      print(error.toString());
+      debugPrint(error.toString());
     } on TimeoutException catch (error) {
-      print(error.toString());
-    } on StateError catch (error) {
+      debugPrint(error.toString());
+    } on StateError catch (_) {
       setState(() => servicesState = BTServiceState.failed);
     } catch (error) {
-      print(error.toString());
+      debugPrint(error.toString());
     }
   }
 
@@ -219,13 +229,11 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
     setState(() => authState = LocalAuthState.authenticating);
 
     final isBiometricSupported = await localAuth.isDeviceSupported();
-    final canCheckBiometrics = await localAuth.canCheckBiometrics;
-    final biometricTypes = await localAuth.getAvailableBiometrics();
 
     final authenticated = await localAuth.authenticate(
       localizedReason: "PiBLE requires authentication in order to continue.",
-      options: const AuthenticationOptions(
-        biometricOnly: true,
+      options: AuthenticationOptions(
+        biometricOnly: isBiometricSupported,
         stickyAuth: true,
       ),
     );
@@ -267,6 +275,8 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
     }
 
     scanningSub.cancel();
+    scanResultsSub.cancel();
+    deviceStateSub.cancel();
 
     if (deviceState != BluetoothDeviceState.disconnected && pible != null) {
       pible!.disconnect();
@@ -286,7 +296,10 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             BluetoothBubble(isBluetoothOn: isBluetoothOn),
-            ScanningBubble(isScanning: isScanning),
+            ScanningBubble(
+              isScanning: isScanning,
+              onTap: !isScanning && pible == null ? discoverDevices : null,
+            ),
             DeviceBubble(state: deviceState),
             ServicesBubble(state: servicesState),
             AuthBubble(state: authState),

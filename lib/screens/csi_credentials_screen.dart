@@ -1,10 +1,12 @@
-import "package:csi_door_logs/models/models.dart";
-import "package:csi_door_logs/utils/styles.dart";
-import "package:csi_door_logs/widgets/main/csi_appbar.dart";
-import "package:firebase_database/firebase_database.dart";
 import "package:flutter/material.dart";
 
+import "package:firebase_database/firebase_database.dart";
+
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
+
+import "package:csi_door_logs/models/models.dart";
+import "package:csi_door_logs/utils/styles.dart";
+import "package:csi_door_logs/widgets/main/index.dart";
 
 class CSICredentialsScreen extends StatefulWidget {
   const CSICredentialsScreen({super.key});
@@ -193,7 +195,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                     controller: unisonIdCtrl,
                     // focusNode: unisonIdFocus,
                     decoration: mainInputDecoration.copyWith(
-                      prefixIcon: const Icon(Icons.badge),
+                      prefixIcon: Icon(unisonIdIcon),
                       label: const Text("UniSon ID"),
                       hintText: "e.g. 217200160",
                     ),
@@ -218,7 +220,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                         child: TextFormField(
                           controller: csiIdCtrl,
                           decoration: mainInputDecoration.copyWith(
-                            prefixIcon: const Icon(Icons.badge),
+                            prefixIcon: Icon(csiIdIcon),
                             label: const Text("CSI ID"),
                             hintText: "e.g. 1",
                           ),
@@ -244,7 +246,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                         child: TextFormField(
                           controller: passcodeCtrl,
                           decoration: mainInputDecoration.copyWith(
-                            prefixIcon: const Icon(Icons.pin),
+                            prefixIcon: Icon(passcodeIcon),
                             label: const Text("CSI Passcode"),
                             contentPadding:
                                 const EdgeInsets.symmetric(vertical: 17.0),
@@ -274,7 +276,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                   ),
                   const SizedBox(height: 16.0),
                   _isLoading
-                      ? CircularProgressIndicator(
+                      ? AdaptiveSpinner(
                           color: Theme.of(context).colorScheme.primary,
                         )
                       : ElevatedButton.icon(
