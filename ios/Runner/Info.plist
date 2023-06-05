@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Csi Door Logs</string>
+		<string>CSI PRO Access</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -59,5 +59,7 @@
 		<string>In order to use this feature, the app needs access to your location</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>In order to use this feature, the app needs access to your location</string>
+		<key>NSFaceIDUsageDescription</key>
+		<string>CSI PRO Access supports biometric authentication for its Access feature. Please, allow usage.</string>
 	</dict>
 </plist>
