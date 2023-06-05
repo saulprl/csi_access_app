@@ -40,37 +40,45 @@ class CSIDrawer extends StatelessWidget {
             title: const Text("CSI PRO Access"),
           ),
           const SizedBox(height: 8.0),
-          _buildTile(
-            context,
-            "Dashboard",
-            dashboardIcon,
-            () => Navigator.of(context).pushReplacementNamed(Routes.dashboard),
-          ),
-          _buildTile(
-            context,
-            "Access Logs",
-            listIcon,
-            () => Navigator.of(context).pushNamed(Routes.accessLogs),
-          ),
-          _buildTile(
-            context,
-            "CSI Credentials",
-            settingsIcon,
-            () => Navigator.of(context).pushNamed(
-              Routes.csiCredentials,
-              arguments: {"edit": true},
+          Expanded(
+            child: Column(
+              children: [
+                _buildTile(
+                  context,
+                  "Dashboard",
+                  dashboardIcon,
+                  () => Navigator.of(context)
+                      .pushReplacementNamed(Routes.dashboard),
+                ),
+                _buildTile(
+                  context,
+                  "Access Logs",
+                  listIcon,
+                  () => Navigator.of(context).pushNamed(Routes.accessLogs),
+                ),
+                _buildTile(
+                  context,
+                  "CSI Credentials",
+                  settingsIcon,
+                  () => Navigator.of(context).pushNamed(
+                    Routes.csiCredentials,
+                    arguments: {"edit": true},
+                  ),
+                ),
+              ],
             ),
           ),
-          const Expanded(child: SizedBox()),
-          _buildTile(
-            context,
-            "Sign out",
-            logoutIcon,
-            () async {
-              await _storage.deleteAll();
-      
-              await _auth.signOut();
-            },
+          SafeArea(
+            child: _buildTile(
+              context,
+              "Sign out",
+              logoutIcon,
+              () async {
+                await _storage.deleteAll();
+
+                await _auth.signOut();
+              },
+            ),
           ),
         ],
       ),

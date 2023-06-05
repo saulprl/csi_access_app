@@ -58,50 +58,6 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
         (state) => setState(() => isScanning = state),
       );
 
-      // flutterBlue.connectedDevices.then((devices) {
-      //   if (mounted) {
-      //     debugPrint("Found connected devices: $devices");
-      //     devices.firstWhere((device) => device.name == "PiBLE").disconnect();
-      //   }
-      // });
-      // const duration = Duration(seconds: 4);
-      // Future.delayed(
-      //   duration,
-      //   () => setState(() => deviceState = BluetoothDeviceState.connecting),
-      // ).then((_) {
-      //   Future.delayed(
-      //     duration,
-      //     () {
-      //       setState(() => deviceState = BluetoothDeviceState.connected);
-      //       setState(() => servicesState = BTServiceState.discovering);
-      //     },
-      //   ).then((_) {
-      //     Future.delayed(
-      //       duration,
-      //       () {
-      //         setState(() => servicesState = BTServiceState.done);
-      //         setState(() => authState = LocalAuthState.authenticating);
-      //       },
-      //     ).then((_) {
-      //       Future.delayed(
-      //         duration,
-      //         () {
-      //           setState(() => authState = LocalAuthState.done);
-      //           setState(() => encryptionState = EncryptionState.encrypting);
-      //         },
-      //       ).then((_) {
-      //         Future.delayed(
-      //           duration,
-      //           () {
-      //             setState(() => encryptionState = EncryptionState.done);
-      //             schedulePopBack();
-      //           },
-      //         );
-      //       });
-      //     });
-      //   });
-      // });
-
       // Discover devices
       discoverDevices();
 
@@ -234,7 +190,7 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
 
     final authenticated = await localAuth.authenticate(
       localizedReason: "PiBLE requires authentication in order to continue.",
-      options: AuthenticationOptions(
+      options: const AuthenticationOptions(
         biometricOnly: false,
         stickyAuth: true,
       ),
@@ -292,21 +248,23 @@ class _TestPibleScreenState extends State<TestPibleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CSIAppBar("PiBLE"),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            BluetoothBubble(isBluetoothOn: isBluetoothOn),
-            ScanningBubble(
-              isScanning: isScanning,
-              onTap: !isScanning && pible == null ? discoverDevices : null,
-            ),
-            DeviceBubble(state: deviceState),
-            ServicesBubble(state: servicesState),
-            AuthBubble(state: authState),
-            Flexible(child: EncryptionBubble(state: encryptionState)),
-          ].reversed.toList(),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              BluetoothBubble(isBluetoothOn: isBluetoothOn),
+              ScanningBubble(
+                isScanning: isScanning,
+                onTap: !isScanning && pible == null ? discoverDevices : null,
+              ),
+              DeviceBubble(state: deviceState),
+              ServicesBubble(state: servicesState),
+              AuthBubble(state: authState),
+              Flexible(child: EncryptionBubble(state: encryptionState)),
+            ].reversed.toList(),
+          ),
         ),
       ),
     );
