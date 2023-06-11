@@ -245,7 +245,7 @@ class _PibleScreenState extends State<PibleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CSIAppBar("PiBLE"),
+      appBar: const CSIAppBar("PiBLE"),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),

@@ -180,7 +180,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
     }
 
     return Scaffold(
-      appBar: CSIAppBar("CSI Credentials"),
+      appBar: const CSIAppBar("CSI Credentials"),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

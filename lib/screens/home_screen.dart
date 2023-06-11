@@ -63,16 +63,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CSIAppBar("Dashboard"),
+      appBar: const CSIAppBar("Dashboard"),
       drawer: CSIDrawer(),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
           padding:
               const EdgeInsets.all(8.0) + const EdgeInsets.only(bottom: 80.0),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
+            children: [
               Summary(),
               PersonalSummary(),
             ],
