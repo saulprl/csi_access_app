@@ -1,27 +1,21 @@
-import 'dart:async';
-import 'dart:io';
-import "dart:math";
+import "dart:async";
 import "dart:convert";
+import "dart:io";
+import "dart:math";
 
-import 'package:csi_door_logs/widgets/main/csi_appbar.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import "package:local_auth/local_auth.dart";
-import 'package:permission_handler/permission_handler.dart';
+import "package:csi_door_logs/utils/enums.dart";
+import "package:csi_door_logs/utils/routes.dart";
+import "package:csi_door_logs/widgets/main/csi_appbar.dart";
+import "package:csi_door_logs/widgets/pible/index.dart";
+import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+
+import "package:flutter_blue_plus/flutter_blue_plus.dart";
 import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
-import 'package:steel_crypt/steel_crypt.dart';
-
-enum BTConnectionState {
-  starting,
-  discovering,
-  connecting,
-  authenticating,
-  failed,
-  done,
-}
+import "package:local_auth/local_auth.dart";
+import "package:permission_handler/permission_handler.dart";
+import "package:steel_crypt/steel_crypt.dart";
 
 class PibleScreen extends StatefulWidget {
   const PibleScreen({super.key});
@@ -43,15 +37,31 @@ class _PibleScreenState extends State<PibleScreen> {
   final ivCharacteristicUuid = dotenv.env["IV_CHARACTERISTIC_UUID"];
 
   BluetoothDevice? pible;
-  var pibleState = BTConnectionState.starting;
   bool _isInit = false;
 
-  @override
-  didChangeDependencies() {
-    if (!_isInit) {
-      _isInit = true;
+  bool isBluetoothOn = false;
+  bool isScanning = false;
+  BTServiceState servicesState = BTServiceState.waiting;
+  BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
+  LocalAuthState authState = LocalAuthState.waiting;
+  EncryptionState encryptionState = EncryptionState.waiting;
 
+  late StreamSubscription scanningSub;
+  late StreamSubscription scanResultsSub;
+  late StreamSubscription deviceStateSub;
+
+  @override
+  void didChangeDependencies() {
+    if (!_isInit) {
+      flutterBlue.isOn.then((value) => setState(() => isBluetoothOn = value));
+      scanningSub = flutterBlue.isScanning.listen(
+        (state) => setState(() => isScanning = state),
+      );
+
+      // Discover devices
       discoverDevices();
+
+      _isInit = true;
     }
 
     super.didChangeDependencies();
@@ -59,8 +69,15 @@ class _PibleScreenState extends State<PibleScreen> {
 
   void popBack() {
     if (mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacementNamed(Routes.dashboard);
     }
+  }
+
+  void schedulePopBack({int seconds = 3}) {
+    Future.delayed(
+      Duration(seconds: seconds),
+      () => popBack(),
+    );
   }
 
   String generateNonce() {
@@ -73,10 +90,9 @@ class _PibleScreenState extends State<PibleScreen> {
 
   Future<void> discoverDevices() async {
     if (Platform.isAndroid) {
-      if (await Permission.bluetoothConnect.isGranted &&
-          !await flutterBlue.isOn) {
+      if (await Permission.bluetoothConnect.isGranted && !isBluetoothOn) {
         flutterBlue.turnOn();
-      } else if (!await flutterBlue.isOn) {
+      } else if (!isBluetoothOn) {
         PermissionStatus status = await Permission.bluetoothConnect.request();
         if (status == PermissionStatus.granted) {
           flutterBlue.turnOn();
@@ -84,37 +100,44 @@ class _PibleScreenState extends State<PibleScreen> {
       }
     }
 
-    setState(() {
-      pibleState = BTConnectionState.discovering;
-    });
     flutterBlue.startScan(
       timeout: const Duration(seconds: 6),
       macAddresses: [pibleAddress!],
     );
 
-    flutterBlue.scanResults.listen((results) {
-      for (ScanResult r in results) {
-        print("Advertisement data: ${r.advertisementData}");
-        if (r.advertisementData.localName == "PiBLE" &&
-            r.advertisementData.connectable) {
-          // print("Found PiBLE!");
+    scanResultsSub = flutterBlue.scanResults.skip(1).listen((result) {
+      for (ScanResult scanResult in result) {
+        // debugPrint("Advertisement data: ${scanResult.advertisementData}");
+        if (scanResult.advertisementData.localName == "PiBLE" &&
+            scanResult.advertisementData.connectable) {
           if (mounted) {
-            setState(() {
-              pible = r.device;
-              pibleState = BTConnectionState.connecting;
-            });
             flutterBlue.stopScan();
 
+            pible = scanResult.device;
             pible!.connect(
               autoConnect: true,
               timeout: const Duration(seconds: 8),
             );
 
-            pible!.state.listen((event) async {
-              if (event == BluetoothDeviceState.connected) {
-                await handleConnection();
+            try {
+              deviceStateSub = pible!.state.listen(
+                (state) {
+                  if (mounted) {
+                    setState(() => deviceState = state);
+                  }
+
+                  if (state == BluetoothDeviceState.connected) {
+                    handleConnection();
+                  }
+                },
+              );
+            } on PlatformException catch (error) {
+              debugPrint("Error code: ${error.code}");
+
+              if (error.code != "already_connected") {
+                rethrow;
               }
-            });
+            }
           }
         }
       }
@@ -123,139 +146,98 @@ class _PibleScreenState extends State<PibleScreen> {
 
   Future<void> handleConnection() async {
     try {
-      if (pible == null) {
-        setState(() {
-          pibleState = BTConnectionState.failed;
-        });
+      if (pible == null) return;
 
-        return;
+      setState(() => servicesState = BTServiceState.discovering);
+      List<BluetoothService> services = await pible!.discoverServices();
+
+      final service = services.firstWhere(
+        (svc) => svc.uuid.toString() == serviceUuid,
+      );
+      setState(() => servicesState = BTServiceState.done);
+
+      if (!await handleAuthentication()) {
+        setState(() => authState = LocalAuthState.failed);
+        popBack();
       }
+      setState(() => authState = LocalAuthState.done);
 
       try {
-        await pible!.connect(
-          autoConnect: true,
-          timeout: const Duration(seconds: 8),
-        );
-      } on PlatformException catch (error) {
-        print(error);
-        await flutterBlue.stopScan();
-        await discoverDevices();
+        await encryptData(service);
+        setState(() => encryptionState = EncryptionState.done);
+      } catch (error) {
+        setState(() => encryptionState = EncryptionState.failed);
+        rethrow;
+      } finally {
+        schedulePopBack();
       }
-
-      pible!.state.listen((event) async {
-        if (pible != null && event == BluetoothDeviceState.connected) {
-          List<BluetoothService> services = await pible!.discoverServices();
-          bool foundService = false;
-          for (final svc in services) {
-            // print(svc.uuid);
-            if (svc.uuid.toString() == serviceUuid) {
-              // print("Found the service!");
-              foundService = true;
-
-              final auth = await handleAuthentication();
-              setState(() {
-                pibleState = BTConnectionState.authenticating;
-              });
-
-              if (auth) {
-                String nonce = generateNonce();
-                String uid =
-                    await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ??
-                        "";
-                String passcode =
-                    await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
-                int expiryDate = DateTime.now()
-                    .add(const Duration(seconds: 30))
-                    .millisecondsSinceEpoch;
-                String concatenated = "$nonce:$uid:$passcode:$expiryDate";
-                final cipher = AesCrypt(
-                  padding: PaddingAES.pkcs7,
-                  key: base64.encode(encryptionString!.codeUnits),
-                );
-
-                final encryptedString = base64.encode(cipher.cbc
-                    .encrypt(
-                      inp: concatenated,
-                      iv: base64.encode(ivValue!.codeUnits),
-                    )
-                    .codeUnits);
-
-                final tokenCharacteristic = svc.characteristics.firstWhere(
-                  (cha) => cha.uuid.toString() == tokenCharacteristicUuid,
-                );
-
-                await tokenCharacteristic.write(encryptedString.codeUnits);
-              } else {
-                popBack();
-              }
-            }
-          }
-
-          await pible!.disconnect();
-          pible = null;
-          if (mounted) {
-            if (foundService) {
-              setState(() {
-                pibleState = BTConnectionState.done;
-              });
-              Future.delayed(const Duration(seconds: 3), () => popBack());
-            } else {
-              setState(() {
-                pibleState = BTConnectionState.failed;
-              });
-            }
-          }
-        }
-      });
     } on PlatformException catch (error) {
-      print(error.toString());
-      setState(() {
-        pibleState = BTConnectionState.failed;
-      });
+      debugPrint(error.toString());
     } on TimeoutException catch (error) {
-      print(error.toString());
-      setState(() {
-        pibleState = BTConnectionState.failed;
-      });
+      debugPrint(error.toString());
+    } on StateError catch (_) {
+      setState(() => servicesState = BTServiceState.failed);
     } catch (error) {
-      print(error.toString());
-      print(error.hashCode);
+      debugPrint(error.toString());
+      rethrow;
     }
   }
 
   Future<bool> handleAuthentication() async {
-    final isBiometricSupported = await localAuth.isDeviceSupported();
-    // print("handleAuth - isBioSupp: $isBiometricSupported");
-
-    final canCheckBiometrics = await localAuth.canCheckBiometrics;
-    // print("handleAuth - canCheckBio: $canCheckBiometrics");
-
-    final biometricTypes = await localAuth.getAvailableBiometrics();
-    // print("handleAuth - bioTypes: $biometricTypes");
+    setState(() => authState = LocalAuthState.authenticating);
 
     final authenticated = await localAuth.authenticate(
       localizedReason: "PiBLE requires authentication in order to continue.",
       options: const AuthenticationOptions(
-        biometricOnly: true,
+        biometricOnly: false,
         stickyAuth: true,
-        sensitiveTransaction: true,
-        useErrorDialogs: true,
       ),
     );
 
     return authenticated;
   }
 
+  Future<void> encryptData(BluetoothService service) async {
+    setState(() => encryptionState = EncryptionState.encrypting);
+
+    String nonce = generateNonce();
+    String uid = await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ?? "";
+    String passcode = await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
+    int expiryDate =
+        DateTime.now().add(const Duration(seconds: 30)).millisecondsSinceEpoch;
+    String concatenated = "$nonce:$uid:$passcode:$expiryDate";
+    final cipher = AesCrypt(
+      padding: PaddingAES.pkcs7,
+      key: base64.encode(encryptionString!.codeUnits),
+    );
+
+    final encryptedString = base64.encode(
+      cipher.cbc
+          .encrypt(inp: concatenated, iv: base64.encode(ivValue!.codeUnits))
+          .codeUnits,
+    );
+
+    final tokenCharacteristic = service.characteristics.firstWhere(
+      (cha) => cha.uuid.toString() == tokenCharacteristicUuid,
+    );
+
+    await tokenCharacteristic.write(encryptedString.codeUnits);
+  }
+
   @override
   void dispose() {
-    if (pible != null) {
-      pible!.disconnect();
-      pible = null;
-    }
-
-    if (pibleState == BTConnectionState.discovering) {
+    if (isScanning) {
       flutterBlue.stopScan();
     }
+
+    scanningSub.cancel();
+    scanResultsSub.cancel();
+    deviceStateSub.cancel();
+
+    if (deviceState != BluetoothDeviceState.disconnected && pible != null) {
+      pible!.disconnect();
+    }
+    pible = null;
 
     super.dispose();
   }
@@ -266,245 +248,20 @@ class _PibleScreenState extends State<PibleScreen> {
       appBar: CSIAppBar("PiBLE"),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.bluetooth,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 16.0),
-                if (pibleState == BTConnectionState.discovering)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: "Looking for ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "PiBLE",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const TextSpan(text: "..."),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      const CircularProgressIndicator(),
-                    ],
-                  ),
-                if (pibleState == BTConnectionState.starting)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: "Preparing ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "Bluetooth",
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const TextSpan(text: "..."),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                if (pibleState == BTConnectionState.connecting)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: "Connecting to ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "PiBLE",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const TextSpan(text: "..."),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      const CircularProgressIndicator(),
-                    ],
-                  ),
-                if (pibleState == BTConnectionState.authenticating)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: const TextSpan(
-                          text: "Authenticating...",
-                          style: TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      const CircularProgressIndicator(),
-                    ],
-                  ),
-                if (pible != null && pibleState == BTConnectionState.done)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: "Don't forget to ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "close the door",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const TextSpan(text: "!"),
-                          ],
-                        ),
-                      ),
-                      RichText(
-                        text: TextSpan(
-                          text: "Navigating back to ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "Dashboard",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const TextSpan(text: "..."),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                if (pible == null && pibleState == BTConnectionState.done)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: "Unable to find ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "PiBLE",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          padding: const MaterialStatePropertyAll(
-                            EdgeInsets.all(12.0),
-                          ),
-                          shape: MaterialStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                        ),
-                        onPressed: discoverDevices,
-                        child: const Text(
-                          "Retry",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                if (pibleState == BTConnectionState.failed)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          text: "Unable to connect to ",
-                          style: const TextStyle(
-                            fontSize: 20.0,
-                            color: Colors.black54,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "PiBLE",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16.0),
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          padding: const MaterialStatePropertyAll(
-                            EdgeInsets.all(12.0),
-                          ),
-                          shape: MaterialStatePropertyAll(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                        ),
-                        onPressed: discoverDevices,
-                        child: const Text(
-                          "Retry",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              BluetoothBubble(isBluetoothOn: isBluetoothOn),
+              ScanningBubble(
+                isScanning: isScanning,
+                onTap: !isScanning && pible == null ? discoverDevices : null,
+              ),
+              DeviceBubble(state: deviceState),
+              ServicesBubble(state: servicesState),
+              AuthBubble(state: authState),
+              Flexible(child: EncryptionBubble(state: encryptionState)),
+            ].reversed.toList(),
           ),
         ),
       ),

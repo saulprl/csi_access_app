@@ -85,7 +85,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             : _hasStorage
                 ? () => Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (ctx) => const TestPibleScreen(),
+                        builder: (ctx) => const PibleScreen(),
                       ),
                     )
                 : () async {
