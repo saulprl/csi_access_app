@@ -69,7 +69,10 @@ class _PibleScreenState extends State<PibleScreen> {
 
   void popBack() {
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed(Routes.dashboard);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        Routes.dashboard,
+        (route) => false,
+      );
     }
   }
 

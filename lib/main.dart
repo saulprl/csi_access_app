@@ -17,10 +17,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
-  // FirebaseMessaging.onMessage.listen((message) {
-  //   print(message.data);
-  //   return;
-  // });
   FirebaseMessaging.onBackgroundMessage(_bgMessageHandler);
 
   runApp(const MyApp());
@@ -29,7 +25,6 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final Future<FirebaseApp> firebaseApp = Firebase.initializeApp(

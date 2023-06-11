@@ -124,7 +124,7 @@ class _SummaryState extends State<Summary> {
                         ),
                         color: Theme.of(context).colorScheme.secondary,
                         data: failedCount,
-                        label: 'failed attempts',
+                        label: 'failed\nattempts',
                         crossAlignment: CrossAxisAlignment.start,
                         reversed: true,
                         textAlign: TextAlign.start,
@@ -133,12 +133,7 @@ class _SummaryState extends State<Summary> {
                   ),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(
-                        left: 4.0,
-                        top: 4.0,
-                        right: 4.0,
-                        bottom: 4.0,
-                      ),
+                      padding: const EdgeInsets.all(4.0),
                       child: Bubble(
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12.0),
@@ -149,7 +144,7 @@ class _SummaryState extends State<Summary> {
                         color: Theme.of(context).colorScheme.error,
                         data: unknownCount,
                         reversed: true,
-                        label: 'unknown attempts',
+                        label: 'unknown\nattempts',
                         crossAlignment: CrossAxisAlignment.end,
                         textAlign: TextAlign.end,
                       ),
