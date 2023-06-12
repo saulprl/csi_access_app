@@ -22,6 +22,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   bool _isLoading = false;
   bool _hasStorage = false;
+  bool _shouldPop = false;
 
   @override
   void initState() {
@@ -55,31 +56,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CSIAppBar("Dashboard"),
-      drawer: CSIDrawer(),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding:
-              const EdgeInsets.all(8.0) + const EdgeInsets.only(bottom: 80.0),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Summary(),
-              PersonalSummary(),
-            ],
+  SnackBar get snackBar => const SnackBar(
+        content: Text(
+          "Press again to exit",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: "Poppins",
+            fontSize: 18.0,
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
+        duration: Duration(seconds: 2),
+      );
+
+  Future<bool> willPopHandler() async {
+    if (_shouldPop) return true;
+
+    _shouldPop = true;
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) _shouldPop = false;
+    });
+
+    return false;
+  }
+
+  Widget get floatingActionButton => FloatingActionButton(
         onPressed: _isLoading
             ? () {}
             : _hasStorage
@@ -103,6 +104,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     size: 40.0,
                     color: Colors.white,
                   ),
+      );
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: willPopHandler,
+      child: Scaffold(
+        appBar: const CSIAppBar("Dashboard"),
+        drawer: CSIDrawer(),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding:
+                const EdgeInsets.all(8.0) + const EdgeInsets.only(bottom: 80.0),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Summary(),
+                PersonalSummary(),
+              ],
+            ),
+          ),
+        ),
+        floatingActionButton: floatingActionButton,
       ),
     );
   }

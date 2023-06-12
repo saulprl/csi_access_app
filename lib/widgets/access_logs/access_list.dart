@@ -21,7 +21,6 @@ class _AccessListState extends State<AccessList> {
       .orderByChild("timestamp")
       .limitToLast(20);
 
-  final _accessLogs = <AccessLog>[];
   late StreamSubscription<DatabaseEvent> logAdd;
   late StreamSubscription<DatabaseEvent> logRemove;
 

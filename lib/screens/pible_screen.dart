@@ -126,6 +126,7 @@ class _PibleScreenState extends State<PibleScreen> {
               deviceStateSub = pible!.state.listen(
                 (state) {
                   if (mounted) {
+                    debugPrint("device_state -> $state");
                     setState(() => deviceState = state);
                   }
 
@@ -189,15 +190,9 @@ class _PibleScreenState extends State<PibleScreen> {
   Future<bool> handleAuthentication() async {
     setState(() => authState = LocalAuthState.authenticating);
 
-    final authenticated = await localAuth.authenticate(
+    return await localAuth.authenticate(
       localizedReason: "PiBLE requires authentication in order to continue.",
-      options: const AuthenticationOptions(
-        biometricOnly: false,
-        stickyAuth: true,
-      ),
     );
-
-    return authenticated;
   }
 
   Future<void> encryptData(BluetoothService service) async {

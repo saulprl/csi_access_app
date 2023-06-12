@@ -133,20 +133,8 @@ class Pible with ChangeNotifier {
   }
 
   Future<bool> handleAuthentication() async {
-    final isBiometricSupported = await _localAuth.isDeviceSupported();
-    final canCheckBiometrics = await _localAuth.canCheckBiometrics;
-    final biometricTypes = await _localAuth.getAvailableBiometrics();
-
-    final authenticated = await _localAuth.authenticate(
+    return await _localAuth.authenticate(
       localizedReason: "PiBLE required authentication in order to continue.",
-      options: const AuthenticationOptions(
-        biometricOnly: false,
-        stickyAuth: true,
-        sensitiveTransaction: false,
-        useErrorDialogs: true,
-      ),
     );
-
-    return authenticated;
   }
 }
