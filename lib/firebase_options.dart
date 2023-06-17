@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBj8t_E4V_kr1Rp8sW8epdbsTjLvAcHnyM',
-    appId: '1:1050055617140:android:582c43d3c7e97819347f21',
+    appId: '1:1050055617140:android:a70e09d96b911786347f21',
     messagingSenderId: '1050055617140',
     projectId: 'csi-door',
     databaseURL: 'https://csi-door-default-rtdb.firebaseio.com',
@@ -60,12 +60,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDiHGSKhkPQ92Rpu_tA6w74dEis9GbMrSU',
-    appId: '1:1050055617140:ios:47cea8065a203052347f21',
+    appId: '1:1050055617140:ios:250d5a2428804d5c347f21',
     messagingSenderId: '1050055617140',
     projectId: 'csi-door',
     databaseURL: 'https://csi-door-default-rtdb.firebaseio.com',
     storageBucket: 'csi-door.appspot.com',
-    iosClientId: '1050055617140-mtp40rrooe0qiv0f1t87jt3lpn5c8vc2.apps.googleusercontent.com',
-    iosBundleId: 'com.example.csiDoorLogs',
+    iosClientId: '1050055617140-bbp8u1057b09sjvp2njj52uomo30gdh1.apps.googleusercontent.com',
+    iosBundleId: 'com.csipro.access',
   );
 }

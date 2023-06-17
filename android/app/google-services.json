@@ -8,6 +8,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:1050055617140:android:a70e09d96b911786347f21",
+        "android_client_info": {
+          "package_name": "com.csipro.access"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1050055617140-512gevauap93nvj0kbrf1sfpkom3qoot.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBj8t_E4V_kr1Rp8sW8epdbsTjLvAcHnyM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1050055617140-512gevauap93nvj0kbrf1sfpkom3qoot.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1050055617140-2h3rmuemjl0hi35sofhaj0u2gq92m8uu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.csiDoorLogsaydin"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:1050055617140:android:582c43d3c7e97819347f21",
         "android_client_info": {
           "package_name": "com.example.csi_door_logs"
@@ -32,10 +68,10 @@
               "client_type": 3
             },
             {
-              "client_id": "1050055617140-mtp40rrooe0qiv0f1t87jt3lpn5c8vc2.apps.googleusercontent.com",
+              "client_id": "1050055617140-2h3rmuemjl0hi35sofhaj0u2gq92m8uu.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.csiDoorLogs"
+                "bundle_id": "com.example.csiDoorLogsaydin"
               }
             }
           ]
