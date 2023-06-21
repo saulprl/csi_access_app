@@ -54,10 +54,21 @@ IconData get passwordIcon =>
 IconData get unisonIdIcon =>
     Platform.isIOS ? CupertinoIcons.person_crop_rectangle_fill : Icons.badge;
 
+IconData get fetchIcon =>
+    Platform.isIOS ? CupertinoIcons.search : Icons.search_rounded;
+
 IconData get csiIdIcon =>
     Platform.isIOS ? CupertinoIcons.number_square_fill : Icons.numbers;
 
 IconData get passcodeIcon => Icons.pin;
+
+IconData get roleIcon => Platform.isIOS ? CupertinoIcons.star_fill : Icons.star;
+
+IconData get nameIcon =>
+    Platform.isIOS ? CupertinoIcons.person_circle_fill : Icons.person;
+
+IconData get calendarIcon =>
+    Platform.isIOS ? CupertinoIcons.calendar : Icons.calendar_today_rounded;
 
 IconData get signupIcon => Platform.isIOS
     ? CupertinoIcons.person_crop_circle_badge_checkmark
