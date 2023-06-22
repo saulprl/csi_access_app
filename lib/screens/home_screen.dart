@@ -31,29 +31,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _readStorage();
   }
 
-  void _readStorage() {
+  Future<void> _readStorage() async {
     if (mounted) {
       setState(() {
         _isLoading = true;
       });
     }
-    _storage.readAll().then((value) async {
-      if (value.isNotEmpty) {
-        if (mounted) {
-          setState(() {
-            _hasStorage = value.containsKey("CSIPRO-PASSCODE");
-            _isLoading = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _hasStorage = false;
-            _isLoading = false;
-          });
-        }
+    await Future.delayed(const Duration(milliseconds: 1250));
+
+    final storage = await _storage.readAll();
+    if (storage.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _hasStorage = storage.containsKey("CSIPRO-PASSCODE");
+          _isLoading = false;
+        });
       }
-    });
+    } else {
+      if (mounted) {
+        setState(() {
+          _hasStorage = false;
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   SnackBar get snackBar => const SnackBar(

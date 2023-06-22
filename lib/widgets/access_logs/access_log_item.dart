@@ -54,7 +54,7 @@ class _AccessLogItemState extends State<AccessLogItem> {
 
   void setUser(DataSnapshot snapshot) {
     setState(() {
-      _user = CSIUser.fromSnapshot(snapshot);
+      _user = CSIUser.fromDataSnapshot(snapshot);
     });
   }
 

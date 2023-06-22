@@ -86,7 +86,7 @@ class _SignupFormState extends State<SignupForm> {
       return;
     }
 
-    final existingUser = CSIUser.fromSnapshot(existingSnapshot);
+    final existingUser = CSIUser.fromDataSnapshot(existingSnapshot);
     csiIdCtrl.text = existingUser.csiId.toString();
     roleCtrl.text = "Member";
     nameCtrl.text = existingUser.name!;
@@ -196,7 +196,7 @@ class _SignupFormState extends State<SignupForm> {
         return;
       }
 
-      final existingUser = CSIUser.fromSnapshot(existingUnisonID);
+      final existingUser = CSIUser.fromDataSnapshot(existingUnisonID);
       if (!await existingUser.compareCredentials(
         unisonId,
         csiId,
@@ -222,20 +222,17 @@ class _SignupFormState extends State<SignupForm> {
           .limit(1)
           .get();
 
+      existingUser.name = name;
+      existingUser.email = email;
+      existingUser.role = roleRef.docs[0].reference;
+      existingUser.isAllowedAccess = _isAllowedAccess;
+      existingUser.createdAt = Timestamp.now();
+      existingUser.dateOfBirth = Timestamp.fromDate(dob!);
+
       await _firestore
           .collection("users")
           .doc(authenticatedUser.user!.uid)
-          .set({
-        "csiId": int.parse(csiId),
-        "name": name,
-        "unisonId": unisonId,
-        "email": email,
-        "passcode": hashedPasscode,
-        "role": roleRef.docs[0].reference,
-        "isAllowedAccess": _isAllowedAccess,
-        "createdAt": Timestamp.now(),
-        "dateOfBirth": Timestamp.fromDate(dob!),
-      });
+          .set(existingUser.toJson(keyless: true));
 
       await _storage.deleteAll();
       await _storage.write(

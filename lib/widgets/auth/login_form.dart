@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csi_door_logs/models/csi_user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
@@ -21,6 +23,7 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
   final _storage = const FlutterSecureStorage();
 
   final GlobalKey<FormState> _formKey = GlobalKey(debugLabel: "login_form");
@@ -76,15 +79,22 @@ class _LoginFormState extends State<LoginForm> {
     final enteredPassword = _passCtrl.text;
 
     try {
-      UserCredential user = await _auth.signInWithEmailAndPassword(
+      UserCredential authUser = await _auth.signInWithEmailAndPassword(
         email: enteredEmail,
         password: enteredPassword,
       );
 
+      final uid = authUser.user!.uid;
+      final docSnapshot = await _firestore.collection("users").doc(uid).get();
+      final user = CSIUser.fromDocSnapshot(docSnapshot);
+
       await _storage.write(
         key: "CSIPRO-ACCESS-FIREBASE-UID",
-        value: user.user!.uid,
+        value: uid,
       );
+      await _storage.write(key: "CSIPRO-UNISONID", value: user.unisonId);
+      await _storage.write(key: "CSIPRO-CSIID", value: user.csiId.toString());
+      await _storage.write(key: "CSIPRO-PASSCODE", value: user.passcode);
     } on FirebaseAuthException catch (error) {
       var message = "An error occurred, please check your credentials!";
       if (error.message != null) {

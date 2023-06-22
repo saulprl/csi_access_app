@@ -87,7 +87,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
         return;
       }
 
-      final existingUser = CSIUser.fromSnapshot(existingUnisonID);
+      final existingUser = CSIUser.fromDataSnapshot(existingUnisonID);
       if (!await existingUser.compareCredentials(
         unisonId,
         csiId,
