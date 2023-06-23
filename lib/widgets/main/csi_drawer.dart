@@ -1,9 +1,15 @@
-import "package:csi_door_logs/utils/routes.dart";
-import "package:csi_door_logs/utils/utils.dart";
-import "package:firebase_auth/firebase_auth.dart";
 import "package:flutter/material.dart";
 
+import "package:firebase_auth/firebase_auth.dart";
+
+import "package:provider/provider.dart";
+
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
+
+import "package:csi_door_logs/providers/csi_users.dart";
+
+import "package:csi_door_logs/utils/routes.dart";
+import "package:csi_door_logs/utils/utils.dart";
 
 class CSIDrawer extends StatelessWidget {
   final _auth = FirebaseAuth.instance;
@@ -15,6 +21,7 @@ class CSIDrawer extends StatelessWidget {
     BuildContext ctx,
     String title,
     IconData icon,
+    bool enabled,
     VoidCallback tapHandler,
   ) {
     return ListTile(
@@ -23,6 +30,7 @@ class CSIDrawer extends StatelessWidget {
         title,
         style: const TextStyle(fontSize: 20.0),
       ),
+      enabled: enabled,
       onTap: () {
         Navigator.of(ctx).pop();
         tapHandler();
@@ -32,6 +40,8 @@ class CSIDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final role = Provider.of<CSIUsers>(context).role;
+
     return Drawer(
       child: Column(
         children: [
@@ -47,6 +57,7 @@ class CSIDrawer extends StatelessWidget {
                   context,
                   "Dashboard",
                   dashboardIcon,
+                  role != null ? role.canAccess : true,
                   () => Navigator.of(context)
                       .pushReplacementNamed(Routes.dashboard),
                 ),
@@ -54,16 +65,27 @@ class CSIDrawer extends StatelessWidget {
                   context,
                   "Access Logs",
                   listIcon,
+                  role != null ? role.canReadLogs : false,
                   () => Navigator.of(context).pushNamed(Routes.accessLogs),
                 ),
                 _buildTile(
                   context,
                   "CSI Credentials",
                   settingsIcon,
+                  true,
                   () => Navigator.of(context).pushNamed(
                     Routes.csiCredentials,
                     arguments: {"edit": true},
                   ),
+                ),
+                _buildTile(
+                  context,
+                  "Manage Users",
+                  Icons.group,
+                  role != null
+                      ? role.canAllowAndRevokeAccess || role.canSetRoles
+                      : false,
+                  () {},
                 ),
               ],
             ),
@@ -73,6 +95,7 @@ class CSIDrawer extends StatelessWidget {
               context,
               "Sign out",
               logoutIcon,
+              true,
               () async {
                 await _storage.deleteAll();
 

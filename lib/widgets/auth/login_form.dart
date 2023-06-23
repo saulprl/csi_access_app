@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/models/csi_user.dart';
+import 'package:csi_door_logs/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
@@ -88,13 +89,9 @@ class _LoginFormState extends State<LoginForm> {
       final docSnapshot = await _firestore.collection("users").doc(uid).get();
       final user = CSIUser.fromDocSnapshot(docSnapshot);
 
-      await _storage.write(
-        key: "CSIPRO-ACCESS-FIREBASE-UID",
-        value: uid,
-      );
-      await _storage.write(key: "CSIPRO-UNISONID", value: user.unisonId);
-      await _storage.write(key: "CSIPRO-CSIID", value: user.csiId.toString());
-      await _storage.write(key: "CSIPRO-PASSCODE", value: user.passcode);
+      await _storage.write(key: firebaseUidStorageKey, value: uid);
+      await _storage.write(key: unisonIdStorageKey, value: user.unisonId);
+      await _storage.write(key: csiIdStorageKey, value: user.csiId.toString());
     } on FirebaseAuthException catch (error) {
       var message = "An error occurred, please check your credentials!";
       if (error.message != null) {

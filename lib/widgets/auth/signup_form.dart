@@ -1,3 +1,5 @@
+import 'package:csi_door_logs/utils/globals.dart';
+import 'package:csi_door_logs/widgets/auth/fetch_field.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -5,7 +7,6 @@ import 'package:firebase_database/firebase_database.dart';
 import "package:cloud_firestore/cloud_firestore.dart";
 
 import 'package:email_validator/email_validator.dart';
-import 'package:flutter_bcrypt/flutter_bcrypt.dart';
 
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
@@ -211,11 +212,6 @@ class _SignupFormState extends State<SignupForm> {
         password: password,
       );
 
-      final hashedPasscode = await FlutterBcrypt.hashPw(
-        password: csiPasscode,
-        salt: await FlutterBcrypt.saltWithRounds(rounds: 10),
-      );
-
       final roleRef = await _firestore
           .collection("roles")
           .where("name", isEqualTo: role)
@@ -236,12 +232,10 @@ class _SignupFormState extends State<SignupForm> {
 
       await _storage.deleteAll();
       await _storage.write(
-        key: "CSIPRO-ACCESS-FIREBASE-UID",
-        value: authenticatedUser.user!.uid,
-      );
-      await _storage.write(key: "CSIPRO-UNISONID", value: unisonId);
-      await _storage.write(key: "CSIPRO-CSIID", value: csiId);
-      await _storage.write(key: "CSIPRO-PASSCODE", value: csiPasscode);
+          key: firebaseUidStorageKey, value: authenticatedUser.user!.uid);
+      await _storage.write(key: unisonIdStorageKey, value: unisonId);
+      await _storage.write(key: csiIdStorageKey, value: csiId);
+      await _storage.write(key: passcodeStorageKey, value: csiPasscode);
 
       popBack();
     } on FirebaseAuthException catch (error) {
@@ -378,37 +372,13 @@ class _SignupFormState extends State<SignupForm> {
             sizedBox,
             buildDivider("CSI PRO Data"),
             sizedBox,
-            TextFormField(
-              controller: unisonIdCtrl,
-              focusNode: unisonIdFocus,
-              decoration: mainInputDecoration.copyWith(
-                prefixIcon: Icon(unisonIdIcon),
-                label: const Text("UniSon ID"),
-                hintText: "e.g. 217200160",
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    fetchIcon,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  onPressed: () async {
-                    await _fetchUser();
-                  },
-                ),
-              ),
-              autocorrect: false,
-              enabled: !_isLoading,
-              keyboardType: TextInputType.number,
-              textInputAction: TextInputAction.done,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                return null;
-              },
-              onEditingComplete: () async {
-                await _fetchUser();
-                passcodeFocus.requestFocus();
+            FetchField(
+              ctrl: unisonIdCtrl,
+              focus: unisonIdFocus,
+              onPressed: _fetchUser,
+              onEditingComplete: () {
+                unisonIdFocus.unfocus();
+                _fetchUser();
               },
             ),
             sizedBox,

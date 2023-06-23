@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/csi_users.dart";
 import "package:csi_door_logs/utils/routes.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
@@ -7,6 +8,7 @@ import "package:flutter_dotenv/flutter_dotenv.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 import "package:csi_door_logs/firebase_options.dart";
+import "package:provider/provider.dart";
 
 @pragma("vm:entry-point")
 Future<void> _bgMessageHandler(RemoteMessage message) async {
@@ -47,32 +49,37 @@ class MyApp extends StatelessWidget {
       onBackground: Colors.black87,
     );
 
-    return FutureBuilder(
-      future: firebaseApp,
-      builder: (ctx, snapshot) => MaterialApp(
-        title: 'CSI PRO Access',
-        theme: ThemeData(
-          colorScheme: lightScheme,
-          fontFamily: "Poppins",
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (ctx) => CSIUsers()),
+      ],
+      child: FutureBuilder(
+        future: firebaseApp,
+        builder: (ctx, snapshot) => MaterialApp(
+          title: 'CSI PRO Access',
+          theme: ThemeData(
+            colorScheme: lightScheme,
+            fontFamily: "Poppins",
+          ),
+          debugShowCheckedModeBanner: false,
+          home: snapshot.connectionState != ConnectionState.done
+              ? const SplashScreen()
+              : StreamBuilder(
+                  stream: FirebaseAuth.instance.authStateChanges(),
+                  builder: (ctx, AsyncSnapshot<User?> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SplashScreen();
+                    }
+
+                    if (snapshot.hasData) {
+                      return const DashboardScreen();
+                    }
+
+                    return const LoginScreen();
+                  },
+                ),
+          routes: Routes.getAppRoutes(),
         ),
-        debugShowCheckedModeBanner: false,
-        home: snapshot.connectionState != ConnectionState.done
-            ? const SplashScreen()
-            : StreamBuilder(
-                stream: FirebaseAuth.instance.authStateChanges(),
-                builder: (ctx, AsyncSnapshot<User?> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SplashScreen();
-                  }
-
-                  if (snapshot.hasData) {
-                    return const DashboardScreen();
-                  }
-
-                  return const LoginScreen();
-                },
-              ),
-        routes: Routes.getAppRoutes(),
       ),
     );
   }

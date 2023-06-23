@@ -1,12 +1,16 @@
 import "package:flutter/material.dart";
 
-import "package:firebase_database/firebase_database.dart";
+import "package:firebase_auth/firebase_auth.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
-import "package:csi_door_logs/models/models.dart";
-import "package:csi_door_logs/utils/styles.dart";
 import "package:csi_door_logs/widgets/main/index.dart";
+
+import "package:csi_door_logs/models/models.dart";
+
+import "package:csi_door_logs/utils/styles.dart";
+import "package:csi_door_logs/utils/globals.dart";
 
 class CSICredentialsScreen extends StatefulWidget {
   const CSICredentialsScreen({super.key});
@@ -16,6 +20,8 @@ class CSICredentialsScreen extends StatefulWidget {
 }
 
 class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
   final GlobalKey<FormState> _formKey = GlobalKey();
   final _storage = const FlutterSecureStorage();
 
@@ -25,6 +31,26 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
 
   var _showPasscode = false;
   var _isLoading = false;
+  var _canEditPasscode = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _readStorage();
+  }
+
+  Future<void> _readStorage() async {
+    final unisonId = await _storage.read(key: unisonIdStorageKey);
+    final csiId = await _storage.read(key: csiIdStorageKey);
+
+    unisonIdCtrl.text = unisonId ?? "";
+    csiIdCtrl.text = csiId ?? "";
+
+    setState(() {
+      _canEditPasscode = true;
+    });
+  }
 
   void toggleShowPasscode() {
     setState(() {
@@ -74,20 +100,16 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
     final csiPasscode = passcodeCtrl.text.toUpperCase();
 
     try {
-      final dbInstance = FirebaseDatabase.instance;
+      final uid = _auth.currentUser!.uid;
+      final existingUnisonID =
+          await _firestore.collection("users").doc(uid).get();
 
-      final existingUnisonID = await dbInstance
-          .ref("users")
-          .orderByChild("unisonId")
-          .equalTo(unisonId)
-          .get();
-
-      if (existingUnisonID.value == null) {
-        showModal("No user with provided UniSon ID found.");
+      if (existingUnisonID.data() == null) {
+        showModal("Something went wrong while fetching your user data.");
         return;
       }
 
-      final existingUser = CSIUser.fromDataSnapshot(existingUnisonID);
+      final existingUser = CSIUser.fromDocSnapshot(existingUnisonID);
       if (!await existingUser.compareCredentials(
         unisonId,
         csiId,
@@ -97,14 +119,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
         return;
       }
 
-      await _storage.deleteAll();
-      await _storage.write(
-        key: "CSIPRO-ACCESS-FIREBASE-UID",
-        value: existingUser.key,
-      );
-      await _storage.write(key: "CSIPRO-UNISONID", value: unisonId);
-      await _storage.write(key: "CSIPRO-CSIID", value: csiId);
-      await _storage.write(key: "CSIPRO-PASSCODE", value: csiPasscode);
+      await _storage.write(key: passcodeStorageKey, value: csiPasscode);
 
       popBack();
     } catch (error) {
@@ -142,14 +157,14 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
         ),
         children: [
           TextSpan(
-            text: "CSI Credentials",
+            text: "CSI Passcode",
             style: TextStyle(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.bold,
             ),
           ),
           const TextSpan(
-            text: ". Please provide them using this form.",
+            text: ". Please provide it using this form.",
           ),
         ],
       ),
@@ -165,14 +180,14 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
           ),
           children: [
             TextSpan(
-              text: "CSI Credentials",
+              text: "CSI Passcode",
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const TextSpan(
-              text: ". Please provide them using this form.",
+              text: ". Please provide it using this form.",
             ),
           ],
         ),
@@ -200,7 +215,8 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                       hintText: "e.g. 217200160",
                     ),
                     autocorrect: false,
-                    enabled: !_isLoading,
+                    readOnly: true,
+                    enabled: false,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                     validator: (value) {
@@ -225,7 +241,8 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                             hintText: "e.g. 1",
                           ),
                           autocorrect: false,
-                          enabled: !_isLoading,
+                          readOnly: true,
+                          enabled: false,
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.next,
                           validator: (value) {
@@ -258,7 +275,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                             ),
                           ),
                           autocorrect: false,
-                          enabled: !_isLoading,
+                          enabled: !_isLoading && _canEditPasscode,
                           keyboardType: TextInputType.text,
                           textCapitalization: TextCapitalization.characters,
                           textInputAction: TextInputAction.done,
