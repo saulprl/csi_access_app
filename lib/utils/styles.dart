@@ -86,4 +86,8 @@ IconData get listIcon =>
 IconData get settingsIcon =>
     Platform.isIOS ? CupertinoIcons.settings : Icons.settings;
 
+IconData get groupIcon => Platform.isIOS ? CupertinoIcons.group : Icons.group;
+
 IconData get logoutIcon => Platform.isIOS ? Icons.logout_rounded : Icons.logout;
+
+IconData get editIcon => Platform.isIOS ? CupertinoIcons.pencil : Icons.edit;

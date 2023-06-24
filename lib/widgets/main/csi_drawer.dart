@@ -8,6 +8,8 @@ import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
 import "package:csi_door_logs/providers/csi_users.dart";
 
+import "package:csi_door_logs/screens/screens.dart";
+
 import "package:csi_door_logs/utils/routes.dart";
 import "package:csi_door_logs/utils/utils.dart";
 
@@ -85,7 +87,11 @@ class CSIDrawer extends StatelessWidget {
                   role != null
                       ? role.canAllowAndRevokeAccess || role.canSetRoles
                       : false,
-                  () {},
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (ctx) => ManagementScreen(),
+                    ),
+                  ),
                 ),
               ],
             ),

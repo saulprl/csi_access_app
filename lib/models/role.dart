@@ -17,6 +17,19 @@ class Role {
     this.canSetRoles = false,
   });
 
+  Role.fromDocQuerySnapshot(
+    QueryDocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data();
+
+    key = snapshot.id;
+    name = data["name"];
+    canAccess = data["canAccess"];
+    canAllowAndRevokeAccess = data["canAllowAndRevokeAccess"];
+    canReadLogs = data["canReadLogs"];
+    canSetRoles = data["canSetRoles"];
+  }
+
   Role.fromDocSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data();
     if (data == null) return;
