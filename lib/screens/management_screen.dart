@@ -1,3 +1,6 @@
+import 'package:csi_door_logs/providers/csi_users.dart';
+import 'package:csi_door_logs/screens/create_user_screen.dart';
+import 'package:csi_door_logs/utils/styles.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,6 +12,7 @@ import 'package:csi_door_logs/widgets/main/index.dart';
 import 'package:csi_door_logs/models/models.dart';
 
 import 'package:csi_door_logs/utils/globals.dart';
+import 'package:provider/provider.dart';
 import 'package:skeleton_animation/skeleton_animation.dart';
 
 class ManagementScreen extends StatelessWidget {
@@ -16,17 +20,39 @@ class ManagementScreen extends StatelessWidget {
 
   ManagementScreen({super.key});
 
+  void pushCreateUser(BuildContext ctx) => Navigator.of(ctx).push(
+        MaterialPageRoute(
+          builder: (ctx) => const CreateUserScreen(),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
+    final role = Provider.of<CSIUsers>(context).role;
+
     return Scaffold(
       appBar: const CSIAppBar("User management"),
       body: SafeArea(
         child: ListView.builder(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0) +
+              const EdgeInsets.only(
+                bottom: 80.0,
+              ),
           itemCount: roles.length,
           itemBuilder: (ctx, index) => roleList(roles[index]),
         ),
       ),
+      floatingActionButton: role != null
+          ? role.canCreateUsers
+              ? FloatingActionButton(
+                  onPressed: () => pushCreateUser(context),
+                  child: Icon(
+                    createUserIcon,
+                    color: Colors.white,
+                  ),
+                )
+              : null
+          : null,
     );
   }
 

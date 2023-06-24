@@ -90,4 +90,7 @@ IconData get groupIcon => Platform.isIOS ? CupertinoIcons.group : Icons.group;
 
 IconData get logoutIcon => Platform.isIOS ? Icons.logout_rounded : Icons.logout;
 
+IconData get createUserIcon =>
+    Platform.isIOS ? CupertinoIcons.person_add_solid : Icons.person_add;
+
 IconData get editIcon => Platform.isIOS ? CupertinoIcons.pencil : Icons.edit;

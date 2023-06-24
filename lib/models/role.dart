@@ -7,6 +7,7 @@ class Role {
   late bool canAllowAndRevokeAccess;
   late bool canReadLogs;
   late bool canSetRoles;
+  late bool canCreateUsers;
 
   Role({
     required this.key,
@@ -15,6 +16,7 @@ class Role {
     this.canAllowAndRevokeAccess = false,
     this.canReadLogs = false,
     this.canSetRoles = false,
+    this.canCreateUsers = false,
   });
 
   Role.fromDocQuerySnapshot(
@@ -28,6 +30,7 @@ class Role {
     canAllowAndRevokeAccess = data["canAllowAndRevokeAccess"];
     canReadLogs = data["canReadLogs"];
     canSetRoles = data["canSetRoles"];
+    canCreateUsers = data["canCreateUsers"];
   }
 
   Role.fromDocSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
@@ -40,6 +43,7 @@ class Role {
     canAllowAndRevokeAccess = data["canAllowAndRevokeAccess"];
     canReadLogs = data["canReadLogs"];
     canSetRoles = data["canSetRoles"];
+    canCreateUsers = data["canCreateUsers"];
   }
 
   Map<String, dynamic> toJson() {
@@ -49,6 +53,7 @@ class Role {
       "canAllowAndRevokeAccess": canAllowAndRevokeAccess,
       "canReadLogs": canReadLogs,
       "canSetRoles": canSetRoles,
+      "canCreateUsers": canCreateUsers,
     };
 
     return json;

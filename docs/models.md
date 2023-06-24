@@ -33,6 +33,7 @@ These are the possible roles a CSI User can have.
 - canAccess: bool - Whether the user has access.
 - canSetRoles: bool - Whether the user can set other users' roles.
 - canAllowAndRevokeAccess: bool - Whether the user can grant or revoke other users' permission to access.
+- canCreateUsers: bool - Whether the user can create other user accounts.
 
 ## Logs
 
