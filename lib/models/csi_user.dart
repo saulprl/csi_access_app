@@ -4,28 +4,28 @@ import 'package:firebase_database/firebase_database.dart';
 import "package:flutter_bcrypt/flutter_bcrypt.dart";
 
 class CSIUser {
-  String? key;
-  int? csiId;
-  String? name;
-  String? unisonId;
-  String? email;
-  String? passcode;
-  DocumentReference<Map<String, dynamic>>? role;
-  bool? isAllowedAccess;
-  Timestamp? createdAt;
-  Timestamp? dateOfBirth;
+  late String key;
+  late int csiId;
+  late String name;
+  late String unisonId;
+  late String email;
+  late String passcode;
+  late DocumentReference<Map<String, dynamic>> role;
+  late bool isAllowedAccess;
+  late Timestamp createdAt;
+  late Timestamp dateOfBirth;
 
   CSIUser({
-    this.key,
-    this.csiId,
-    this.name,
-    this.unisonId,
-    this.email,
-    this.passcode,
-    this.role,
-    this.isAllowedAccess,
-    this.createdAt,
-    this.dateOfBirth,
+    required this.key,
+    required this.csiId,
+    required this.name,
+    required this.unisonId,
+    required this.email,
+    required this.passcode,
+    required this.role,
+    required this.isAllowedAccess,
+    required this.createdAt,
+    required this.dateOfBirth,
   });
 
   CSIUser.fromDataSnapshot(DataSnapshot snapshot) {
@@ -76,7 +76,7 @@ class CSIUser {
     dateOfBirth = data["dateOfBirth"];
   }
 
-  CSIUser.fromDirectSnapshot(DataSnapshot snapshot, String this.key) {
+  CSIUser.fromDirectSnapshot(DataSnapshot snapshot, this.key) {
     csiId = (snapshot.value as Map)["csiId"];
     name = (snapshot.value as Map)["name"];
     unisonId = (snapshot.value as Map)["unisonId"];
@@ -94,7 +94,7 @@ class CSIUser {
       return false;
     }
 
-    return FlutterBcrypt.verify(password: passcode, hash: this.passcode!);
+    return FlutterBcrypt.verify(password: passcode, hash: this.passcode);
   }
 
   Map<String, dynamic> toJson({bool keyless = false}) {
@@ -113,7 +113,7 @@ class CSIUser {
 
     if (keyless) return data;
 
-    json[key!] = data;
+    json[key] = data;
 
     return json;
   }

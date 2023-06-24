@@ -1,5 +1,6 @@
 import 'package:csi_door_logs/providers/csi_users.dart';
 import 'package:csi_door_logs/screens/create_user_screen.dart';
+import 'package:csi_door_logs/utils/routes.dart';
 import 'package:csi_door_logs/utils/styles.dart';
 import 'package:flutter/material.dart';
 
@@ -21,9 +22,7 @@ class ManagementScreen extends StatelessWidget {
   ManagementScreen({super.key});
 
   void pushCreateUser(BuildContext ctx) => Navigator.of(ctx).push(
-        MaterialPageRoute(
-          builder: (ctx) => const CreateUserScreen(),
-        ),
+        Routes.pushFromRight(const CreateUserScreen()),
       );
 
   @override
@@ -31,7 +30,7 @@ class ManagementScreen extends StatelessWidget {
     final role = Provider.of<CSIUsers>(context).role;
 
     return Scaffold(
-      appBar: const CSIAppBar("User management"),
+      appBar: const CSIAppBar("User Management"),
       body: SafeArea(
         child: ListView.builder(
           padding: const EdgeInsets.all(8.0) +

@@ -95,6 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         drawer: CSIDrawer(),
         body: SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Builder(
               builder: builder,
             ),

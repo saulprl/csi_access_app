@@ -68,23 +68,23 @@ class _RoleUsersListState extends State<RoleUsersList> {
                     );
 
                     final isEditable = role != null
-                        ? user.role!.id == role.key
+                        ? user.role.id == role.key
                             ? false
                             : role.canSetRoles
                         : false;
                     final isTogglable = role != null
-                        ? user.role!.id == role.key
+                        ? user.role.id == role.key
                             ? false
                             : role.canAllowAndRevokeAccess
                         : false;
 
                     return UserItem(
-                      uid: user.key!,
-                      name: user.name!,
-                      isAllowedAccess: user.isAllowedAccess!,
+                      uid: user.key,
+                      name: user.name,
+                      isAllowedAccess: user.isAllowedAccess,
                       isEditable: isEditable,
                       isTogglable: isTogglable,
-                      role: user.role!,
+                      role: user.role,
                     );
                   },
                 );

@@ -90,7 +90,7 @@ class _SignupFormState extends State<SignupForm> {
     final existingUser = CSIUser.fromDataSnapshot(existingSnapshot);
     csiIdCtrl.text = existingUser.csiId.toString();
     roleCtrl.text = "Member";
-    nameCtrl.text = existingUser.name!;
+    nameCtrl.text = existingUser.name;
 
     setState(() {
       _editName = true;

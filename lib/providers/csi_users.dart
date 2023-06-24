@@ -36,7 +36,7 @@ class CSIUsers with ChangeNotifier {
     if (!snapshot.exists) return;
 
     _user = CSIUser.fromDocSnapshot(snapshot);
-    _roleStream = _user!.role!.snapshots().listen(_firestoreRole);
+    _roleStream = _user!.role.snapshots().listen(_firestoreRole);
     notifyListeners();
   }
 

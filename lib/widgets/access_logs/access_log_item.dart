@@ -36,7 +36,7 @@ class AccessLogItem extends StatelessWidget {
 
           return Expanded(
             child: Text(
-              csiUser.name!,
+              csiUser.name,
               style: log.accessed ? successfulLogTitle : failedLogTitle,
               overflow: TextOverflow.ellipsis,
             ),

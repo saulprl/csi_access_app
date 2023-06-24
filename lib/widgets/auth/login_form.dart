@@ -133,7 +133,10 @@ class _LoginFormState extends State<LoginForm> {
               controller: _emailCtrl,
               decoration: mainInputDecoration.copyWith(
                 prefixIcon: Icon(emailIcon),
-                label: const Text("Email address"),
+                label: const Text(
+                  "Email address",
+                  style: TextStyle(fontSize: 18.0),
+                ),
               ),
               autocorrect: false,
               enabled: !_isLoading,
@@ -157,7 +160,7 @@ class _LoginFormState extends State<LoginForm> {
               controller: _passCtrl,
               decoration: mainInputDecoration.copyWith(
                 prefixIcon: Icon(passwordIcon),
-                label: const Text("Password"),
+                label: const Text("Password", style: TextStyle(fontSize: 18.0)),
                 suffixIcon: IconButton(
                   icon: Icon(
                       _showPassword ? Icons.visibility_off : Icons.visibility),
@@ -193,20 +196,23 @@ class _LoginFormState extends State<LoginForm> {
                       ),
                     ),
                     icon: const Icon(Icons.login),
-                    label: const Text("Login"),
+                    label: const Text(
+                      "Login",
+                      style: TextStyle(fontSize: 16.0),
+                    ),
                     onPressed: _saveForm,
                   ),
             const SizedBox(height: 8.0),
             RichText(
               text: TextSpan(
-                text: "Don't have an account? ",
+                text: "First time using the app? ",
                 style: const TextStyle(
                   color: Colors.black45,
-                  fontSize: 16.0,
+                  fontSize: 18.0,
                 ),
                 children: [
                   TextSpan(
-                    text: "Sign up",
+                    text: "Sign up!",
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
