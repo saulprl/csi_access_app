@@ -29,6 +29,7 @@ These are the possible roles a CSI User can have.
 ### Each role has the following fields
 
 - name: string - The role's readable name.
+- level: number - A helper value to easily compare each role's capabilities.
 - canReadLogs: bool - Whether the user can read logs.
 - canAccess: bool - Whether the user has access.
 - canSetRoles: bool - Whether the user can set other users' roles.

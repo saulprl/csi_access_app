@@ -53,7 +53,6 @@ class _RoleUsersListState extends State<RoleUsersList> {
             stream: _firestore
                 .collection("users")
                 .where("role", isEqualTo: widget.roleRef)
-                .orderBy("isAllowedAccess")
                 .orderBy("name")
                 .snapshots(),
             builder: (ctx, snapshot) {
@@ -67,24 +66,37 @@ class _RoleUsersListState extends State<RoleUsersList> {
                       snapshot.data!.docs[index],
                     );
 
-                    final isEditable = role != null
-                        ? user.role.id == role.key
-                            ? false
-                            : role.canSetRoles
-                        : false;
-                    final isTogglable = role != null
-                        ? user.role.id == role.key
-                            ? false
-                            : role.canAllowAndRevokeAccess
-                        : false;
+                    return FutureBuilder(
+                      future: user.role.get(),
+                      builder: (ctx, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          final userRole = Role.fromDocSnapshot(snapshot.data!);
 
-                    return UserItem(
-                      uid: user.key,
-                      name: user.name,
-                      isAllowedAccess: user.isAllowedAccess,
-                      isEditable: isEditable,
-                      isTogglable: isTogglable,
-                      role: user.role,
+                          final isEditable = role == null
+                              ? false
+                              : role.canSetRoles
+                                  ? userRole.level < role.level
+                                  : false;
+
+                          final isTogglable = role == null
+                              ? false
+                              : role.canAllowAndRevokeAccess
+                                  ? userRole.level < role.level
+                                  : false;
+
+                          return UserItem(
+                            key: ValueKey(user.key),
+                            uid: user.key,
+                            name: user.name,
+                            isAllowedAccess: user.isAllowedAccess,
+                            isEditable: isEditable,
+                            isTogglable: isTogglable,
+                            role: user.role,
+                          );
+                        }
+
+                        return const SkeletonList();
+                      },
                     );
                   },
                 );
