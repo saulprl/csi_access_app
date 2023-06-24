@@ -11,11 +11,12 @@ import "package:csi_door_logs/providers/csi_users.dart";
 import "package:csi_door_logs/screens/screens.dart";
 
 import "package:csi_door_logs/utils/routes.dart";
-import "package:csi_door_logs/utils/utils.dart";
+import "package:csi_door_logs/utils/styles.dart";
 
 class CSIDrawer extends StatelessWidget {
   final _auth = FirebaseAuth.instance;
   final _storage = const FlutterSecureStorage();
+  final _key = GlobalKey<ScaffoldState>(debugLabel: "drawer_key");
 
   CSIDrawer({super.key});
 
@@ -45,6 +46,7 @@ class CSIDrawer extends StatelessWidget {
     final role = Provider.of<CSIUsers>(context).role;
 
     return Drawer(
+      key: _key,
       child: Column(
         children: [
           AppBar(
@@ -68,16 +70,17 @@ class CSIDrawer extends StatelessWidget {
                   "Access Logs",
                   listIcon,
                   role != null ? role.canReadLogs : false,
-                  () => Navigator.of(context).pushNamed(Routes.accessLogs),
+                  () => Navigator.of(context).push(
+                    Routes.pushFromRight(const LogsScreen()),
+                  ),
                 ),
                 _buildTile(
                   context,
                   "CSI Credentials",
                   settingsIcon,
                   true,
-                  () => Navigator.of(context).pushNamed(
-                    Routes.csiCredentials,
-                    arguments: {"edit": true},
+                  () => Navigator.of(context).push(
+                    Routes.pushFromRight(CSICredentialsScreen(isEdit: true)),
                   ),
                 ),
                 _buildTile(
@@ -88,9 +91,7 @@ class CSIDrawer extends StatelessWidget {
                       ? role.canAllowAndRevokeAccess || role.canSetRoles
                       : false,
                   () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (ctx) => ManagementScreen(),
-                    ),
+                    Routes.pushFromRight(ManagementScreen()),
                   ),
                 ),
               ],

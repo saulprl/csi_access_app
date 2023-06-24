@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/models/models.dart';
 import 'package:csi_door_logs/utils/globals.dart';
-import 'package:csi_door_logs/utils/utils.dart';
+import 'package:csi_door_logs/utils/styles.dart';
 import 'package:csi_door_logs/widgets/auth/role_field.dart';
 import 'package:flutter/material.dart';
 

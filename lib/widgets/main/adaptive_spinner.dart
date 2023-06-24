@@ -1,4 +1,4 @@
-import "package:csi_door_logs/utils/utils.dart";
+import "package:csi_door_logs/utils/styles.dart";
 import "package:flutter/material.dart";
 
 class AdaptiveSpinner extends StatelessWidget {

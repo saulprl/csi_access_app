@@ -81,32 +81,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return false;
   }
 
-  Widget get floatingActionButton => FloatingActionButton(
-        onPressed: _isLoading
-            ? () {}
-            : _hasStorage
-                ? () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (ctx) => const PibleScreen(),
-                      ),
-                    )
-                : () async {
-                    await Navigator.of(context)
-                        .pushNamed(Routes.csiCredentials);
-                    _readStorage();
-                  },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        child: _isLoading
-            ? const AdaptiveSpinner(color: Colors.white)
-            : _hasStorage
-                ? Image.asset("assets/Access_logo.png")
-                : const Icon(
-                    Icons.error_rounded,
-                    size: 40.0,
-                    color: Colors.white,
-                  ),
-      );
-
   @override
   void dispose() {
     super.dispose();
@@ -119,17 +93,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         appBar: const CSIAppBar("Dashboard"),
         drawer: CSIDrawer(),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding:
-                const EdgeInsets.all(8.0) + const EdgeInsets.only(bottom: 80.0),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Summary(),
-                // PersonalSummary(),
-              ],
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Builder(
+              builder: builder,
             ),
           ),
         ),
@@ -137,4 +104,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
+  Widget builder(BuildContext ctx) {
+    return GestureDetector(
+      onPanUpdate: (details) {
+        if (details.delta.dx > 3) {
+          Scaffold.of(ctx).openDrawer();
+        }
+
+        if (details.delta.dx < -7 && !_isLoading) {
+          onAttemptAccess();
+        }
+      },
+      child: dashboardContent,
+    );
+  }
+
+  Padding get dashboardContent {
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Summary(),
+          PersonalSummary(),
+          SizedBox(height: 80.0),
+        ],
+      ),
+    );
+  }
+
+  Widget get floatingActionButton => FloatingActionButton(
+        onPressed: _isLoading ? null : onAttemptAccess,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: _isLoading
+            ? const AdaptiveSpinner(color: Colors.white)
+            : floatingChild,
+      );
+
+  void Function() get onAttemptAccess => _hasStorage
+      ? () => Navigator.of(context).push(
+            Routes.pushFromRight(const PibleScreen()),
+          )
+      : () async {
+          await Navigator.of(context).push(
+            Routes.pushFromRight(const CSICredentialsScreen()),
+          );
+          _readStorage();
+        };
+
+  Widget get floatingChild => _hasStorage
+      ? Image.asset("assets/Access_logo.png")
+      : const Icon(
+          Icons.error_rounded,
+          size: 40.0,
+          color: Colors.white,
+        );
 }

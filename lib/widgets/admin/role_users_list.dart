@@ -1,3 +1,4 @@
+import 'package:csi_door_logs/utils/styles.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,11 +33,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
         children: [
           Text(
             widget.roleName,
-            style: const TextStyle(
-              color: Colors.black45,
-              fontWeight: FontWeight.bold,
-              fontSize: 18.0,
-            ),
+            style: screenSubtitle,
           ),
           const SizedBox(width: 8.0),
           const Expanded(child: Divider(thickness: 4.0)),

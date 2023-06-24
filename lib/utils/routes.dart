@@ -10,13 +10,13 @@ class Routes {
   static const String accessLogs = "/access-logs";
   static const String csiCredentials = "/csi-credentials";
 
-  static final routes = <Route>[
-    Route(route: splash, screen: const SplashScreen()),
-    Route(route: login, screen: const LoginScreen()),
-    Route(route: signup, screen: const SignupScreen()),
-    Route(route: dashboard, screen: const DashboardScreen()),
-    Route(route: accessLogs, screen: const LogsScreen()),
-    Route(route: csiCredentials, screen: const CSICredentialsScreen()),
+  static final routes = <StaticRoute>[
+    StaticRoute(route: splash, screen: const SplashScreen()),
+    StaticRoute(route: login, screen: const LoginScreen()),
+    StaticRoute(route: signup, screen: const SignupScreen()),
+    StaticRoute(route: dashboard, screen: const DashboardScreen()),
+    StaticRoute(route: accessLogs, screen: const LogsScreen()),
+    StaticRoute(route: csiCredentials, screen: const CSICredentialsScreen()),
   ];
 
   static Map<String, Widget Function(BuildContext)> getAppRoutes() {
@@ -27,11 +27,30 @@ class Routes {
 
     return appRoutes;
   }
+
+  static Route pushFromRight(Widget route) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => route,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(1.0, 0.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
+  }
 }
 
-class Route {
+class StaticRoute {
   final String route;
   final Widget screen;
 
-  Route({required this.route, required this.screen});
+  StaticRoute({required this.route, required this.screen});
 }

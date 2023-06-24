@@ -39,6 +39,12 @@ const mainInputDecoration = InputDecoration(
   border: OutlineInputBorder(),
 );
 
+const screenSubtitle = TextStyle(
+  color: Colors.black45,
+  fontWeight: FontWeight.bold,
+  fontSize: 18.0,
+);
+
 const pibleBubbleTextStyle = TextStyle(
   color: Colors.white,
   fontSize: 18.0,

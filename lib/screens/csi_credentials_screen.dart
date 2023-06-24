@@ -13,7 +13,9 @@ import "package:csi_door_logs/utils/styles.dart";
 import "package:csi_door_logs/utils/globals.dart";
 
 class CSICredentialsScreen extends StatefulWidget {
-  const CSICredentialsScreen({super.key});
+  final bool isEdit;
+
+  const CSICredentialsScreen({this.isEdit = false, super.key});
 
   @override
   State<CSICredentialsScreen> createState() => _CSICredentialsScreenState();
@@ -147,7 +149,6 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments;
     var prompt = RichText(
       text: TextSpan(
         text: "Couldn't find your ",
@@ -170,7 +171,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
       ),
     );
 
-    if (args != null && (args as Map<String, bool>).containsKey("edit")) {
+    if (isEdit) {
       prompt = RichText(
         text: TextSpan(
           text: "Here you can set up your ",
@@ -319,4 +320,6 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
       ),
     );
   }
+
+  bool get isEdit => widget.isEdit;
 }

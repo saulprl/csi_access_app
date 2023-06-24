@@ -1,4 +1,3 @@
-import 'package:csi_door_logs/widgets/animations/index.dart';
 import 'package:flutter/material.dart';
 
 class Bubble extends StatelessWidget {
@@ -48,26 +47,21 @@ class Bubble extends StatelessWidget {
       ),
     ];
 
-    return Bounceable(
-      onPressed: () {},
-      duration: const Duration(milliseconds: 125),
-      scaleFactor: 0.35,
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: borderRadius,
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black54,
-              blurRadius: 4.0,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: crossAlignment,
-          children: reversed ? children.reversed.toList() : children,
-        ),
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: borderRadius,
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black54,
+            blurRadius: 4.0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: crossAlignment,
+        children: reversed ? children.reversed.toList() : children,
       ),
     );
   }
