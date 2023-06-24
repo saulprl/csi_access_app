@@ -127,8 +127,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Summary(),
-                PersonalSummary(),
+                // Summary(),
+                // PersonalSummary(),
               ],
             ),
           ),

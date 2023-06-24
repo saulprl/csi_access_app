@@ -4,9 +4,11 @@ import 'package:skeleton_animation/skeleton_animation.dart';
 
 class SkeletonList extends StatelessWidget {
   final int count;
+  final double height;
 
   const SkeletonList({
     this.count = 3,
+    this.height = 52.0,
     super.key,
   });
 
@@ -22,7 +24,7 @@ class SkeletonList extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Skeleton(
-                height: 52.0,
+                height: height,
                 borderRadius: BorderRadius.circular(16.0),
               ),
             );

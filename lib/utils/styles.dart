@@ -45,6 +45,29 @@ const pibleBubbleTextStyle = TextStyle(
   fontWeight: FontWeight.bold,
 );
 
+const accessLog = TextStyle(
+  color: Colors.white,
+  fontWeight: FontWeight.bold,
+);
+
+final successfulLogTitle = accessLog.copyWith(
+  fontSize: 32.0,
+);
+
+final successfulLogTimestamp = accessLog.copyWith(
+  fontSize: 20.0,
+  fontWeight: FontWeight.normal,
+);
+
+final failedLogTitle = accessLog.copyWith(
+  fontSize: 18.0,
+);
+
+final failedLogTimestamp = accessLog.copyWith(
+  fontSize: 14.0,
+  fontWeight: FontWeight.normal,
+);
+
 IconData get emailIcon =>
     Platform.isIOS ? CupertinoIcons.mail_solid : Icons.email;
 

@@ -1,10 +1,9 @@
-import "dart:async";
-
 import "package:flutter/material.dart";
 
-import "package:firebase_database/firebase_database.dart";
+import "package:cloud_firestore/cloud_firestore.dart";
 
 import "package:csi_door_logs/widgets/access_logs/access_log_item.dart";
+import "package:csi_door_logs/widgets/admin/skeleton_list.dart";
 
 import 'package:csi_door_logs/models/models.dart';
 
@@ -16,75 +15,44 @@ class AccessList extends StatefulWidget {
 }
 
 class _AccessListState extends State<AccessList> {
-  final query = FirebaseDatabase.instance
-      .ref("history")
-      .orderByChild("timestamp")
-      .limitToLast(20);
-
-  late StreamSubscription<DatabaseEvent> logAdd;
-  late StreamSubscription<DatabaseEvent> logRemove;
+  final _firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
-
-    // logAdd = query.onChildAdded.listen((event) {
-    //   onLogAdded(event.snapshot);
-    // });
-
-    // logRemove = query.onChildRemoved.listen((event) {
-    //   onLogRemoved(event.snapshot);
-    // });
   }
-
-  // void onLogAdded(DataSnapshot snapshot) {
-  //   setState(() {
-  //     _accessLogs.insert(0, AccessLog.fromSnapshot(snapshot));
-  //   });
-  // }
-
-  // void onLogRemoved(DataSnapshot snapshot) {
-  //   setState(() {
-  //     _accessLogs.removeWhere((log) => log.key == snapshot.key);
-  //   });
-  // }
 
   @override
   void dispose() {
-    // logAdd.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: query.onValue,
+        stream: _firestore
+            .collection("logs")
+            .orderBy(
+              "timestamp",
+              descending: true,
+            )
+            .limit(20)
+            .snapshots(),
         builder: (ctx, snapshot) {
-          final logItems = <Widget>[];
-          if (snapshot.hasData) {
-            final accessLogs =
-                AccessLog.fromStreamSnapshot(snapshot.data!.snapshot);
+          if (snapshot.hasData && snapshot.data != null) {
+            final logItems = <Widget>[];
 
-            for (final log in accessLogs) {
-              logItems.insert(
-                0,
-                AccessLogItem(
-                  key: ValueKey(log.timestamp!),
-                  csiId: log.csiId!,
-                  date: DateTime.fromMillisecondsSinceEpoch(log.timestamp!),
-                  accessed: log.accessed!,
-                ),
-              );
+            for (final doc in snapshot.data!.docs) {
+              logItems.add(AccessLogItem(AccessLog.fromQueryDocSnapshot(doc)));
             }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: logItems,
+            );
           }
 
-          return ListView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 4.0,
-              vertical: 4.0,
-            ),
-            children: logItems,
-          );
+          return const SkeletonList(count: 20, height: 60.0);
         });
     // ListView.builder(
     //   padding: const EdgeInsets.symmetric(

@@ -1,71 +1,80 @@
-import "dart:async";
-
 import "package:flutter/material.dart";
-import "package:firebase_database/firebase_database.dart";
+
+import "package:intl/intl.dart";
+
 import "package:skeleton_animation/skeleton_animation.dart";
 
 import "package:csi_door_logs/models/models.dart";
 
-class AccessLogItem extends StatefulWidget {
-  final int csiId;
-  final DateTime date;
-  final bool accessed;
-  final Attempt? attempt;
+import "package:csi_door_logs/utils/styles.dart";
 
-  const AccessLogItem({
-    required this.csiId,
-    required this.date,
-    required this.accessed,
-    this.attempt,
-    super.key,
-  });
+class AccessLogItem extends StatelessWidget {
+  final AccessLog log;
 
-  @override
-  State<AccessLogItem> createState() => _AccessLogItemState();
-}
+  const AccessLogItem(this.log, {super.key});
 
-class _AccessLogItemState extends State<AccessLogItem> {
-  final ref = FirebaseDatabase.instance.ref("users");
-  CSIUser? _user;
-  late StreamSubscription<DatabaseEvent> updates;
+  Color generateTileColor(BuildContext ctx) {
+    if (log.accessed && log.bluetooth) {
+      return Theme.of(ctx).colorScheme.tertiary;
+    }
 
-  @override
-  void initState() {
-    super.initState();
+    if (log.accessed) {
+      return Theme.of(ctx).colorScheme.primary;
+    }
 
-    updates = ref
-        .orderByChild("csiId")
-        .equalTo(widget.csiId)
-        .limitToFirst(1)
-        .onValue
-        .listen((event) {
-      if (event.snapshot.exists) {
-        setUser(event.snapshot);
-      }
-    });
+    return Theme.of(ctx).colorScheme.secondary;
   }
 
-  @override
-  void dispose() {
-    updates.cancel();
+  Widget getTileTitle() {
+    if (log.user == null) return Text("Unknown user", style: failedLogTitle);
 
-    super.dispose();
+    return StreamBuilder(
+      stream: log.user!.snapshots(),
+      builder: (ctx, snapshot) {
+        if (snapshot.hasData && snapshot.data != null) {
+          final csiUser = CSIUser.fromDocSnapshot(snapshot.data!);
+
+          return Expanded(
+            child: Text(
+              csiUser.name!,
+              style: log.accessed ? successfulLogTitle : failedLogTitle,
+              overflow: TextOverflow.ellipsis,
+            ),
+          );
+        }
+
+        return SkeletonText(
+          height: log.accessed
+              ? successfulLogTitle.fontSize!
+              : failedLogTitle.fontSize!,
+        );
+      },
+    );
   }
 
-  void setUser(DataSnapshot snapshot) {
-    setState(() {
-      _user = CSIUser.fromDataSnapshot(snapshot);
-    });
+  List<Widget> getTileTimestamp() {
+    final timestamp = log.timestamp.toDate();
+
+    return <Widget>[
+      Text(
+        DateFormat.Hms().format(timestamp),
+        style: failedLogTimestamp,
+        textAlign: TextAlign.right,
+      ),
+      Text(
+        DateFormat.yMMMd().format(timestamp),
+        style: failedLogTimestamp,
+        textAlign: TextAlign.right,
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: ListTile(
-        tileColor: widget.accessed
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.secondary,
+        tileColor: generateTileColor(context),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
@@ -74,90 +83,18 @@ class _AccessLogItemState extends State<AccessLogItem> {
           horizontal: 16.0,
           vertical: 2.0,
         ),
-        title: widget.accessed
-            ? _user != null
-                ? Text(
-                    _user!.name!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 32.0,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  )
-                : Skeleton(
-                    textColor: Colors.white24,
-                    style: SkeletonStyle.text,
-                    height: 32.0,
-                  )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Usuario desconocido",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18.0,
-                    ),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.date
-                            .toIso8601String()
-                            .split("T")
-                            .last
-                            .split(".")
-                            .first,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                      Text(
-                        widget.date.toIso8601String().split("T").first,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-        subtitle: widget.accessed
-            ? RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: widget.date.toIso8601String().split("T").first,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                      ),
-                    ),
-                    const TextSpan(text: " "),
-                    TextSpan(
-                      text: widget.date
-                          .toIso8601String()
-                          .split("T")
-                          .last
-                          .split(".")
-                          .first,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : null,
+        title: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            getTileTitle(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: getTileTimestamp(),
+            ),
+          ],
+        ),
       ),
     );
   }
