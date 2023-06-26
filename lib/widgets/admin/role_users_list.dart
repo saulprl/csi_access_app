@@ -95,14 +95,14 @@ class _RoleUsersListState extends State<RoleUsersList> {
                           );
                         }
 
-                        return const SkeletonList();
+                        return const SkeletonList(count: 2);
                       },
                     );
                   },
                 );
               }
 
-              return const SkeletonList();
+              return const SkeletonList(count: 2);
             },
           ),
         ),

@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
@@ -70,7 +71,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
 
   Future<bool> willPopHandler() async {
-    if (_shouldPop) return true;
+    if (_shouldPop) {
+      SystemNavigator.pop();
+
+      return true;
+    }
 
     _shouldPop = true;
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -95,7 +100,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         drawer: CSIDrawer(),
         body: SafeArea(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
             child: Builder(
               builder: builder,
             ),

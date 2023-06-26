@@ -4,7 +4,6 @@ import "dart:io";
 import "dart:math";
 
 import "package:csi_door_logs/utils/enums.dart";
-import "package:csi_door_logs/utils/routes.dart";
 import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:csi_door_logs/widgets/pible/index.dart";
 import "package:flutter/material.dart";
@@ -69,14 +68,11 @@ class _PibleScreenState extends State<PibleScreen> {
 
   void popBack() {
     if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        Routes.dashboard,
-        (route) => false,
-      );
+      Navigator.of(context).pop();
     }
   }
 
-  void schedulePopBack({int seconds = 3}) {
+  void schedulePopBack({int seconds = 2}) {
     Future.delayed(
       Duration(seconds: seconds),
       () => popBack(),
@@ -103,8 +99,15 @@ class _PibleScreenState extends State<PibleScreen> {
       }
     }
 
+    if (!await Permission.locationWhenInUse.isGranted) {
+      PermissionStatus status = await Permission.locationWhenInUse.request();
+      if (status == PermissionStatus.denied) {
+        popBack();
+      }
+    }
+
     flutterBlue.startScan(
-      timeout: const Duration(seconds: 6),
+      timeout: const Duration(seconds: 5),
       macAddresses: [pibleAddress!],
     );
 
@@ -117,10 +120,8 @@ class _PibleScreenState extends State<PibleScreen> {
             flutterBlue.stopScan();
 
             pible = scanResult.device;
-            pible!.connect(
-              autoConnect: true,
-              timeout: const Duration(seconds: 8),
-            );
+            pible!.connect(timeout: const Duration(seconds: 3));
+            Future.delayed(const Duration(seconds: 3), () => pible = null);
 
             try {
               deviceStateSub = pible!.state.listen(

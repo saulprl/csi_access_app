@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/models/csi_user.dart';
+import 'package:csi_door_logs/screens/screens.dart';
 import 'package:csi_door_logs/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
@@ -13,7 +14,6 @@ import 'package:email_validator/email_validator.dart';
 import 'package:csi_door_logs/widgets/main/index.dart';
 
 import 'package:csi_door_logs/utils/styles.dart';
-import 'package:csi_door_logs/utils/routes.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -219,7 +219,11 @@ class _LoginFormState extends State<LoginForm> {
                     ),
                     recognizer: TapGestureRecognizer()
                       ..onTap = () {
-                        Navigator.of(context).pushNamed(Routes.signup);
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (ctx) => const SignupScreen(),
+                          ),
+                        );
                       },
                   ),
                 ],

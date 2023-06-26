@@ -62,8 +62,7 @@ class CSIDrawer extends StatelessWidget {
                   "Dashboard",
                   dashboardIcon,
                   role != null ? role.canAccess : true,
-                  () => Navigator.of(context)
-                      .pushReplacementNamed(Routes.dashboard),
+                  () {},
                 ),
                 _buildTile(
                   context,
@@ -80,7 +79,9 @@ class CSIDrawer extends StatelessWidget {
                   settingsIcon,
                   true,
                   () => Navigator.of(context).push(
-                    Routes.pushFromRight(CSICredentialsScreen(isEdit: true)),
+                    Routes.pushFromRight(
+                      const CSICredentialsScreen(isEdit: true),
+                    ),
                   ),
                 ),
                 _buildTile(

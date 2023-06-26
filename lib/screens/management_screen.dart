@@ -95,7 +95,7 @@ class ManagementScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: 4.0),
-          SkeletonList(),
+          SkeletonList(count: 2),
         ],
       );
 }

@@ -33,7 +33,11 @@ class CSIUsers with ChangeNotifier {
   }
 
   void _firestoreUser(DocumentSnapshot<Map<String, dynamic>> snapshot) async {
-    if (!snapshot.exists) return;
+    if (!snapshot.exists) {
+      _role = null;
+      _user = null;
+      return;
+    }
 
     _user = CSIUser.fromDocSnapshot(snapshot);
     _roleStream = _user!.role.snapshots().listen(_firestoreRole);
@@ -41,7 +45,11 @@ class CSIUsers with ChangeNotifier {
   }
 
   Future<void> onAuthStateChanged(User? firebaseUser) async {
-    if (firebaseUser == null) return;
+    if (firebaseUser == null) {
+      _user = null;
+      _role = null;
+      return;
+    }
 
     _userStream = _firestore
         .collection("users")
@@ -50,6 +58,14 @@ class CSIUsers with ChangeNotifier {
         .listen(_firestoreUser);
     notifyListeners();
   }
+
+  // Future<void> signOut() async {
+  //   await _auth.signOut();
+  //   _role = null;
+  //   _user = null;
+
+  //   dispose();
+  // }
 
   @override
   void dispose() {

@@ -1,14 +1,18 @@
-import "package:csi_door_logs/providers/csi_users.dart";
-import "package:csi_door_logs/utils/routes.dart";
+import "package:flutter/material.dart";
+
+import "package:provider/provider.dart";
+
 import "package:firebase_auth/firebase_auth.dart";
 import "package:firebase_messaging/firebase_messaging.dart";
-import "package:flutter/material.dart";
 import "package:firebase_core/firebase_core.dart";
+
 import "package:flutter_dotenv/flutter_dotenv.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
+
+import "package:csi_door_logs/providers/csi_users.dart";
+
 import "package:csi_door_logs/firebase_options.dart";
-import "package:provider/provider.dart";
 
 @pragma("vm:entry-point")
 Future<void> _bgMessageHandler(RemoteMessage message) async {
@@ -78,7 +82,6 @@ class MyApp extends StatelessWidget {
                     return const LoginScreen();
                   },
                 ),
-          routes: Routes.getAppRoutes(),
         ),
       ),
     );
