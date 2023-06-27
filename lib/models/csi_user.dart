@@ -4,7 +4,7 @@ import 'package:firebase_database/firebase_database.dart';
 import "package:flutter_bcrypt/flutter_bcrypt.dart";
 
 class CSIUser {
-  late String key;
+  late String? key;
   late int csiId;
   late String name;
   late String unisonId;
@@ -16,7 +16,7 @@ class CSIUser {
   late Timestamp dateOfBirth;
 
   CSIUser({
-    required this.key,
+    this.key,
     required this.csiId,
     required this.name,
     required this.unisonId,
@@ -97,6 +97,22 @@ class CSIUser {
     return FlutterBcrypt.verify(password: passcode, hash: this.passcode);
   }
 
+  static Future<bool> globalCompareCredentials({
+    required String unisonId,
+    required String csiId,
+    required String passcode,
+    required String inputUnisonId,
+    required String inputCsiId,
+    required String inputPasscode,
+  }) async {
+    if (int.parse(inputCsiId) != int.parse(csiId) ||
+        inputUnisonId != unisonId) {
+      return false;
+    }
+
+    return FlutterBcrypt.verify(password: inputPasscode, hash: passcode);
+  }
+
   Map<String, dynamic> toJson({bool keyless = false}) {
     Map<String, dynamic> json = <String, dynamic>{};
     Map<String, dynamic> data = {
@@ -113,7 +129,7 @@ class CSIUser {
 
     if (keyless) return data;
 
-    json[key] = data;
+    json[key!] = data;
 
     return json;
   }

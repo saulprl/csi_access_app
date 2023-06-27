@@ -86,7 +86,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
 
                           return UserItem(
                             key: ValueKey(user.key),
-                            uid: user.key,
+                            uid: user.key!,
                             name: user.name,
                             isAllowedAccess: user.isAllowedAccess,
                             isEditable: isEditable,

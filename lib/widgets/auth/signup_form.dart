@@ -87,10 +87,12 @@ class _SignupFormState extends State<SignupForm> {
       return;
     }
 
-    final existingUser = CSIUser.fromDataSnapshot(existingSnapshot);
-    csiIdCtrl.text = existingUser.csiId.toString();
+    final existingUser = existingSnapshot.value as Map;
+    final existingUserKey = existingUser.keys.first;
+
+    csiIdCtrl.text = existingUser[existingUserKey]["csiId"].toString();
     roleCtrl.text = "Member";
-    nameCtrl.text = existingUser.name;
+    nameCtrl.text = existingUser[existingUserKey]["name"];
 
     setState(() {
       _editName = true;
@@ -197,11 +199,15 @@ class _SignupFormState extends State<SignupForm> {
         return;
       }
 
-      final existingUser = CSIUser.fromDataSnapshot(existingUnisonID);
-      if (!await existingUser.compareCredentials(
-        unisonId,
-        csiId,
-        csiPasscode,
+      final existingUser = existingUnisonID.value as Map;
+      final existingKey = existingUser.keys.first;
+      if (!await CSIUser.globalCompareCredentials(
+        unisonId: existingUser[existingKey]["unisonId"],
+        csiId: existingUser[existingKey]["csiId"].toString(),
+        passcode: existingUser[existingKey]["passcode"],
+        inputUnisonId: unisonId,
+        inputCsiId: csiId,
+        inputPasscode: csiPasscode,
       )) {
         showModal("Your CSI Credentials are incorrect.");
         return;
@@ -218,17 +224,22 @@ class _SignupFormState extends State<SignupForm> {
           .limit(1)
           .get();
 
-      existingUser.name = name;
-      existingUser.email = email;
-      existingUser.role = roleRef.docs[0].reference;
-      existingUser.isAllowedAccess = _isAllowedAccess;
-      existingUser.createdAt = Timestamp.now();
-      existingUser.dateOfBirth = Timestamp.fromDate(dob!);
+      final migratedUser = CSIUser(
+        csiId: int.parse(csiId),
+        name: name,
+        unisonId: unisonId,
+        email: email,
+        passcode: existingUser[existingKey]["passcode"],
+        role: roleRef.docs[0].reference,
+        isAllowedAccess: _isAllowedAccess,
+        createdAt: Timestamp.now(),
+        dateOfBirth: Timestamp.fromDate(dob!),
+      );
 
       await _firestore
           .collection("users")
           .doc(authenticatedUser.user!.uid)
-          .set(existingUser.toJson(keyless: true));
+          .set(migratedUser.toJson(keyless: true));
 
       await _storage.deleteAll();
       await _storage.write(
@@ -246,6 +257,7 @@ class _SignupFormState extends State<SignupForm> {
 
       showModal(message);
     } catch (error) {
+      rethrow;
       var message = "An error occurred, please check your credentials!";
       message = error.toString();
 
