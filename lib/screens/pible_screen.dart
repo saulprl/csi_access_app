@@ -40,6 +40,7 @@ class _PibleScreenState extends State<PibleScreen> {
 
   bool isBluetoothOn = false;
   bool isScanning = false;
+  bool canRescan = false;
   BTServiceState servicesState = BTServiceState.waiting;
   BluetoothDeviceState deviceState = BluetoothDeviceState.disconnected;
   LocalAuthState authState = LocalAuthState.waiting;
@@ -106,6 +107,8 @@ class _PibleScreenState extends State<PibleScreen> {
       }
     }
 
+    setState(() => canRescan = false);
+
     flutterBlue.startScan(
       timeout: const Duration(seconds: 5),
       macAddresses: [pibleAddress!],
@@ -121,7 +124,10 @@ class _PibleScreenState extends State<PibleScreen> {
 
             pible = scanResult.device;
             pible!.connect(timeout: const Duration(seconds: 3));
-            Future.delayed(const Duration(seconds: 3), () => pible = null);
+            Future.delayed(
+              const Duration(seconds: 3),
+              () => setState(() => canRescan = true),
+            );
 
             try {
               deviceStateSub = pible!.state.listen(
@@ -254,7 +260,7 @@ class _PibleScreenState extends State<PibleScreen> {
               BluetoothBubble(isBluetoothOn: isBluetoothOn),
               ScanningBubble(
                 isScanning: isScanning,
-                onTap: !isScanning && pible == null ? discoverDevices : null,
+                onTap: !isScanning && canRescan ? discoverDevices : null,
               ),
               DeviceBubble(state: deviceState),
               ServicesBubble(state: servicesState),

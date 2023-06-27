@@ -257,7 +257,6 @@ class _SignupFormState extends State<SignupForm> {
 
       showModal(message);
     } catch (error) {
-      rethrow;
       var message = "An error occurred, please check your credentials!";
       message = error.toString();
 
