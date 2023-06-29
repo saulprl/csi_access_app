@@ -40,7 +40,7 @@ const mainInputDecoration = InputDecoration(
 );
 
 const screenSubtitle = TextStyle(
-  color: Colors.black45,
+  color: Colors.black87,
   fontWeight: FontWeight.bold,
   fontSize: 18.0,
 );

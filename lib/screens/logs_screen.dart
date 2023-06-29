@@ -12,7 +12,6 @@ class LogsScreen extends StatelessWidget {
       appBar: CSIAppBar("Access Logs"),
       body: SafeArea(
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
           child: Padding(
             padding: EdgeInsets.all(8.0),
             child: AccessList(),

@@ -260,7 +260,9 @@ class _PibleScreenState extends State<PibleScreen> {
               BluetoothBubble(isBluetoothOn: isBluetoothOn),
               ScanningBubble(
                 isScanning: isScanning,
-                onTap: !isScanning && canRescan ? discoverDevices : null,
+                onTap: !isScanning && pible == null || canRescan
+                    ? discoverDevices
+                    : null,
               ),
               DeviceBubble(state: deviceState),
               ServicesBubble(state: servicesState),

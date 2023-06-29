@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/models/models.dart';
 import 'package:csi_door_logs/utils/globals.dart';
 import 'package:csi_door_logs/utils/styles.dart';
 import 'package:csi_door_logs/widgets/auth/role_field.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class UserItem extends StatefulWidget {
@@ -30,6 +33,18 @@ class UserItem extends StatefulWidget {
 class _UserItemState extends State<UserItem> {
   final _firestore = FirebaseFirestore.instance;
   late String roleName;
+
+  MaterialStateProperty<Icon?> get thumbIcon =>
+      MaterialStateProperty.resolveWith<Icon?>((Set<MaterialState> states) {
+        if (states.contains(MaterialState.selected)) {
+          return Icon(
+            Platform.isIOS ? CupertinoIcons.check_mark : Icons.check,
+            color: Theme.of(context).colorScheme.primary,
+          );
+        } else {
+          return Icon(Platform.isIOS ? CupertinoIcons.clear : Icons.close);
+        }
+      });
 
   void toggleAccessPermission(bool value) {
     _firestore.collection("users").doc(widget.uid).set({
@@ -147,6 +162,7 @@ class _UserItemState extends State<UserItem> {
       ),
       trailing: Switch(
         value: widget.isAllowedAccess,
+        thumbIcon: thumbIcon,
         onChanged: widget.isTogglable ? toggleAccessPermission : null,
       ),
     );

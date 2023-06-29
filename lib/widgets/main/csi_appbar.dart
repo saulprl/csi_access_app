@@ -14,6 +14,13 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(title: Text(title));
+    return AppBar(
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white),
+      ),
+      iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: Theme.of(context).colorScheme.primary,
+    );
   }
 }

@@ -62,6 +62,7 @@ class MyApp extends StatelessWidget {
         builder: (ctx, snapshot) => MaterialApp(
           title: 'CSI PRO Access',
           theme: ThemeData(
+            useMaterial3: true,
             colorScheme: lightScheme,
             fontFamily: "Poppins",
           ),

@@ -31,12 +31,16 @@ class _RoleUsersListState extends State<RoleUsersList> {
 
   Widget get divider => Row(
         children: [
+          // const Expanded(child: Divider(thickness: 2.0)),
+          const SizedBox(width: 4.0),
           Text(
             widget.roleName,
-            style: screenSubtitle,
+            style: screenSubtitle.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
-          const SizedBox(width: 8.0),
-          const Expanded(child: Divider(thickness: 4.0)),
+          const SizedBox(width: 4.0),
+          const Expanded(child: Divider()),
         ],
       );
 

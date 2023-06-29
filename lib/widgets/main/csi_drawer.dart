@@ -51,7 +51,11 @@ class CSIDrawer extends StatelessWidget {
         children: [
           AppBar(
             automaticallyImplyLeading: false,
-            title: const Text("CSI PRO Access"),
+            title: const Text(
+              "CSI PRO Access",
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 8.0),
           Expanded(

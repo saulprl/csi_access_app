@@ -297,7 +297,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                       ? AdaptiveSpinner(
                           color: Theme.of(context).colorScheme.primary,
                         )
-                      : ElevatedButton.icon(
+                      : FilledButton.icon(
                           style: ButtonStyle(
                             padding: const MaterialStatePropertyAll(
                               EdgeInsets.all(12.0),
