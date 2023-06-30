@@ -109,15 +109,13 @@ class _PersonalSummaryState extends State<PersonalSummary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(12.0),
-            topRight: Radius.circular(32.0),
-            bottomRight: Radius.circular(12.0),
-            bottomLeft: Radius.circular(32.0),
+          borderRadius: const BorderRadius.horizontal(
+            left: Radius.circular(32.0),
+            right: Radius.circular(12.0),
           ),
           color: Theme.of(context).colorScheme.primary,
           data: accessed,
-          label: 'your\nentrances',
+          label: 'your\naccesses',
           crossAlignment: CrossAxisAlignment.start,
           textAlign: TextAlign.start,
         ),
@@ -130,11 +128,9 @@ class _PersonalSummaryState extends State<PersonalSummary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32.0),
-            topRight: Radius.circular(12.0),
-            bottomRight: Radius.circular(32.0),
-            bottomLeft: Radius.circular(12.0),
+          borderRadius: const BorderRadius.horizontal(
+            left: Radius.circular(12.0),
+            right: Radius.circular(32.0),
           ),
           color: Theme.of(context).colorScheme.secondary,
           data: failed,

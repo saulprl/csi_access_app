@@ -109,7 +109,10 @@ class _SummaryState extends State<Summary> {
             horizontal: 32.0,
             vertical: 16.0,
           ),
-          borderRadius: BorderRadius.circular(32.0),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(32.0),
+            bottom: Radius.circular(12.0),
+          ),
           color: Theme.of(context).colorScheme.primary,
           data: accessCount,
           label: 'successful attempts',
@@ -130,7 +133,10 @@ class _SummaryState extends State<Summary> {
             horizontal: 32.0,
             vertical: 16.0,
           ),
-          borderRadius: BorderRadius.circular(32.0),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(12.0),
+            bottom: Radius.circular(32.0),
+          ),
           color: Theme.of(context).colorScheme.tertiary,
           data: bluetoothCount,
           label: 'bluetooth attempts',
@@ -146,11 +152,9 @@ class _SummaryState extends State<Summary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32.0),
-            topRight: Radius.circular(12.0),
-            bottomRight: Radius.circular(32.0),
-            bottomLeft: Radius.circular(12.0),
+          borderRadius: const BorderRadius.horizontal(
+            left: Radius.circular(32.0),
+            right: Radius.circular(12.0),
           ),
           color: Theme.of(context).colorScheme.secondary,
           data: failedCount,
@@ -168,11 +172,9 @@ class _SummaryState extends State<Summary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(12.0),
-            topRight: Radius.circular(32.0),
-            bottomRight: Radius.circular(12.0),
-            bottomLeft: Radius.circular(32.0),
+          borderRadius: const BorderRadius.horizontal(
+            left: Radius.circular(12.0),
+            right: Radius.circular(32.0),
           ),
           color: Theme.of(context).colorScheme.error,
           data: unknownCount,
@@ -198,7 +200,10 @@ class _SummaryState extends State<Summary> {
                   padding: const EdgeInsets.all(4.0),
                   child: Skeleton(
                     height: skeletonHeight,
-                    borderRadius: BorderRadius.circular(32.0),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(32.0),
+                      bottom: Radius.circular(12.0),
+                    ),
                   ),
                 ),
               ),
@@ -212,7 +217,10 @@ class _SummaryState extends State<Summary> {
                   padding: const EdgeInsets.all(4.0),
                   child: Skeleton(
                     height: skeletonHeight,
-                    borderRadius: BorderRadius.circular(32.0),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(12.0),
+                      bottom: Radius.circular(32.0),
+                    ),
                   ),
                 ),
               ),
@@ -226,11 +234,9 @@ class _SummaryState extends State<Summary> {
                   padding: const EdgeInsets.all(4.0),
                   child: Skeleton(
                     height: skeletonHeight * 1.2,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(32.0),
-                      topRight: Radius.circular(12.0),
-                      bottomRight: Radius.circular(32.0),
-                      bottomLeft: Radius.circular(12.0),
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(32.0),
+                      right: Radius.circular(12.0),
                     ),
                   ),
                 ),
@@ -240,11 +246,9 @@ class _SummaryState extends State<Summary> {
                   padding: const EdgeInsets.all(4.0),
                   child: Skeleton(
                     height: skeletonHeight * 1.2,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(12.0),
-                      topRight: Radius.circular(32.0),
-                      bottomRight: Radius.circular(12.0),
-                      bottomLeft: Radius.circular(32.0),
+                    borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(12.0),
+                      right: Radius.circular(32.0),
                     ),
                   ),
                 ),

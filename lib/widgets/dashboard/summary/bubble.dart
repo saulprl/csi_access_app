@@ -49,16 +49,7 @@ class Bubble extends StatelessWidget {
 
     return Container(
       padding: padding,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: borderRadius,
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black54,
-            blurRadius: 4.0,
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: color, borderRadius: borderRadius),
       child: Column(
         crossAxisAlignment: crossAlignment,
         children: reversed ? children.reversed.toList() : children,

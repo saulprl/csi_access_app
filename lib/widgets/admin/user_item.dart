@@ -1,12 +1,13 @@
-import 'dart:io';
+import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:csi_door_logs/widgets/auth/role_field.dart';
+
 import 'package:csi_door_logs/models/models.dart';
+
 import 'package:csi_door_logs/utils/globals.dart';
 import 'package:csi_door_logs/utils/styles.dart';
-import 'package:csi_door_logs/widgets/auth/role_field.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 class UserItem extends StatefulWidget {
   final String uid;
@@ -37,12 +38,9 @@ class _UserItemState extends State<UserItem> {
   MaterialStateProperty<Icon?> get thumbIcon =>
       MaterialStateProperty.resolveWith<Icon?>((Set<MaterialState> states) {
         if (states.contains(MaterialState.selected)) {
-          return Icon(
-            Platform.isIOS ? CupertinoIcons.check_mark : Icons.check,
-            color: Theme.of(context).colorScheme.primary,
-          );
+          return Icon(checkIcon, color: Theme.of(context).colorScheme.primary);
         } else {
-          return Icon(Platform.isIOS ? CupertinoIcons.clear : Icons.close);
+          return Icon(cancelIcon);
         }
       });
 

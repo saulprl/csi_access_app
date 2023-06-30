@@ -123,3 +123,8 @@ IconData get createUserIcon =>
     Platform.isIOS ? CupertinoIcons.person_add_solid : Icons.person_add;
 
 IconData get editIcon => Platform.isIOS ? CupertinoIcons.pencil : Icons.edit;
+
+IconData get checkIcon =>
+    Platform.isIOS ? CupertinoIcons.check_mark : Icons.check;
+
+IconData get cancelIcon => Platform.isIOS ? CupertinoIcons.clear : Icons.close;
