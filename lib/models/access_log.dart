@@ -1,16 +1,15 @@
 import "package:cloud_firestore/cloud_firestore.dart";
-import "package:firebase_database/firebase_database.dart";
 
 import "package:csi_door_logs/models/attempt.dart";
 
 class AccessLog {
-  late String key;
-  late DocumentReference<Map<String, dynamic>>? user;
-  late Timestamp timestamp;
-  late DocumentReference<Map<String, dynamic>> room;
-  late bool accessed;
-  late bool bluetooth;
-  late Attempt? attemptData;
+  final String key;
+  final DocumentReference<Map<String, dynamic>>? user;
+  final Timestamp timestamp;
+  final DocumentReference<Map<String, dynamic>> room;
+  final bool accessed;
+  final bool bluetooth;
+  final Attempt? attempt;
 
   AccessLog({
     required this.key,
@@ -19,44 +18,43 @@ class AccessLog {
     required this.room,
     required this.accessed,
     required this.bluetooth,
-    required this.attemptData,
+    required this.attempt,
   });
 
-  AccessLog.fromDocSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    final data = snapshot.data();
-    if (data == null) return;
-
-    key = snapshot.id;
-    user = data["user"];
-    room = data["room"];
-    timestamp = data["timestamp"];
-    accessed = data["accessed"];
-    bluetooth = data["bluetooth"];
-    attemptData = data["attemptData"] != null
-        ? Attempt(
-            csiId: (data["attemptData"] as Map<String, dynamic>)["csiId"],
-            passcode: (data["attemptData"] as Map<String, dynamic>)["passcode"],
-          )
-        : null;
+  factory AccessLog.fromDocSnapshot(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+  ) {
+    final data = snapshot.data() as Map<String, dynamic>;
+    return AccessLog(
+      key: snapshot.id,
+      user: data['user'] as DocumentReference<Map<String, dynamic>>?,
+      room: data['room'] as DocumentReference<Map<String, dynamic>>,
+      timestamp: data['timestamp'] as Timestamp,
+      attempt: Attempt(
+        csiId: data["attemptData"]?["csiId"] as String?,
+        passcode: data["attemptData"]?["passcode"] as String?,
+      ),
+      accessed: data['accessed'] as bool,
+      bluetooth: data['bluetooth'] as bool,
+    );
   }
 
-  AccessLog.fromQueryDocSnapshot(
+  factory AccessLog.fromQueryDocSnapshot(
     QueryDocumentSnapshot<Map<String, dynamic>> snapshot,
   ) {
     final data = snapshot.data();
-
-    key = snapshot.id;
-    user = data["user"];
-    room = data["room"];
-    timestamp = data["timestamp"];
-    accessed = data["accessed"];
-    bluetooth = data["bluetooth"];
-    attemptData = data["attemptData"] != null
-        ? Attempt(
-            csiId: (data["attemptData"] as Map<String, dynamic>)["csiId"],
-            passcode: (data["attemptData"] as Map<String, dynamic>)["passcode"],
-          )
-        : null;
+    return AccessLog(
+      key: snapshot.id,
+      user: data['user'] as DocumentReference<Map<String, dynamic>>?,
+      room: data['room'] as DocumentReference<Map<String, dynamic>>,
+      timestamp: data['timestamp'] as Timestamp,
+      attempt: Attempt(
+        csiId: data["attemptData"]?["csiId"] as String?,
+        passcode: data["attemptData"]?["passcode"] as String?,
+      ),
+      accessed: data['accessed'] as bool,
+      bluetooth: data['bluetooth'] as bool,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -68,7 +66,7 @@ class AccessLog {
     data["accessed"] = accessed;
     data["bluetooth"] = bluetooth;
     data["timestamp"] = timestamp;
-    data["attemptData"] = attemptData != null ? attemptData!.toJson() : null;
+    data["attemptData"] = attempt != null ? attempt!.toJson() : null;
 
     json[key] = data;
 

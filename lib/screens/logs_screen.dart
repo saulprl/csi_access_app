@@ -9,7 +9,7 @@ class LogsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      appBar: CSIAppBar("Access Logs"),
+      appBar: CSIAppBar("Access Logs", roomSelector: true),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

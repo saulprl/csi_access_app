@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Room {
-  late String key;
-  late String name;
-  late String building;
-  late String room;
+  final String key;
+  final String name;
+  final String building;
+  final String room;
 
   Room({
     required this.key,
@@ -13,24 +13,16 @@ class Room {
     required this.room,
   });
 
-  Room.fromDocSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    final data = snapshot.data();
-    if (data == null) return;
-
-    key = snapshot.id;
-    name = data["name"];
-    building = data["building"];
-    room = data["room"];
-  }
+  Room.fromDocSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot)
+      : key = snapshot.id,
+        name = snapshot.data()?["name"],
+        building = snapshot.data()?["building"],
+        room = snapshot.data()?["room"];
 
   Room.fromQueryDocSnapshot(
     QueryDocumentSnapshot<Map<String, dynamic>> snapshot,
-  ) {
-    final data = snapshot.data();
-
-    key = snapshot.id;
-    name = data["name"];
-    building = data["building"];
-    room = data["room"];
-  }
+  )   : key = snapshot.id,
+        name = snapshot.data()["name"],
+        building = snapshot.data()["building"],
+        room = snapshot.data()["room"];
 }

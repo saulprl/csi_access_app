@@ -96,7 +96,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return WillPopScope(
       onWillPop: willPopHandler,
       child: Scaffold(
-        appBar: const CSIAppBar("Dashboard"),
+        appBar: const CSIAppBar("Dashboard", roomSelector: true),
         drawer: CSIDrawer(),
         body: SafeArea(
           child: SingleChildScrollView(

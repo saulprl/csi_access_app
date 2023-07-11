@@ -1,4 +1,8 @@
+import 'package:csi_door_logs/models/user_model.dart';
+import 'package:csi_door_logs/providers/role_provider.dart';
+import 'package:csi_door_logs/providers/room_provider.dart';
 import 'package:csi_door_logs/utils/styles.dart';
+import 'package:csi_door_logs/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -29,88 +33,131 @@ class RoleUsersList extends StatefulWidget {
 class _RoleUsersListState extends State<RoleUsersList> {
   final _firestore = FirebaseFirestore.instance;
 
-  Widget get divider => Row(
-        children: [
-          // const Expanded(child: Divider(thickness: 2.0)),
-          const SizedBox(width: 4.0),
-          Text(
-            widget.roleName,
-            style: screenSubtitle.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 4.0),
-          const Expanded(child: Divider()),
-        ],
-      );
-
   @override
   Widget build(BuildContext context) {
-    final role = Provider.of<CSIUsers>(context).role;
+    final roles = Provider.of<RoleProvider>(context);
+    final rooms = Provider.of<RoomProvider>(context);
 
     return Column(
       children: [
-        divider,
+        buildDivider(context, roleName),
         Padding(
           padding: const EdgeInsets.all(4.0),
           child: StreamBuilder(
             stream: _firestore
-                .collection("users")
-                .where("role", isEqualTo: widget.roleRef)
-                .orderBy("name")
+                .collectionGroup("room_roles")
+                .where("key", isEqualTo: rooms.selectedRoom)
+                .where("roleId", isEqualTo: roleRef)
                 .snapshots(),
-            builder: (ctx, snapshot) {
-              if (snapshot.hasData) {
+            builder: (ctx, roleSnap) {
+              if (roleSnap.hasData) {
                 return ListView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: snapshot.data!.size,
+                  itemCount: roleSnap.data!.size,
                   itemBuilder: (ctx, index) {
-                    final user = CSIUser.fromDocQuerySnapshot(
-                      snapshot.data!.docs[index],
-                    );
+                    final currentItem = roleSnap.data!.docs[index];
 
                     return FutureBuilder(
-                      future: user.role.get(),
-                      builder: (ctx, snapshot) {
-                        if (snapshot.hasData && snapshot.data != null) {
-                          final userRole = Role.fromDocSnapshot(snapshot.data!);
+                      future: currentItem.reference.parent.parent!.get(),
+                      builder: (ctx, userIdSnap) {
+                        if (userIdSnap.hasData && userIdSnap.data != null) {
+                          return StreamBuilder(
+                            stream: _firestore
+                                .collection("users")
+                                .doc(userIdSnap.data?.id)
+                                .snapshots(),
+                            builder: (ctx, userSnap) {
+                              if (!userSnap.hasData) {
+                                return const SkeletonList();
+                              }
 
-                          final isEditable = role == null
-                              ? false
-                              : role.canSetRoles
-                                  ? userRole.level < role.level
-                                  : false;
+                              final user = UserModel.fromDocSnapshot(
+                                userSnap.data!,
+                              );
 
-                          final isTogglable = role == null
-                              ? false
-                              : role.canAllowAndRevokeAccess
-                                  ? userRole.level < role.level
-                                  : false;
+                              final peerRole = roles.roles.firstWhere(
+                                (role) => role.name == roleName,
+                              );
 
-                          return UserItem(
-                            key: ValueKey(user.key),
-                            uid: user.key!,
-                            name: user.name,
-                            isAllowedAccess: user.isAllowedAccess,
-                            isEditable: isEditable,
-                            isTogglable: isTogglable,
-                            role: user.role,
+                              final isEditable = roles.userRole == null
+                                  ? false
+                                  : roles.userRole!.canSetRoles
+                                      ? peerRole.level < roles.userRole!.level
+                                      : false;
+
+                              final isTogglable = roles.userRole == null
+                                  ? false
+                                  : roles.userRole!.canGrantOrRevokeAccess
+                                      ? peerRole.level < roles.userRole!.level
+                                      : false;
+
+                              return UserItem(
+                                key: ValueKey(user.key),
+                                uid: user.key,
+                                name: user.name,
+                                isAllowedAccess: roleSnap.data!.docs[index]
+                                    .data()["accessGranted"],
+                                isEditable: isEditable,
+                                isTogglable: isTogglable,
+                                role: peerRole,
+                                roomRoleRef: currentItem.reference,
+                              );
+                            },
                           );
+                        } else {
+                          return const SkeletonList(count: 1);
                         }
-
-                        return const SkeletonList(count: 2);
                       },
                     );
+                    // final user = CSIUser.fromDocQuerySnapshot(
+                    //   snapshot.data!.docs[index],
+                    // );
+
+                    // return FutureBuilder(
+                    //   future: user.role.get(),
+                    //   builder: (ctx, snapshot) {
+                    //     // if (snapshot.hasData && snapshot.data != null) {
+                    //     //   final userRole = Role.fromDocSnapshot(snapshot.data!);
+
+                    //     //   final isEditable = roles == null
+                    //     //       ? false
+                    //     //       : roles.canSetRoles
+                    //     //           ? userRole.level < roles.level
+                    //     //           : false;
+
+                    //     //   final isTogglable = roles == null
+                    //     //       ? false
+                    //     //       : roles.canAllowAndRevokeAccess
+                    //     //           ? userRole.level < roles.level
+                    //     //           : false;
+
+                    //     //   return UserItem(
+                    //     //     key: ValueKey(user.key),
+                    //     //     uid: user.key!,
+                    //     //     name: user.name,
+                    //     //     isAllowedAccess: user.isAllowedAccess,
+                    //     //     isEditable: isEditable,
+                    //     //     isTogglable: isTogglable,
+                    //     //     role: user.role,
+                    //     //   );
+                    //     // }
+
+                    //     return const SkeletonList(count: 2);
+                    //   },
+                    // );
                   },
                 );
               }
 
-              return const SkeletonList(count: 2);
+              return const SkeletonList(count: 1);
             },
           ),
         ),
       ],
     );
   }
+
+  DocumentReference get roleRef => widget.roleRef;
+  String get roleName => widget.roleName;
 }

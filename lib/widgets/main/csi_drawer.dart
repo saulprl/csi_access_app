@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/role_provider.dart";
 import "package:flutter/material.dart";
 
 import "package:firebase_auth/firebase_auth.dart";
@@ -6,7 +7,7 @@ import "package:provider/provider.dart";
 
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
-import "package:csi_door_logs/providers/csi_users.dart";
+import "package:shared_preferences/shared_preferences.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 
@@ -24,9 +25,9 @@ class CSIDrawer extends StatelessWidget {
     BuildContext ctx,
     String title,
     IconData icon,
-    bool enabled,
-    VoidCallback tapHandler,
-  ) {
+    VoidCallback tapHandler, {
+    bool enabled = true,
+  }) {
     return ListTile(
       leading: Icon(icon, size: 24.0, color: Colors.black87),
       title: Text(
@@ -43,7 +44,7 @@ class CSIDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final role = Provider.of<CSIUsers>(context).role;
+    final role = Provider.of<RoleProvider>(context).userRole;
 
     return Drawer(
       key: _key,
@@ -65,23 +66,21 @@ class CSIDrawer extends StatelessWidget {
                   context,
                   "Dashboard",
                   dashboardIcon,
-                  role != null ? role.canAccess : true,
                   () {},
                 ),
                 _buildTile(
                   context,
                   "Access Logs",
                   listIcon,
-                  role != null ? role.canReadLogs : false,
                   () => Navigator.of(context).push(
                     Routes.pushFromRight(const LogsScreen()),
                   ),
+                  enabled: role != null ? role.canReadLogs : false,
                 ),
                 _buildTile(
                   context,
                   "CSI Credentials",
                   settingsIcon,
-                  true,
                   () => Navigator.of(context).push(
                     Routes.pushFromRight(
                       const CSICredentialsScreen(isEdit: true),
@@ -92,12 +91,12 @@ class CSIDrawer extends StatelessWidget {
                   context,
                   "Manage Users",
                   Icons.group,
-                  role != null
-                      ? role.canAllowAndRevokeAccess || role.canSetRoles
-                      : false,
                   () => Navigator.of(context).push(
                     Routes.pushFromRight(ManagementScreen()),
                   ),
+                  enabled: role != null
+                      ? role.canGrantOrRevokeAccess || role.canSetRoles
+                      : false,
                 ),
               ],
             ),
@@ -107,9 +106,10 @@ class CSIDrawer extends StatelessWidget {
               context,
               "Sign out",
               logoutIcon,
-              true,
               () async {
                 await _storage.deleteAll();
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
 
                 await _auth.signOut();
               },

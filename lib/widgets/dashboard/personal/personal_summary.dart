@@ -36,7 +36,7 @@ class _PersonalSummaryState extends State<PersonalSummary> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        buildDashboardDivider(context, "Personal Data"),
+        buildDivider(context, "Personal Data"),
         FutureBuilder(
           future:
               _firestore.collection("users").doc(_auth.currentUser!.uid).get(),

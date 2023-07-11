@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:csi_door_logs/widgets/auth/role_field.dart';
 
+import 'package:csi_door_logs/models/role_model.dart';
 import 'package:csi_door_logs/models/models.dart';
 
 import 'package:csi_door_logs/utils/globals.dart';
@@ -15,7 +16,8 @@ class UserItem extends StatefulWidget {
   final bool isAllowedAccess;
   final bool isEditable;
   final bool isTogglable;
-  final DocumentReference<Map<String, dynamic>> role;
+  final RoleModel role;
+  final DocumentReference roomRoleRef;
 
   const UserItem({
     required this.uid,
@@ -24,6 +26,7 @@ class UserItem extends StatefulWidget {
     required this.isEditable,
     required this.isTogglable,
     required this.role,
+    required this.roomRoleRef,
     super.key,
   });
 
@@ -33,7 +36,7 @@ class UserItem extends StatefulWidget {
 
 class _UserItemState extends State<UserItem> {
   final _firestore = FirebaseFirestore.instance;
-  late String roleName;
+  late String roleKey;
 
   MaterialStateProperty<Icon?> get thumbIcon =>
       MaterialStateProperty.resolveWith<Icon?>((Set<MaterialState> states) {
@@ -45,8 +48,8 @@ class _UserItemState extends State<UserItem> {
       });
 
   void toggleAccessPermission(bool value) {
-    _firestore.collection("users").doc(widget.uid).set({
-      "isAllowedAccess": value,
+    roomRoleRef.set({
+      "accessGranted": value,
     }, SetOptions(merge: true));
   }
 
@@ -57,10 +60,12 @@ class _UserItemState extends State<UserItem> {
   void onRoleChange(String? value) {
     if (value == null) return;
 
-    roleName = value;
+    roleKey = value;
   }
 
   Future<bool?> showUpdateDialog() async {
+    roleKey = role.key;
+
     return showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -89,11 +94,7 @@ class _UserItemState extends State<UserItem> {
                   ],
                 ),
               ),
-              RoleField(
-                value: roleName,
-                values: roles,
-                onChange: onRoleChange,
-              ),
+              RoleField(value: roleKey, onChange: onRoleChange),
             ],
           ),
           actions: [
@@ -121,21 +122,14 @@ class _UserItemState extends State<UserItem> {
   }
 
   Future<void> updateRole() async {
-    roleName = Role.fromDocSnapshot(await widget.role.get()).name;
-
     final result = await showUpdateDialog();
     if (result == null) return;
     if (!result) return;
 
-    final updatedRole = (await _firestore
-            .collection("roles")
-            .where("name", isEqualTo: roleName)
-            .limit(1)
-            .get())
-        .docs[0];
+    final updatedRole = (await _firestore.doc("roles/$roleKey").get());
 
-    await _firestore.doc("users/${widget.uid}").set({
-      "role": updatedRole.reference,
+    await roomRoleRef.set({
+      "roleId": updatedRole.reference,
     }, SetOptions(merge: true));
   }
 
@@ -145,11 +139,11 @@ class _UserItemState extends State<UserItem> {
       leading: IconButton(
         icon: Icon(
           editIcon,
-          color: widget.isEditable
+          color: isEditable
               ? Theme.of(context).colorScheme.primary
               : Colors.black38,
         ),
-        onPressed: widget.isEditable ? updateRole : null,
+        onPressed: isEditable ? updateRole : null,
       ),
       title: Text(
         widget.name,
@@ -159,10 +153,18 @@ class _UserItemState extends State<UserItem> {
         overflow: TextOverflow.ellipsis,
       ),
       trailing: Switch(
-        value: widget.isAllowedAccess,
+        value: isAllowedAccess,
         thumbIcon: thumbIcon,
-        onChanged: widget.isTogglable ? toggleAccessPermission : null,
+        onChanged: isTogglable ? toggleAccessPermission : null,
       ),
     );
   }
+
+  String get uid => widget.uid;
+  String get name => widget.name;
+  bool get isAllowedAccess => widget.isAllowedAccess;
+  bool get isEditable => widget.isEditable;
+  bool get isTogglable => widget.isTogglable;
+  RoleModel get role => widget.role;
+  DocumentReference get roomRoleRef => widget.roomRoleRef;
 }

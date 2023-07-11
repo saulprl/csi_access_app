@@ -1,4 +1,6 @@
+import 'package:csi_door_logs/models/role_model.dart';
 import 'package:csi_door_logs/providers/csi_users.dart';
+import 'package:csi_door_logs/providers/role_provider.dart';
 import 'package:csi_door_logs/screens/create_user_screen.dart';
 import 'package:csi_door_logs/utils/routes.dart';
 import 'package:csi_door_logs/utils/styles.dart';
@@ -27,22 +29,22 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final role = Provider.of<CSIUsers>(context).role;
+    final roles = Provider.of<RoleProvider>(context);
 
     return Scaffold(
-      appBar: const CSIAppBar("User Management"),
+      appBar: const CSIAppBar("User Control", roomSelector: true),
       body: SafeArea(
         child: ListView.builder(
           padding: const EdgeInsets.all(8.0) +
               const EdgeInsets.only(
                 bottom: 80.0,
               ),
-          itemCount: roles.length,
-          itemBuilder: (ctx, index) => roleList(roles[index]),
+          itemCount: roles.roles.length,
+          itemBuilder: (ctx, index) => roleList(roles.roles[index].key),
         ),
       ),
-      floatingActionButton: role != null
-          ? role.canCreateUsers
+      floatingActionButton: roles.userRole != null
+          ? roles.userRole!.canCreateUsers
               ? FloatingActionButton(
                   onPressed: () => pushCreateUser(context),
                   child: Icon(
@@ -55,25 +57,23 @@ class ManagementScreen extends StatelessWidget {
     );
   }
 
-  FutureBuilder<QuerySnapshot<Map<String, dynamic>>> roleList(
-    String roleName,
+  FutureBuilder<DocumentSnapshot<Map<String, dynamic>>> roleList(
+    String roleId,
   ) {
     return FutureBuilder(
-      future: _firestore
-          .collection("roles")
-          .where(
-            "name",
-            isEqualTo: roleName,
-          )
-          .get(),
+      future: _firestore.collection("roles").doc(roleId).get(),
       builder: (ctx, snapshot) {
         if (snapshot.hasData) {
-          final roleSnap = snapshot.data!.docs[0];
-          final role = Role.fromDocSnapshot(roleSnap);
+          final roleSnap = snapshot.data!;
+          final role = RoleModel.fromDocSnapshot(roleSnap);
 
           return RoleUsersList(
             roleRef: roleSnap.reference,
             roleName: role.name,
+          );
+        } else if (snapshot.hasError) {
+          return const Center(
+            child: Text("Error loading roles"),
           );
         }
 
@@ -86,16 +86,15 @@ class ManagementScreen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               SkeletonText(
-                height: 18.0,
+                height: 28.0,
               ),
-              SizedBox(width: 4.0),
-              Expanded(child: Divider(thickness: 4.0)),
             ],
           ),
           SizedBox(height: 4.0),
-          SkeletonList(count: 2),
+          SkeletonList(count: 1),
         ],
       );
 }

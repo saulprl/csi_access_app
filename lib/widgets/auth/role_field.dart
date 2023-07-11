@@ -1,13 +1,13 @@
+import 'package:csi_door_logs/providers/role_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RoleField extends StatefulWidget {
   final String value;
-  final List<String> values;
   final void Function(String?) onChange;
 
   const RoleField({
     required this.value,
-    required this.values,
     required this.onChange,
     super.key,
   });
@@ -23,28 +23,33 @@ class _RoleFieldState extends State<RoleField> {
   void initState() {
     super.initState();
 
-    dropdownValue = widget.value;
+    dropdownValue = value;
   }
 
-  void onChange(String? value) {
+  void onChanged(String? value) {
     if (value == null) return;
 
-    widget.onChange(value);
+    onChange(value);
     setState(() => dropdownValue = value);
   }
 
   @override
   Widget build(BuildContext context) {
+    final roles = Provider.of<RoleProvider>(context);
+
     return DropdownButton<String>(
       value: dropdownValue,
-      items: widget.values
+      items: roles.roles
           .map((role) => DropdownMenuItem<String>(
-                value: role,
-                child: Text(role),
+                value: role.key,
+                child: Text(role.name),
               ))
           .toList(),
-      onChanged: onChange,
+      onChanged: onChanged,
       isExpanded: true,
     );
   }
+
+  String get value => widget.value;
+  void Function(String?) get onChange => widget.onChange;
 }

@@ -34,7 +34,7 @@ class _SummaryState extends State<Summary> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        buildDashboardDivider(context, "Summary"),
+        buildDivider(context, "Summary"),
         StreamBuilder(
           stream: _firestore
               .collection("logs")
@@ -73,7 +73,7 @@ class _SummaryState extends State<Summary> {
         if (!log.accessed) {
           failedCount++;
         }
-        if (log.attemptData != null) {
+        if (log.attempt != null) {
           unknownCount++;
         }
         if (log.bluetooth) {
@@ -97,10 +97,10 @@ class _SummaryState extends State<Summary> {
       );
     }
 
-    return skeletons;
+    return skeletons(context);
   }
 
-  Expanded successfulBubble(BuildContext context, int accessCount) {
+  Expanded successfulBubble(BuildContext context, int? accessCount) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -124,7 +124,7 @@ class _SummaryState extends State<Summary> {
     );
   }
 
-  Expanded bluetoothBubble(BuildContext context, int bluetoothCount) {
+  Expanded bluetoothBubble(BuildContext context, int? bluetoothCount) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -147,7 +147,7 @@ class _SummaryState extends State<Summary> {
     );
   }
 
-  Expanded failedBubble(BuildContext context, int failedCount) {
+  Expanded failedBubble(BuildContext context, int? failedCount) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -167,7 +167,7 @@ class _SummaryState extends State<Summary> {
     );
   }
 
-  Expanded unknownBubble(BuildContext context, int unknownCount) {
+  Expanded unknownBubble(BuildContext context, int? unknownCount) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.all(4.0),
@@ -187,76 +187,20 @@ class _SummaryState extends State<Summary> {
     );
   }
 
-  SizedBox get skeletons {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Skeleton(
-                    height: skeletonHeight,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(32.0),
-                      bottom: Radius.circular(12.0),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Skeleton(
-                    height: skeletonHeight,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(12.0),
-                      bottom: Radius.circular(32.0),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Skeleton(
-                    height: skeletonHeight * 1.2,
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(32.0),
-                      right: Radius.circular(12.0),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Skeleton(
-                    height: skeletonHeight * 1.2,
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(12.0),
-                      right: Radius.circular(32.0),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+  Column skeletons(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(children: [successfulBubble(context, null)]),
+        Row(children: [bluetoothBubble(context, null)]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            failedBubble(context, null),
+            unknownBubble(context, null),
+          ],
+        ),
+      ],
     );
   }
 }

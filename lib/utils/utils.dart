@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:csi_door_logs/utils/styles.dart';
 
-Padding buildDashboardDivider(BuildContext ctx, String title) {
+Padding buildDivider(BuildContext ctx, String title) {
   return Padding(
     padding: const EdgeInsets.all(4.0),
     child: Row(
