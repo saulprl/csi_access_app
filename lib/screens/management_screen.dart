@@ -1,4 +1,5 @@
 import 'package:csi_door_logs/models/role_model.dart';
+import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:csi_door_logs/providers/csi_users.dart';
 import 'package:csi_door_logs/providers/role_provider.dart';
 import 'package:csi_door_logs/screens/create_user_screen.dart';
@@ -29,6 +30,7 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
     final roles = Provider.of<RoleProvider>(context);
 
     return Scaffold(
@@ -43,16 +45,15 @@ class ManagementScreen extends StatelessWidget {
           itemBuilder: (ctx, index) => roleList(roles.roles[index].key),
         ),
       ),
-      floatingActionButton: roles.userRole != null
-          ? roles.userRole!.canCreateUsers
-              ? FloatingActionButton(
-                  onPressed: () => pushCreateUser(context),
-                  child: Icon(
-                    createUserIcon,
-                    color: Colors.white,
-                  ),
-                )
-              : null
+      floatingActionButton: (roles.userRole?.canCreateUsers ?? false) ||
+              (auth.userData?.isRootUser ?? false)
+          ? FloatingActionButton(
+              onPressed: () => pushCreateUser(context),
+              child: Icon(
+                createUserIcon,
+                color: Colors.white,
+              ),
+            )
           : null,
     );
   }

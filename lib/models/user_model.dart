@@ -9,6 +9,7 @@ class UserModel {
   final String email;
   final DateTime dateOfBirth;
   final DateTime createdAt;
+  bool? isRoot;
 
   UserModel({
     required this.key,
@@ -19,7 +20,12 @@ class UserModel {
     required this.email,
     required this.dateOfBirth,
     required this.createdAt,
+    this.isRoot,
   });
+
+  set setIsRoot(bool? value) => isRoot = value;
+
+  bool get isRootUser => isRoot ?? false;
 
   UserModel.fromDocSnapshot(
     DocumentSnapshot<Map<String, dynamic>> snapshot,

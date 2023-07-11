@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/auth_provider.dart";
 import "package:csi_door_logs/providers/role_provider.dart";
 import "package:flutter/material.dart";
 
@@ -44,6 +45,7 @@ class CSIDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).userData;
     final role = Provider.of<RoleProvider>(context).userRole;
 
     return Drawer(
@@ -54,7 +56,7 @@ class CSIDrawer extends StatelessWidget {
             automaticallyImplyLeading: false,
             title: const Text(
               "CSI PRO Access",
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
@@ -75,7 +77,8 @@ class CSIDrawer extends StatelessWidget {
                   () => Navigator.of(context).push(
                     Routes.pushFromRight(const LogsScreen()),
                   ),
-                  enabled: role != null ? role.canReadLogs : false,
+                  enabled: (role?.canReadLogs ?? false) ||
+                      (user?.isRootUser ?? false),
                 ),
                 _buildTile(
                   context,
@@ -94,9 +97,9 @@ class CSIDrawer extends StatelessWidget {
                   () => Navigator.of(context).push(
                     Routes.pushFromRight(ManagementScreen()),
                   ),
-                  enabled: role != null
-                      ? role.canGrantOrRevokeAccess || role.canSetRoles
-                      : false,
+                  enabled: ((role?.canGrantOrRevokeAccess ?? false) ||
+                          (role?.canSetRoles ?? false)) ||
+                      (user?.isRootUser ?? false),
                 ),
               ],
             ),

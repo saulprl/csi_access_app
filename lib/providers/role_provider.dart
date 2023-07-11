@@ -16,24 +16,36 @@ class RoleProvider with ChangeNotifier {
   RoleModel? get userRole => _userRole;
   List<RoleModel> get roles => _roles;
 
-  RoleProvider(String? userId, String? roomId) {
-    if (userId != null && roomId != null) {
-      _initializeSubscriptions(userId, roomId);
+  RoleProvider({String? userId, String? roomId, bool isRoot = false}) {
+    setData(userId: userId, roomId: roomId, isRoot: isRoot);
+  }
+
+  void setData({String? userId, String? roomId, bool isRoot = false}) {
+    if (!isRoot && userId != null && roomId != null) {
+      _initializeSubscriptions(userId, roomId, isRoot);
     }
   }
 
-  Future<void> _initializeSubscriptions(String userId, String roomId) async {
-    final roleRef = (await _firestore
+  Future<void> _initializeSubscriptions(
+    String userId,
+    String roomId,
+    bool isRoot,
+  ) async {
+    final room = (await _firestore
         .collection("user_roles")
         .doc(userId)
         .collection("room_roles")
         .doc(roomId)
-        .get())["roleId"] as DocumentReference<Map<String, dynamic>>;
+        .get());
 
-    _roleSubscription = roleRef.snapshots().listen((role) {
-      _userRole = RoleModel.fromDocSnapshot(role);
-      notifyListeners();
-    });
+    if (room.exists) {
+      final roleRef = room["roleId"] as DocumentReference<Map<String, dynamic>>;
+
+      _roleSubscription = roleRef.snapshots().listen((role) {
+        _userRole = RoleModel.fromDocSnapshot(role);
+        notifyListeners();
+      });
+    }
 
     _rolesSubscription = _firestore
         .collection("roles")

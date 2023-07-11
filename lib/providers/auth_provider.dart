@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:csi_door_logs/models/user_model.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +12,8 @@ class AuthProvider with ChangeNotifier {
 
   User? _authUser;
   UserModel? _user;
+  StreamSubscription? _userSub;
+  StreamSubscription? _isRootSub;
 
   User? get user => _authUser;
   UserModel? get userData => _user;
@@ -19,7 +23,33 @@ class AuthProvider with ChangeNotifier {
   AuthProvider() {
     _auth.authStateChanges().listen((User? user) {
       _authUser = user;
-      fetchUserData();
+      _initializeSubscriptions();
+      notifyListeners();
+    });
+  }
+
+  void _initializeSubscriptions() {
+    if (_authUser == null) return;
+
+    _userSub = _firestore
+        .collection('users')
+        .doc(_authUser!.uid)
+        .snapshots()
+        .listen((userData) {
+      if (_authUser == null) return;
+
+      _user = UserModel.fromDocSnapshot(userData);
+      notifyListeners();
+    });
+
+    _isRootSub = _firestore
+        .collection('user_roles')
+        .doc(_authUser!.uid)
+        .snapshots()
+        .listen((userRoles) {
+      if (_user == null || _authUser == null) return;
+
+      _user!.setIsRoot = userRoles.data()?['isRoot'];
       notifyListeners();
     });
   }
@@ -31,9 +61,13 @@ class AuthProvider with ChangeNotifier {
       final userData =
           await _firestore.collection('users').doc(_authUser!.uid).get();
       _user = UserModel.fromDocSnapshot(userData);
+
+      final userRolesSnapshot =
+          await _firestore.collection('user_roles').doc(_authUser!.uid).get();
+      _user!.setIsRoot = userRolesSnapshot.data()?['isRoot'];
       notifyListeners();
     } catch (e) {
-      throw e.toString();
+      rethrow;
     }
   }
 
@@ -75,11 +109,21 @@ class AuthProvider with ChangeNotifier {
       await _auth.signOut();
       _user = null;
       _authUser = null;
+      _userSub?.cancel();
+      _isRootSub?.cancel();
       notifyListeners();
     } on FirebaseAuthException catch (e) {
       throw e.message!;
     } catch (e) {
       throw e.toString();
     }
+  }
+
+  @override
+  void dispose() {
+    _userSub?.cancel();
+    _isRootSub?.cancel();
+
+    super.dispose();
   }
 }

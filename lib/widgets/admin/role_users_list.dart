@@ -1,4 +1,5 @@
 import 'package:csi_door_logs/models/user_model.dart';
+import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:csi_door_logs/providers/role_provider.dart';
 import 'package:csi_door_logs/providers/room_provider.dart';
 import 'package:csi_door_logs/utils/styles.dart';
@@ -35,6 +36,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context).userData;
     final roles = Provider.of<RoleProvider>(context);
     final rooms = Provider.of<RoomProvider>(context);
 
@@ -80,15 +82,14 @@ class _RoleUsersListState extends State<RoleUsersList> {
                                 (role) => role.name == roleName,
                               );
 
-                              final isEditable = roles.userRole == null
-                                  ? false
-                                  : roles.userRole!.canSetRoles
+                              final isEditable =
+                                  roles.userRole?.canSetRoles ?? false
                                       ? peerRole.level < roles.userRole!.level
                                       : false;
 
-                              final isTogglable = roles.userRole == null
-                                  ? false
-                                  : roles.userRole!.canGrantOrRevokeAccess
+                              final isTogglable =
+                                  roles.userRole?.canGrantOrRevokeAccess ??
+                                          false
                                       ? peerRole.level < roles.userRole!.level
                                       : false;
 
@@ -98,8 +99,10 @@ class _RoleUsersListState extends State<RoleUsersList> {
                                 name: user.name,
                                 isAllowedAccess: roleSnap.data!.docs[index]
                                     .data()["accessGranted"],
-                                isEditable: isEditable,
-                                isTogglable: isTogglable,
+                                isEditable:
+                                    isEditable || (auth?.isRootUser ?? false),
+                                isTogglable:
+                                    isTogglable || (auth?.isRootUser ?? false),
                                 role: peerRole,
                                 roomRoleRef: currentItem.reference,
                               );

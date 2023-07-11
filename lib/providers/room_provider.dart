@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:csi_door_logs/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,38 +14,57 @@ class RoomProvider with ChangeNotifier {
   List<Room> _rooms = [];
   List<Room> _userRooms = [];
   String _selectedRoom = "";
-  String? userId;
+  UserModel? _user;
   StreamSubscription? _roomsSubscription;
   StreamSubscription? _userRoomSubscription;
 
+  UserModel? get user => _user;
   List<Room> get rooms => _rooms;
   List<Room> get userRooms => _userRooms;
   String get selectedRoom => _selectedRoom;
 
-  RoomProvider(this.userId) {
-    if (userId != null) {
+  RoomProvider({UserModel? user}) {
+    setUser(user);
+  }
+
+  void setUser(UserModel? user) {
+    if (user != null) {
+      _user = user;
       _initializeSubscriptions();
+    } else {
+      _roomsSubscription?.cancel();
+      _userRoomSubscription?.cancel();
     }
   }
 
   void _initializeSubscriptions() {
+    if (_user == null) return;
+
     _roomsSubscription =
         _firestore.collection("rooms").snapshots().listen((rooms) {
       _rooms =
           rooms.docs.map((room) => Room.fromQueryDocSnapshot(room)).toList();
+
+      if (user != null && _user!.isRootUser) {
+        _userRooms = _rooms;
+      }
       notifyListeners();
     });
 
     _userRoomSubscription = _firestore
         .collection("user_roles")
-        .doc(userId)
+        .doc(_user!.key)
         .collection("room_roles")
         .snapshots()
         .listen((userRooms) {
       final userRoomIds = userRooms.docs.map((room) => room.id).toList();
 
-      _userRooms =
-          _rooms.where((room) => userRoomIds.contains(room.key)).toList();
+      if (user != null && _user!.isRootUser) {
+        _userRooms = _rooms;
+      } else {
+        _userRooms =
+            _rooms.where((room) => userRoomIds.contains(room.key)).toList();
+      }
 
       if ((_selectedRoom == "" && _userRooms.isNotEmpty) ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {
@@ -94,8 +114,13 @@ class RoomProvider with ChangeNotifier {
       _rooms = roomsSnapshot.docs
           .map((room) => Room.fromQueryDocSnapshot(room))
           .toList();
-      _userRooms =
-          roomsData.map((room) => Room.fromQueryDocSnapshot(room)).toList();
+
+      if (user != null && _user!.isRootUser) {
+        _userRooms = _rooms;
+      } else {
+        _userRooms =
+            roomsData.map((room) => Room.fromQueryDocSnapshot(room)).toList();
+      }
 
       if ((_selectedRoom == "" && _userRooms.isNotEmpty) ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {

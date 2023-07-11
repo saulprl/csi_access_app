@@ -57,19 +57,34 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (ctx) => CSIUsers()),
         ChangeNotifierProvider<AuthProvider>(create: (ctx) => AuthProvider()),
         ChangeNotifierProxyProvider<AuthProvider, RoomProvider>(
-          create: (ctx) => RoomProvider(null),
-          update: (ctx, auth, _) => RoomProvider(auth.user?.uid),
+          create: (ctx) => RoomProvider(),
+          update: (ctx, auth, room) {
+            room?.setUser(auth.userData);
+            return room ?? RoomProvider(user: auth.userData);
+          },
         ),
         ChangeNotifierProxyProvider<RoomProvider, RoleProvider>(
-          create: (ctx) => RoleProvider(null, null),
-          update: (ctx, room, _) => RoleProvider(
-            room.userId,
-            room.selectedRoom,
-          ),
+          create: (ctx) => RoleProvider(),
+          update: (ctx, room, role) {
+            role?.setData(
+              userId: room.user?.key,
+              roomId: room.selectedRoom,
+            );
+
+            return role ??
+                RoleProvider(
+                  userId: room.user?.key,
+                  roomId: room.selectedRoom,
+                  isRoot: room.user?.isRootUser ?? false,
+                );
+          },
         ),
         ChangeNotifierProxyProvider<RoomProvider, LogsProvider>(
-          create: (ctx) => LogsProvider(null),
-          update: (ctx, room, _) => LogsProvider(room.selectedRoom),
+          create: (ctx) => LogsProvider(),
+          update: (ctx, room, logs) {
+            logs?.setRoom(roomId: room.selectedRoom);
+            return logs ?? LogsProvider(roomId: room.selectedRoom);
+          },
         ),
       ],
       child: Builder(

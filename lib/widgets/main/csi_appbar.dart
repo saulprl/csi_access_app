@@ -1,8 +1,8 @@
-import "package:csi_door_logs/providers/auth_provider.dart";
-import "package:csi_door_logs/providers/room_provider.dart";
 import "package:flutter/material.dart";
-import "package:flutter/gestures.dart";
+
 import "package:provider/provider.dart";
+
+import "package:csi_door_logs/providers/room_provider.dart";
 
 class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
@@ -20,7 +20,6 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context).user;
     final rooms = Provider.of<RoomProvider>(context);
 
     return AppBar(

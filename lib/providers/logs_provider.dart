@@ -13,9 +13,15 @@ class LogsProvider with ChangeNotifier {
   List<AccessLog> get logs => _logs;
   bool get isLoading => _isLoading;
 
-  LogsProvider(String? roomId) {
+  LogsProvider({String? roomId}) {
+    setRoom(roomId: roomId);
+  }
+
+  void setRoom({String? roomId}) {
     if (roomId != null) {
       _initializeSubscriptions(roomId);
+    } else {
+      _logsSubscription?.cancel();
     }
   }
 
