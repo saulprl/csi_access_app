@@ -3,8 +3,6 @@ import "package:flutter/material.dart";
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:skeleton_animation/skeleton_animation.dart';
-
 import 'package:csi_door_logs/widgets/dashboard/summary/bubble.dart';
 
 import 'package:csi_door_logs/models/access_log.dart';

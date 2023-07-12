@@ -55,7 +55,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (ctx) => CSIUsers()),
-        ChangeNotifierProvider<AuthProvider>(create: (ctx) => AuthProvider()),
+        ChangeNotifierProvider<AuthProvider>(
+          create: (ctx) => AuthProvider(),
+        ),
         ChangeNotifierProxyProvider<AuthProvider, RoomProvider>(
           create: (ctx) => RoomProvider(),
           update: (ctx, auth, room) {
@@ -98,7 +100,10 @@ class MyApp extends StatelessWidget {
             ),
             debugShowCheckedModeBanner: false,
             home: StreamBuilder(
-              stream: Provider.of<AuthProvider>(ctx).authStateChanges,
+              stream: Provider.of<AuthProvider>(
+                ctx,
+                listen: false,
+              ).authStateChanges,
               builder: (ctx, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SplashScreen(message: "Authenticating...");
@@ -109,16 +114,14 @@ class MyApp extends StatelessWidget {
                   );
                 } else if (snapshot.hasData) {
                   return FutureBuilder(
-                    future: Provider.of<RoomProvider>(
+                    future: Provider.of<AuthProvider>(
                       ctx,
                       listen: false,
-                    ).fetchUserRooms(
-                      Provider.of<AuthProvider>(ctx).user!.uid,
-                    ),
+                    ).fetchUserData(),
                     builder: (ctx, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const SplashScreen(
-                          message: "Getting rooms set up...",
+                          message: "Getting user data...",
                         );
                       } else if (snapshot.hasError) {
                         return const SplashScreen(
@@ -127,7 +130,39 @@ class MyApp extends StatelessWidget {
                         );
                       }
 
-                      return const DashboardScreen();
+                      if (Provider.of<AuthProvider>(
+                            ctx,
+                            listen: false,
+                          ).userData ==
+                          null) {
+                        print("User data is null");
+                        return const SignupScreen();
+                      } else {
+                        return FutureBuilder(
+                          future: Provider.of<RoomProvider>(
+                            ctx,
+                            listen: false,
+                          ).fetchUserRooms(
+                            Provider.of<AuthProvider>(ctx).user!.uid,
+                          ),
+                          builder: (ctx, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const SplashScreen(
+                                message: "Getting rooms set up...",
+                              );
+                            } else if (snapshot.hasError) {
+                              return const SplashScreen(
+                                message:
+                                    "An error occurred. Please try again later.",
+                                error: true,
+                              );
+                            }
+
+                            return const DashboardScreen();
+                          },
+                        );
+                      }
                     },
                   );
                 } else {

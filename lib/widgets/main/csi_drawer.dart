@@ -45,8 +45,9 @@ class CSIDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<AuthProvider>(context).userData;
+    final auth = Provider.of<AuthProvider>(context);
     final role = Provider.of<RoleProvider>(context).userRole;
+    final user = auth.userData;
 
     return Drawer(
       key: _key,
@@ -114,7 +115,7 @@ class CSIDrawer extends StatelessWidget {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
 
-                await _auth.signOut();
+                auth.signOut();
               },
             ),
           ),

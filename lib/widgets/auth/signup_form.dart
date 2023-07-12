@@ -31,14 +31,11 @@ class _SignupFormState extends State<SignupForm> {
   final _storage = const FlutterSecureStorage();
 
   final GlobalKey<FormState> _formKey = GlobalKey(debugLabel: "signup_form");
-  final emailCtrl = TextEditingController();
-  final passwordCtrl = TextEditingController();
   final unisonIdCtrl = TextEditingController();
-  final csiIdCtrl = TextEditingController();
   final passcodeCtrl = TextEditingController();
   final nameCtrl = TextEditingController();
   final dateCtrl = TextEditingController();
-  final roleCtrl = TextEditingController()..text = "Provisional";
+  final roleCtrl = TextEditingController()..text = "Guest";
   DateTime? dob;
 
   final cPwdFocus = FocusNode();
@@ -90,7 +87,6 @@ class _SignupFormState extends State<SignupForm> {
     final existingUser = existingSnapshot.value as Map;
     final existingUserKey = existingUser.keys.first;
 
-    csiIdCtrl.text = existingUser[existingUserKey]["csiId"].toString();
     roleCtrl.text = "Member";
     nameCtrl.text = existingUser[existingUserKey]["name"];
 
@@ -166,114 +162,110 @@ class _SignupFormState extends State<SignupForm> {
   }
 
   void _saveForm() async {
+    _auth.signOut();
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    if (dob == null) {
-      showModal("Something went wrong while validating the date of birth.");
-      return;
-    }
+    // if (dob == null) {
+    //   showModal("Something went wrong while validating the date of birth.");
+    //   return;
+    // }
 
-    setState(() {
-      _isLoading = true;
-    });
+    // setState(() {
+    //   _isLoading = true;
+    // });
 
-    final email = emailCtrl.text;
-    final password = passwordCtrl.text;
-    final unisonId = unisonIdCtrl.text;
-    final csiId = csiIdCtrl.text;
-    final csiPasscode = passcodeCtrl.text.toUpperCase();
-    final name = nameCtrl.text;
-    final role = roleCtrl.text;
+    // final unisonId = unisonIdCtrl.text;
+    // final csiPasscode = passcodeCtrl.text.toUpperCase();
+    // final name = nameCtrl.text;
+    // final role = roleCtrl.text;
 
-    try {
-      final existingUnisonID = await _dbInstance
-          .ref("users")
-          .orderByChild("unisonId")
-          .equalTo(unisonId)
-          .get();
+    // try {
+    //   final existingUnisonID = await _dbInstance
+    //       .ref("users")
+    //       .orderByChild("unisonId")
+    //       .equalTo(unisonId)
+    //       .get();
 
-      if (existingUnisonID.value == null) {
-        showModal("No user with provided UniSon ID found.");
-        return;
-      }
+    //   if (existingUnisonID.value == null) {
+    //     showModal("No user with provided UniSon ID found.");
+    //     return;
+    //   }
 
-      final existingUser = existingUnisonID.value as Map;
-      final existingKey = existingUser.keys.first;
-      if (!await CSIUser.globalCompareCredentials(
-        unisonId: existingUser[existingKey]["unisonId"],
-        csiId: existingUser[existingKey]["csiId"].toString(),
-        passcode: existingUser[existingKey]["passcode"],
-        inputUnisonId: unisonId,
-        inputCsiId: csiId,
-        inputPasscode: csiPasscode,
-      )) {
-        showModal("Your CSI Credentials are incorrect.");
-        return;
-      }
+    //   final existingUser = existingUnisonID.value as Map;
+    //   final existingKey = existingUser.keys.first;
+    //   if (!await CSIUser.globalCompareCredentials(
+    //     unisonId: existingUser[existingKey]["unisonId"],
+    //     csiId: existingUser[existingKey]["csiId"].toString(),
+    //     passcode: existingUser[existingKey]["passcode"],
+    //     inputUnisonId: unisonId,
+    //     inputCsiId: csiId,
+    //     inputPasscode: csiPasscode,
+    //   )) {
+    //     showModal("Your CSI Credentials are incorrect.");
+    //     return;
+    //   }
 
-      final authenticatedUser = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    //   final authenticatedUser = await _auth.createUserWithEmailAndPassword(
+    //     email: email,
+    //     password: password,
+    //   );
 
-      final roleRef = await _firestore
-          .collection("roles")
-          .where("name", isEqualTo: role)
-          .limit(1)
-          .get();
+    //   final roleRef = await _firestore
+    //       .collection("roles")
+    //       .where("name", isEqualTo: role)
+    //       .limit(1)
+    //       .get();
 
-      final migratedUser = CSIUser(
-        csiId: int.parse(csiId),
-        name: name,
-        unisonId: unisonId,
-        email: email,
-        passcode: existingUser[existingKey]["passcode"],
-        role: roleRef.docs[0].reference,
-        isAllowedAccess: _isAllowedAccess,
-        createdAt: Timestamp.now(),
-        dateOfBirth: Timestamp.fromDate(dob!),
-      );
+    //   final migratedUser = CSIUser(
+    //     csiId: int.parse(csiId),
+    //     name: name,
+    //     unisonId: unisonId,
+    //     email: email,
+    //     passcode: existingUser[existingKey]["passcode"],
+    //     role: roleRef.docs[0].reference,
+    //     isAllowedAccess: _isAllowedAccess,
+    //     createdAt: Timestamp.now(),
+    //     dateOfBirth: Timestamp.fromDate(dob!),
+    //   );
 
-      await _firestore
-          .collection("users")
-          .doc(authenticatedUser.user!.uid)
-          .set(migratedUser.toJson(keyless: true));
+    //   await _firestore
+    //       .collection("users")
+    //       .doc(authenticatedUser.user!.uid)
+    //       .set(migratedUser.toJson(keyless: true));
 
-      await _storage.deleteAll();
-      await _storage.write(
-          key: firebaseUidStorageKey, value: authenticatedUser.user!.uid);
-      await _storage.write(key: unisonIdStorageKey, value: unisonId);
-      await _storage.write(key: csiIdStorageKey, value: csiId);
-      await _storage.write(key: passcodeStorageKey, value: csiPasscode);
+    //   await _storage.deleteAll();
+    //   await _storage.write(
+    //       key: firebaseUidStorageKey, value: authenticatedUser.user!.uid);
+    //   await _storage.write(key: unisonIdStorageKey, value: unisonId);
+    //   await _storage.write(key: csiIdStorageKey, value: csiId);
+    //   await _storage.write(key: passcodeStorageKey, value: csiPasscode);
 
-      popBack();
-    } on FirebaseAuthException catch (error) {
-      var message = "An error occurred, please check your credentials!";
-      if (error.message != null) {
-        message = error.message!;
-      }
+    //   popBack();
+    // } on FirebaseAuthException catch (error) {
+    //   var message = "An error occurred, please check your credentials!";
+    //   if (error.message != null) {
+    //     message = error.message!;
+    //   }
 
-      showModal(message);
-    } catch (error) {
-      var message = "An error occurred, please check your credentials!";
-      message = error.toString();
+    //   showModal(message);
+    // } catch (error) {
+    //   var message = "An error occurred, please check your credentials!";
+    //   message = error.toString();
 
-      showModal(message);
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    //   showModal(message);
+    // } finally {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    // }
   }
 
   @override
   void dispose() {
-    emailCtrl.dispose();
-    passwordCtrl.dispose();
     unisonIdCtrl.dispose();
-    csiIdCtrl.dispose();
     passcodeCtrl.dispose();
     nameCtrl.dispose();
     dateCtrl.dispose();
@@ -297,90 +289,6 @@ class _SignupFormState extends State<SignupForm> {
         ),
         child: Column(
           children: [
-            buildDivider("Credentials"),
-            sizedBox,
-            TextFormField(
-              controller: emailCtrl,
-              decoration: mainInputDecoration.copyWith(
-                prefixIcon: Icon(emailIcon),
-                label: const Text("Email address"),
-              ),
-              autocorrect: false,
-              enabled: !_isLoading,
-              keyboardType: TextInputType.emailAddress,
-              textCapitalization: TextCapitalization.none,
-              textInputAction: TextInputAction.next,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                if (!_validateEmail(value)) {
-                  return "The email provided is not valid.";
-                }
-
-                return null;
-              },
-            ),
-            sizedBox,
-            TextFormField(
-              controller: passwordCtrl,
-              decoration: mainInputDecoration.copyWith(
-                prefixIcon: Icon(passwordIcon),
-                label: const Text("Password"),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                      _showPassword ? Icons.visibility_off : Icons.visibility),
-                  onPressed: toggleShowPassword,
-                ),
-              ),
-              autocorrect: false,
-              enabled: !_isLoading,
-              keyboardType: TextInputType.text,
-              textCapitalization: TextCapitalization.none,
-              textInputAction: TextInputAction.next,
-              obscureText: !_showPassword,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                return null;
-              },
-              onEditingComplete: () => cPwdFocus.requestFocus(),
-            ),
-            sizedBox,
-            TextFormField(
-              focusNode: cPwdFocus,
-              decoration: mainInputDecoration.copyWith(
-                prefixIcon: Icon(passwordIcon),
-                label: const Text("Confirm password"),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                      _showPassword ? Icons.visibility_off : Icons.visibility),
-                  onPressed: toggleShowPassword,
-                ),
-              ),
-              autocorrect: false,
-              enabled: !_isLoading,
-              keyboardType: TextInputType.text,
-              textCapitalization: TextCapitalization.none,
-              textInputAction: TextInputAction.next,
-              obscureText: !_showPassword,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                if (value != passwordCtrl.text) {
-                  return "Passwords don't match.";
-                }
-
-                return null;
-              },
-              onEditingComplete: () => unisonIdFocus.requestFocus(),
-            ),
-            sizedBox,
             buildDivider("CSI PRO Data"),
             sizedBox,
             FetchField(
@@ -393,74 +301,47 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             sizedBox,
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: TextFormField(
-                    controller: csiIdCtrl,
-                    decoration: mainInputDecoration.copyWith(
-                      prefixIcon: Icon(csiIdIcon),
-                      label: const Text("CSI ID"),
-                      hintText: "e.g. 1",
-                    ),
-                    autocorrect: false,
-                    enabled: false,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "Required";
-                      }
-
-                      if (!RegExp(r"^\d{1,3}$").hasMatch(value)) {
-                        return "Invalid";
-                      }
-                      return null;
-                    },
-                  ),
+            TextFormField(
+              focusNode: passcodeFocus,
+              controller: passcodeCtrl,
+              decoration: mainInputDecoration.copyWith(
+                prefixIcon: Icon(passcodeIcon),
+                label: const Text("CSI Passcode"),
+                contentPadding: const EdgeInsets.symmetric(vertical: 17.0),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                      _showPasscode ? Icons.visibility_off : Icons.visibility),
+                  onPressed: toggleShowPasscode,
                 ),
-                const SizedBox(width: 4.0),
-                Expanded(
-                  flex: 9,
-                  child: TextFormField(
-                    focusNode: passcodeFocus,
-                    controller: passcodeCtrl,
-                    decoration: mainInputDecoration.copyWith(
-                      prefixIcon: Icon(passcodeIcon),
-                      label: const Text("CSI Passcode"),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 17.0),
-                      suffixIcon: IconButton(
-                        icon: Icon(_showPasscode
-                            ? Icons.visibility_off
-                            : Icons.visibility),
-                        onPressed: toggleShowPasscode,
-                      ),
-                    ),
-                    autocorrect: false,
-                    enabled: !_isLoading && _editPasscode,
-                    keyboardType: TextInputType.text,
-                    textCapitalization: TextCapitalization.characters,
-                    textInputAction: TextInputAction.next,
-                    obscureText: !_showPasscode,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return "This field is required.";
-                      }
+              ),
+              autocorrect: false,
+              enabled: !_isLoading,
+              keyboardType: TextInputType.text,
+              textCapitalization: TextCapitalization.characters,
+              textInputAction: TextInputAction.next,
+              obscureText: !_showPasscode,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "This field is required.";
+                }
 
-                      return null;
-                    },
-                    onEditingComplete: () => nameFocus.requestFocus(),
-                  ),
-                ),
-              ],
+                if (!RegExp(
+                  r"(?=.*[\d])(?=.*[A-D])[\dA-D]{4,8}",
+                  caseSensitive: false,
+                ).hasMatch(value)) {
+                  return "Passcode must be 4 to 8 characters long and contain at least one number and one letter from A to D.";
+                }
+
+                return null;
+              },
+              onEditingComplete: () => nameFocus.requestFocus(),
             ),
             sizedBox,
             TextFormField(
               controller: roleCtrl,
               decoration: mainInputDecoration.copyWith(
                 prefixIcon: Icon(roleIcon),
-                label: const Text("CSI Role"),
+                label: const Text("Role"),
               ),
               autocorrect: false,
               enabled: false,

@@ -65,6 +65,7 @@ class DefaultFirebaseOptions {
     projectId: 'csi-door',
     databaseURL: 'https://csi-door-default-rtdb.firebaseio.com',
     storageBucket: 'csi-door.appspot.com',
+    androidClientId: '1050055617140-rv2tvhmmoapechvshaf75rh9g0mie8ae.apps.googleusercontent.com',
     iosClientId: '1050055617140-bbp8u1057b09sjvp2njj52uomo30gdh1.apps.googleusercontent.com',
     iosBundleId: 'com.csipro.access',
   );

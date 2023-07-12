@@ -15,7 +15,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "1050055617140-512gevauap93nvj0kbrf1sfpkom3qoot.apps.googleusercontent.com",
+          "client_id": "1050055617140-rv2tvhmmoapechvshaf75rh9g0mie8ae.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.csipro.access",
+            "certificate_hash": "bbd4cc1f4432e96c3c8b978a5b44c6ef2d971f17"
+          }
+        },
+        {
+          "client_id": "1050055617140-i2clamb4feb4pig9mcubjuptkm970la5.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -51,7 +59,7 @@
       },
       "oauth_client": [
         {
-          "client_id": "1050055617140-512gevauap93nvj0kbrf1sfpkom3qoot.apps.googleusercontent.com",
+          "client_id": "1050055617140-i2clamb4feb4pig9mcubjuptkm970la5.apps.googleusercontent.com",
           "client_type": 3
         }
       ],

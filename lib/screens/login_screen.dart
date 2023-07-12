@@ -7,13 +7,13 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             children: [
               const SizedBox(height: 88.0),
-              Image.asset("assets/CSI_PRO_Access_Logotipo_inverted.png"),
+              Image.asset("assets/CSI_PRO_Access_Logotipo.png"),
               const SizedBox(height: 96.0),
               const LoginForm(),
             ],

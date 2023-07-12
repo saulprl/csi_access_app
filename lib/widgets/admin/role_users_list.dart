@@ -1,21 +1,19 @@
-import 'package:csi_door_logs/models/user_model.dart';
-import 'package:csi_door_logs/providers/auth_provider.dart';
-import 'package:csi_door_logs/providers/role_provider.dart';
-import 'package:csi_door_logs/providers/room_provider.dart';
-import 'package:csi_door_logs/utils/styles.dart';
-import 'package:csi_door_logs/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:provider/provider.dart';
 
-import 'package:csi_door_logs/providers/csi_users.dart';
+import 'package:csi_door_logs/providers/auth_provider.dart';
+import 'package:csi_door_logs/providers/role_provider.dart';
+import 'package:csi_door_logs/providers/room_provider.dart';
 
 import 'package:csi_door_logs/widgets/admin/skeleton_list.dart';
 import 'package:csi_door_logs/widgets/admin/user_item.dart';
 
-import 'package:csi_door_logs/models/models.dart';
+import 'package:csi_door_logs/models/user_model.dart';
+
+import 'package:csi_door_logs/utils/utils.dart';
 
 class RoleUsersList extends StatefulWidget {
   final DocumentReference roleRef;
