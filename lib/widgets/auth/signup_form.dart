@@ -229,9 +229,9 @@ class _SignupFormState extends State<SignupForm> {
     } catch (error) {
       showModal(error.toString());
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

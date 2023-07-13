@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:skeleton_animation/skeleton_animation.dart';
 
-import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:csi_door_logs/providers/role_provider.dart';
 
 import 'package:csi_door_logs/screens/create_user_screen.dart';
@@ -18,7 +17,6 @@ import 'package:csi_door_logs/widgets/main/index.dart';
 import 'package:csi_door_logs/models/role_model.dart';
 
 import 'package:csi_door_logs/utils/routes.dart';
-import 'package:csi_door_logs/utils/styles.dart';
 
 class ManagementScreen extends StatelessWidget {
   final _firestore = FirebaseFirestore.instance;
@@ -31,7 +29,6 @@ class ManagementScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
     final roles = Provider.of<RoleProvider>(context);
 
     return Scaffold(
@@ -46,16 +43,16 @@ class ManagementScreen extends StatelessWidget {
           itemBuilder: (ctx, index) => roleList(roles.roles[index].key),
         ),
       ),
-      floatingActionButton: (roles.userRole?.canCreateUsers ?? false) ||
-              (auth.userData?.isRootUser ?? false)
-          ? FloatingActionButton(
-              onPressed: () => pushCreateUser(context),
-              child: Icon(
-                createUserIcon,
-                color: Colors.white,
-              ),
-            )
-          : null,
+      // floatingActionButton: (roles.userRole?.canCreateUsers ?? false) ||
+      //         (auth.userData?.isRootUser ?? false)
+      //     ? FloatingActionButton(
+      //         onPressed: () => pushCreateUser(context),
+      //         child: Icon(
+      //           createUserIcon,
+      //           color: Colors.white,
+      //         ),
+      //       )
+      //     : null,
     );
   }
 

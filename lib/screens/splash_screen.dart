@@ -1,3 +1,4 @@
+import "package:csi_door_logs/widgets/main/adaptive_spinner.dart";
 import "package:flutter/material.dart";
 
 class SplashScreen extends StatelessWidget {
@@ -19,10 +20,7 @@ class SplashScreen extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (!error)
-                          const CircularProgressIndicator.adaptive(
-                            backgroundColor: Colors.white,
-                          ),
+                        if (!error) const AdaptiveSpinner(),
                         const SizedBox(height: 20.0),
                         Text(
                           message!,
@@ -36,9 +34,7 @@ class SplashScreen extends StatelessWidget {
                 : Container(
                     alignment: Alignment.bottomCenter,
                     padding: const EdgeInsets.only(bottom: 20.0),
-                    child: const CircularProgressIndicator.adaptive(
-                      backgroundColor: Colors.white,
-                    ),
+                    child: const AdaptiveSpinner(),
                   ),
             Center(
               child: Image.asset("assets/Access_splash.png", height: 300.0),

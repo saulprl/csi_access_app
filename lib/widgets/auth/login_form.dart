@@ -1,21 +1,13 @@
-import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
 
-import "package:flutter_secure_storage/flutter_secure_storage.dart";
+import 'package:csi_door_logs/providers/auth_provider.dart';
 
-import 'package:email_validator/email_validator.dart';
-
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:csi_door_logs/widgets/auth/auth_button.dart';
 
-import 'package:csi_door_logs/utils/globals.dart';
 import 'package:csi_door_logs/utils/styles.dart';
-
-import 'package:csi_door_logs/models/csi_user.dart';
-import 'package:provider/provider.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -25,25 +17,11 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
-  final _storage = const FlutterSecureStorage();
-
-  final GlobalKey<FormState> _formKey = GlobalKey(debugLabel: "login_form");
-  final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
-  var _showPassword = false;
   var _isLoading = false;
 
   final String joke = "Nope - wrong option!";
   final String serious = "Sign in with email";
   var _emailProvider = "Sign in with email";
-
-  void toggleShowPassword() {
-    setState(() {
-      _showPassword = !_showPassword;
-    });
-  }
 
   void showModal(String message) {
     showDialog(
@@ -51,7 +29,7 @@ class _LoginFormState extends State<LoginForm> {
       builder: (ctx) {
         return AlertDialog(
           title: const Text("Error"),
-          content: Text(message),
+          content: Text(message, style: const TextStyle(fontSize: 18.0)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
@@ -69,224 +47,92 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-  bool _validateEmail(String email) {
-    return EmailValidator.validate(email);
-  }
-
-  void _saveForm() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final enteredEmail = _emailCtrl.text;
-    final enteredPassword = _passCtrl.text;
-
+  void signInWithGitHub() {
+    setState(() => _isLoading = true);
     try {
-      UserCredential authUser = await _auth.signInWithEmailAndPassword(
-        email: enteredEmail,
-        password: enteredPassword,
-      );
-
-      final uid = authUser.user!.uid;
-      final docSnapshot = await _firestore.collection("users").doc(uid).get();
-      final user = CSIUser.fromDocSnapshot(docSnapshot);
-
-      await _storage.write(key: firebaseUidStorageKey, value: uid);
-      await _storage.write(key: unisonIdStorageKey, value: user.unisonId);
-      await _storage.write(key: csiIdStorageKey, value: user.csiId.toString());
-    } on FirebaseAuthException catch (error) {
-      var message = "An error occurred, please check your credentials!";
-      if (error.message != null) {
-        message = error.message!;
-      }
-
-      showModal(message);
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      auth.signInWithGitHub();
     } catch (error) {
-      debugPrint(error.toString());
+      showModal(error.toString());
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
-  }
-
-  void signInWithGitHub() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    auth.signInWithGitHub();
   }
 
   void signInWithGoogle() {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    auth.signInWithGoogle();
-  }
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-
-    super.dispose();
+    setState(() => _isLoading = true);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      auth.signInWithGoogle();
+    } catch (error) {
+      showModal(error.toString());
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: 8.0,
-        horizontal: 16.0,
-      ),
-      child: Column(
-        children: [
-          AuthButton(
-            onPressed: signInWithGitHub,
-            providerImage: Image.asset("assets/auth_providers/github-mark.png"),
-            providerName: "GitHub",
+    return Stack(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 8.0,
+            horizontal: 16.0,
           ),
-          const SizedBox(height: 16.0),
-          AuthButton(
-            onPressed: signInWithGoogle,
-            providerImage: Image.asset("assets/auth_providers/google-g.png"),
-            providerName: "Google",
-          ),
-          const SizedBox(height: 16.0),
-          AuthButton(
-            onPressed: () {
-              if (_emailProvider == joke) return;
-              setState(() => _emailProvider = joke);
+          child: Column(
+            children: [
+              AuthButton(
+                onPressed: signInWithGitHub,
+                providerImage:
+                    Image.asset("assets/auth_providers/github-mark.png"),
+                providerName: "GitHub",
+              ),
+              const SizedBox(height: 16.0),
+              AuthButton(
+                onPressed: signInWithGoogle,
+                providerImage:
+                    Image.asset("assets/auth_providers/google-g.png"),
+                providerName: "Google",
+              ),
+              const SizedBox(height: 16.0),
+              AuthButton(
+                onPressed: () {
+                  if (_emailProvider == joke) return;
+                  setState(() => _emailProvider = joke);
 
-              Future.delayed(
-                const Duration(seconds: 5),
-                () {
-                  if (mounted) {
-                    setState(() => _emailProvider = serious);
-                  }
+                  Future.delayed(
+                    const Duration(seconds: 5),
+                    () {
+                      if (mounted) {
+                        setState(() => _emailProvider = serious);
+                      }
+                    },
+                  );
                 },
-              );
-            },
-            providerImage: Icon(
-              emailIcon,
-              color: Colors.black38,
-              size: 32.0,
-            ),
-            providerName: "email",
-            label: _emailProvider,
-            color: Colors.black38,
+                providerImage: Icon(
+                  emailIcon,
+                  color: Colors.black38,
+                  size: 32.0,
+                ),
+                providerName: "email",
+                label: _emailProvider,
+                color: Colors.black38,
+              ),
+            ],
           ),
-        ],
-      ),
-      // child: Form(
-      //   key: _formKey,
-      //   child: Column(
-      //     children: [
-      //       TextFormField(
-      //         controller: _emailCtrl,
-      //         decoration: mainInputDecoration.copyWith(
-      //           prefixIcon: Icon(emailIcon),
-      //           label: const Text(
-      //             "Email address",
-      //             style: TextStyle(fontSize: 18.0),
-      //           ),
-      //         ),
-      //         autocorrect: false,
-      //         enabled: !_isLoading,
-      //         keyboardType: TextInputType.emailAddress,
-      //         textCapitalization: TextCapitalization.none,
-      //         textInputAction: TextInputAction.next,
-      //         validator: (value) {
-      //           if (value!.isEmpty) {
-      //             return "This field is required.";
-      //           }
-
-      //           if (!_validateEmail(value)) {
-      //             return "The email provided is not valid.";
-      //           }
-
-      //           return null;
-      //         },
-      //       ),
-      //       const SizedBox(height: 16.0),
-      //       TextFormField(
-      //         controller: _passCtrl,
-      //         decoration: mainInputDecoration.copyWith(
-      //           prefixIcon: Icon(passwordIcon),
-      //           label: const Text("Password", style: TextStyle(fontSize: 18.0)),
-      //           suffixIcon: IconButton(
-      //             icon: Icon(
-      //                 _showPassword ? Icons.visibility_off : Icons.visibility),
-      //             onPressed: toggleShowPassword,
-      //           ),
-      //         ),
-      //         autocorrect: false,
-      //         enabled: !_isLoading,
-      //         keyboardType: TextInputType.text,
-      //         textCapitalization: TextCapitalization.none,
-      //         textInputAction: TextInputAction.done,
-      //         obscureText: !_showPassword,
-      //         validator: (value) {
-      //           if (value!.isEmpty) {
-      //             return "This field is required.";
-      //           }
-
-      //           return null;
-      //         },
-      //       ),
-      //       const SizedBox(height: 16.0),
-      //       _isLoading
-      //           ? AdaptiveSpinner(color: Theme.of(context).colorScheme.primary)
-      //           : FilledButton.icon(
-      //               style: ButtonStyle(
-      //                 padding: const MaterialStatePropertyAll(
-      //                   EdgeInsets.all(12.0),
-      //                 ),
-      //                 shape: MaterialStatePropertyAll(
-      //                   RoundedRectangleBorder(
-      //                     borderRadius: BorderRadius.circular(8.0),
-      //                   ),
-      //                 ),
-      //               ),
-      //               icon: const Icon(Icons.login),
-      //               label: const Text(
-      //                 "Login",
-      //                 style: TextStyle(fontSize: 16.0),
-      //               ),
-      //               onPressed: _saveForm,
-      //             ),
-      //       const SizedBox(height: 8.0),
-      //       RichText(
-      //         text: TextSpan(
-      //           text: "First time using the app? ",
-      //           style: const TextStyle(
-      //             color: Colors.black45,
-      //             fontSize: 18.0,
-      //           ),
-      //           children: [
-      //             TextSpan(
-      //               text: "Sign up!",
-      //               style: TextStyle(
-      //                 color: Theme.of(context).colorScheme.primary,
-      //                 fontWeight: FontWeight.bold,
-      //               ),
-      //               recognizer: TapGestureRecognizer()
-      //                 ..onTap = () {
-      //                   Navigator.of(context).push(
-      //                     MaterialPageRoute(
-      //                       builder: (ctx) => const SignupScreen(),
-      //                     ),
-      //                   );
-      //                 },
-      //             ),
-      //           ],
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      // ),
+        ),
+        if (_isLoading)
+          Container(
+            alignment: Alignment.bottomCenter,
+            padding: const EdgeInsets.only(bottom: 20.0),
+            child: const AdaptiveSpinner(),
+          )
+      ],
     );
   }
 }

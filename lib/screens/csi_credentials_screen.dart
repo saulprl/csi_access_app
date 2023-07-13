@@ -1,13 +1,12 @@
 import "package:flutter/material.dart";
 
-import "package:firebase_auth/firebase_auth.dart";
-import "package:cloud_firestore/cloud_firestore.dart";
+import "package:provider/provider.dart";
 
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
-import "package:csi_door_logs/widgets/main/index.dart";
+import "package:csi_door_logs/providers/auth_provider.dart";
 
-import "package:csi_door_logs/models/models.dart";
+import "package:csi_door_logs/widgets/main/index.dart";
 
 import "package:csi_door_logs/utils/styles.dart";
 import "package:csi_door_logs/utils/globals.dart";
@@ -22,11 +21,9 @@ class CSICredentialsScreen extends StatefulWidget {
 }
 
 class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
-  final GlobalKey<FormState> _formKey = GlobalKey();
   final _storage = const FlutterSecureStorage();
 
+  final GlobalKey<FormState> _formKey = GlobalKey();
   final unisonIdCtrl = TextEditingController();
   final csiIdCtrl = TextEditingController();
   final passcodeCtrl = TextEditingController();
@@ -43,15 +40,20 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
   }
 
   Future<void> _readStorage() async {
-    final unisonId = await _storage.read(key: unisonIdStorageKey);
-    final csiId = await _storage.read(key: csiIdStorageKey);
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final unisonId = await _storage.read(key: unisonIdStorageKey);
+      final csiId = await _storage.read(key: csiIdStorageKey);
 
-    unisonIdCtrl.text = unisonId ?? "";
-    csiIdCtrl.text = csiId ?? "";
+      unisonIdCtrl.text = auth.userData?.unisonId ?? unisonId ?? "";
+      csiIdCtrl.text = auth.userData?.csiId.toString() ?? csiId ?? "";
 
-    setState(() {
-      _canEditPasscode = true;
-    });
+      setState(() {
+        _canEditPasscode = true;
+      });
+    } catch (error) {
+      showModal(error.toString());
+    }
   }
 
   void toggleShowPasscode() {
@@ -70,7 +72,10 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
       builder: (ctx) {
         return AlertDialog(
           title: const Text("Error"),
-          content: Text(message),
+          content: Text(
+            message,
+            style: const TextStyle(fontSize: 18.0),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
@@ -97,31 +102,16 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
       _isLoading = true;
     });
 
-    final unisonId = unisonIdCtrl.text;
-    final csiId = csiIdCtrl.text;
-    final csiPasscode = passcodeCtrl.text.toUpperCase();
+    final passcode = passcodeCtrl.text.toUpperCase();
 
     try {
-      final uid = _auth.currentUser!.uid;
-      final existingUnisonID =
-          await _firestore.collection("users").doc(uid).get();
+      final auth = Provider.of<AuthProvider>(context, listen: false);
 
-      if (existingUnisonID.data() == null) {
-        showModal("Something went wrong while fetching your user data.");
-        return;
+      if (!(await auth.compareCredentials(passcode))) {
+        throw "Your CSI Passcode does not match";
       }
 
-      final existingUser = CSIUser.fromDocSnapshot(existingUnisonID);
-      if (!await existingUser.compareCredentials(
-        unisonId,
-        csiId,
-        csiPasscode,
-      )) {
-        showModal("Your CSI Credentials are incorrect.");
-        return;
-      }
-
-      await _storage.write(key: passcodeStorageKey, value: csiPasscode);
+      await _storage.write(key: passcodeStorageKey, value: passcode);
 
       popBack();
     } catch (error) {
@@ -210,7 +200,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                   TextFormField(
                     controller: unisonIdCtrl,
                     // focusNode: unisonIdFocus,
-                    decoration: mainInputDecoration.copyWith(
+                    decoration: InputDecoration(
                       prefixIcon: Icon(unisonIdIcon),
                       label: const Text("UniSon ID"),
                       hintText: "e.g. 217200160",
@@ -229,89 +219,71 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: TextFormField(
-                          controller: csiIdCtrl,
-                          decoration: mainInputDecoration.copyWith(
-                            prefixIcon: Icon(csiIdIcon),
-                            label: const Text("CSI ID"),
-                            hintText: "e.g. 1",
-                          ),
-                          autocorrect: false,
-                          readOnly: true,
-                          enabled: false,
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return "Required.";
-                            }
+                  TextFormField(
+                    controller: csiIdCtrl,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(csiIdIcon),
+                      label: const Text("CSI ID"),
+                      hintText: "e.g. 1",
+                    ),
+                    autocorrect: false,
+                    readOnly: true,
+                    enabled: false,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.next,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "Required.";
+                      }
 
-                            if (!RegExp(r"^\d{1,3}$").hasMatch(value)) {
-                              return "Invalid";
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 4.0),
-                      Expanded(
-                        flex: 9,
-                        child: TextFormField(
-                          controller: passcodeCtrl,
-                          decoration: mainInputDecoration.copyWith(
-                            prefixIcon: Icon(passcodeIcon),
-                            label: const Text("CSI Passcode"),
-                            contentPadding:
-                                const EdgeInsets.symmetric(vertical: 17.0),
-                            suffixIcon: IconButton(
-                              icon: Icon(_showPasscode
-                                  ? Icons.visibility_off
-                                  : Icons.visibility),
-                              onPressed: toggleShowPasscode,
-                            ),
-                          ),
-                          autocorrect: false,
-                          enabled: !_isLoading && _canEditPasscode,
-                          keyboardType: TextInputType.text,
-                          textCapitalization: TextCapitalization.characters,
-                          textInputAction: TextInputAction.done,
-                          obscureText: !_showPasscode,
-                          validator: (value) {
-                            if (value!.isEmpty) {
-                              return "This field is required.";
-                            }
-
-                            return null;
-                          },
-                        ),
-                      ),
-                    ],
+                      if (!RegExp(r"^\d{1,3}$").hasMatch(value)) {
+                        return "Invalid";
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16.0),
-                  _isLoading
-                      ? AdaptiveSpinner(
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : FilledButton.icon(
-                          style: ButtonStyle(
-                            padding: const MaterialStatePropertyAll(
-                              EdgeInsets.all(12.0),
-                            ),
-                            shape: MaterialStatePropertyAll(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                            ),
-                          ),
-                          icon: const Icon(Icons.save),
-                          label: const Text("Save"),
-                          onPressed: _saveForm,
-                        ),
+                  TextFormField(
+                    controller: passcodeCtrl,
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(passcodeIcon),
+                      label: const Text("CSI Passcode"),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 17.0),
+                      suffixIcon: IconButton(
+                        icon: Icon(_showPasscode
+                            ? Icons.visibility_off
+                            : Icons.visibility),
+                        onPressed: toggleShowPasscode,
+                      ),
+                    ),
+                    autocorrect: false,
+                    enabled: !_isLoading && _canEditPasscode,
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.characters,
+                    textInputAction: TextInputAction.done,
+                    obscureText: !_showPasscode,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "This field is required.";
+                      }
+
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  FilledButton(
+                    onPressed: !_isLoading ? _saveForm : null,
+                    child: const Text(
+                      "Save credentials",
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  if (_isLoading)
+                    AdaptiveSpinner(
+                      color: Theme.of(context).colorScheme.primary,
+                    )
                 ],
               ),
             ),

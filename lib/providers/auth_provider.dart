@@ -254,6 +254,19 @@ class AuthProvider with ChangeNotifier {
     return existingUser.docs.isNotEmpty;
   }
 
+  Future<bool> compareCredentials(String passcode) async {
+    if (_user == null) {
+      throw Exception("User is not authenticated");
+    }
+
+    final passcodeHash = _user!.passcode;
+
+    return await FlutterBcrypt.verify(
+      password: passcode,
+      hash: passcodeHash,
+    );
+  }
+
   Future<void> signIn({required String email, required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
