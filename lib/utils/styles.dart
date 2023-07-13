@@ -3,14 +3,6 @@ import "dart:io";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 
-// primary: Color(0xFF7145D6),
-//       secondary: Color(0xFFE91E63),
-//       tertiary: Color(0xFF0080FF),
-//       error: Color(0xFFFF6F00),
-//       background: Colors.white,
-//       onPrimary: Colors.white,
-//       onBackground: Colors.black87,
-
 const primaryColor = Color(0xFF7145D6);
 const secondaryColor = Color(0xFFE91E63);
 const tertiaryColor = Color(0xFF0080FF);
@@ -55,15 +47,8 @@ const mainInputDecoration = InputDecoration(
   border: OutlineInputBorder(),
 );
 
-final signupInputDecoration = InputDecoration(
-  border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(32.0),
-  ),
-  // fillColor: Colors.white,
-  // filled: true,
-);
-
 const signupButtonTextStyle = TextStyle(fontSize: 18.0);
+const modalActionsTextStyle = TextStyle(fontSize: 18.0);
 
 final signupInputPrefixColor = MaterialStateColor.resolveWith((states) {
   if (states.contains(MaterialState.focused)) {

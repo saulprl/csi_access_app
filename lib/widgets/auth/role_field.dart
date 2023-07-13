@@ -35,11 +35,12 @@ class _RoleFieldState extends State<RoleField> {
 
   @override
   Widget build(BuildContext context) {
-    final roles = Provider.of<RoleProvider>(context);
+    final roles = Provider.of<RoleProvider>(context).roles;
 
-    return DropdownButton<String>(
+    return DropdownButtonFormField<String>(
+      decoration: const InputDecoration(labelText: "Role"),
       value: dropdownValue,
-      items: roles.roles
+      items: roles
           .map((role) => DropdownMenuItem<String>(
                 value: role.key,
                 child: Text(role.name),

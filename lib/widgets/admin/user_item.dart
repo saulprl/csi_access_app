@@ -78,11 +78,11 @@ class _UserItemState extends State<UserItem> {
                   text: "Choose ",
                   style: const TextStyle(
                     color: Colors.black87,
-                    fontSize: 16.0,
+                    fontSize: 18.0,
                   ),
                   children: [
                     TextSpan(
-                      text: widget.name,
+                      text: name,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -92,6 +92,7 @@ class _UserItemState extends State<UserItem> {
                   ],
                 ),
               ),
+              const SizedBox(height: 8.0),
               RoleField(value: roleKey, onChange: onRoleChange),
             ],
           ),
@@ -100,14 +101,16 @@ class _UserItemState extends State<UserItem> {
               onPressed: () => popBack(false),
               child: Text(
                 "Cancel",
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+                style: modalActionsTextStyle.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
               ),
             ),
             TextButton(
               onPressed: () => popBack(true),
               child: Text(
                 "Submit",
-                style: TextStyle(
+                style: modalActionsTextStyle.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
@@ -133,29 +136,97 @@ class _UserItemState extends State<UserItem> {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: IconButton(
-        icon: Icon(
-          editIcon,
-          color: isEditable
-              ? Theme.of(context).colorScheme.primary
-              : Colors.black38,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.secondary,
+            width: 1.0,
+          ),
+          borderRadius: BorderRadius.circular(50.0),
+          color: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
         ),
-        onPressed: isEditable ? updateRole : null,
-      ),
-      title: Text(
-        widget.name,
-        style: const TextStyle(
-          fontSize: 18.0,
+        child: ListTile(
+          style: ListTileStyle.list,
+          dense: true,
+          leading: Tooltip(
+            message: isEditable ? "Edit role" : "No permission to edit role",
+            child: IconButton(
+              icon: Icon(
+                editIcon,
+                color: isEditable
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.black38,
+              ),
+              onPressed: isEditable ? updateRole : null,
+            ),
+          ),
+          title: Tooltip(
+            message: name,
+            child: Text(
+              name,
+              style: const TextStyle(fontSize: 18.0),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          trailing: Tooltip(
+            message: isTogglable
+                ? isAllowedAccess
+                    ? "Revoke access"
+                    : "Grant access"
+                : "No permission to toggle access",
+            child: Switch(
+              value: isAllowedAccess,
+              thumbIcon: thumbIcon,
+              onChanged: isTogglable ? toggleAccessPermission : null,
+            ),
+          ),
         ),
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Switch(
-        value: isAllowedAccess,
-        thumbIcon: thumbIcon,
-        onChanged: isTogglable ? toggleAccessPermission : null,
       ),
     );
+
+    // return Padding(
+    //   padding: const EdgeInsets.symmetric(vertical: 4.0),
+    //   child: ListTile(
+    //     style: ListTileStyle.list,
+    //     tileColor: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
+    //     dense: true,
+    //     leading: Tooltip(
+    //       message: isEditable ? "Edit role" : "No permission to edit role",
+    //       child: IconButton(
+    //         icon: Icon(
+    //           editIcon,
+    //           color: isEditable
+    //               ? Theme.of(context).colorScheme.primary
+    //               : Colors.black38,
+    //         ),
+    //         onPressed: isEditable ? updateRole : null,
+    //       ),
+    //     ),
+    //     title: Tooltip(
+    //       message: name,
+    //       child: Text(
+    //         name,
+    //         style: const TextStyle(fontSize: 18.0),
+    //         overflow: TextOverflow.ellipsis,
+    //       ),
+    //     ),
+    //     trailing: Tooltip(
+    //       message: isTogglable
+    //           ? isAllowedAccess
+    //               ? "Revoke access"
+    //               : "Grant access"
+    //           : "No permission to toggle access",
+    //       child: Switch(
+    //         value: isAllowedAccess,
+    //         thumbIcon: thumbIcon,
+    //         onChanged: isTogglable ? toggleAccessPermission : null,
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 
   String get uid => widget.uid;

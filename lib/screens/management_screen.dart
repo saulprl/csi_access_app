@@ -43,16 +43,6 @@ class ManagementScreen extends StatelessWidget {
           itemBuilder: (ctx, index) => roleList(roles.roles[index].key),
         ),
       ),
-      // floatingActionButton: (roles.userRole?.canCreateUsers ?? false) ||
-      //         (auth.userData?.isRootUser ?? false)
-      //     ? FloatingActionButton(
-      //         onPressed: () => pushCreateUser(context),
-      //         child: Icon(
-      //           createUserIcon,
-      //           color: Colors.white,
-      //         ),
-      //       )
-      //     : null,
     );
   }
 

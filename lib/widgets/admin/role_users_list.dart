@@ -42,7 +42,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
       children: [
         buildDivider(context, roleName),
         Padding(
-          padding: const EdgeInsets.all(4.0),
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: StreamBuilder(
             stream: _firestore
                 .collectionGroup("room_roles")
@@ -52,7 +52,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
             builder: (ctx, roleSnap) {
               if (roleSnap.hasData) {
                 return ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics: const ClampingScrollPhysics(),
                   shrinkWrap: true,
                   itemCount: roleSnap.data!.size,
                   itemBuilder: (ctx, index) {
