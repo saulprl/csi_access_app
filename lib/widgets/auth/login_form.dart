@@ -162,9 +162,11 @@ class _LoginFormState extends State<LoginForm> {
 
               Future.delayed(
                 const Duration(seconds: 5),
-                () => setState(() {
-                  _emailProvider = serious;
-                }),
+                () {
+                  if (mounted) {
+                    setState(() => _emailProvider = serious);
+                  }
+                },
               );
             },
             providerImage: Icon(

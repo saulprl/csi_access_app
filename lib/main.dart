@@ -1,5 +1,6 @@
 import "package:csi_door_logs/providers/logs_provider.dart";
 import "package:csi_door_logs/providers/role_provider.dart";
+import "package:csi_door_logs/utils/styles.dart";
 import "package:flutter/material.dart";
 
 import "package:provider/provider.dart";
@@ -43,13 +44,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const lightScheme = ColorScheme.light(
-      primary: Color(0xFF7145D6),
-      secondary: Color(0xFFE91E63),
-      tertiary: Color(0xFF0080FF),
-      error: Color(0xFFFF6F00),
-      background: Colors.white,
-      onPrimary: Colors.white,
-      onBackground: Colors.black87,
+      primary: primaryColor,
+      secondary: secondaryColor,
+      tertiary: tertiaryColor,
+      error: errorColor,
+      background: backgroundColor,
+      onPrimary: onPrimaryColor,
+      onBackground: onBackgroundColor,
     );
 
     return MultiProvider(
@@ -61,8 +62,13 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<AuthProvider, RoomProvider>(
           create: (ctx) => RoomProvider(),
           update: (ctx, auth, room) {
+            room?.setAuthUser(auth.user);
             room?.setUser(auth.userData);
-            return room ?? RoomProvider(user: auth.userData);
+            return room ??
+                RoomProvider(
+                  authUser: auth.user,
+                  user: auth.userData,
+                );
           },
         ),
         ChangeNotifierProxyProvider<RoomProvider, RoleProvider>(
@@ -97,6 +103,25 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
               colorScheme: lightScheme,
               fontFamily: "Poppins",
+              inputDecorationTheme: InputDecorationTheme(
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(50.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 28.0,
+                  vertical: 20.0,
+                ),
+                prefixIconColor: MaterialStateColor.resolveWith((states) {
+                  if (states.contains(MaterialState.focused)) {
+                    return primaryColor;
+                  } else if (states.contains(MaterialState.disabled)) {
+                    return Colors.grey;
+                  } else {
+                    return Colors.black;
+                  }
+                }),
+              ),
             ),
             debugShowCheckedModeBanner: false,
             home: StreamBuilder(
@@ -130,12 +155,7 @@ class MyApp extends StatelessWidget {
                         );
                       }
 
-                      if (Provider.of<AuthProvider>(
-                            ctx,
-                            listen: false,
-                          ).userData ==
-                          null) {
-                        print("User data is null");
+                      if (Provider.of<AuthProvider>(ctx).userData == null) {
                         return const SignupScreen();
                       } else {
                         return FutureBuilder(

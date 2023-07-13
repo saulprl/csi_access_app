@@ -6,9 +6,9 @@ class UserModel {
   final String unisonId;
   final String name;
   final String passcode;
-  final String email;
   final DateTime dateOfBirth;
-  final DateTime createdAt;
+  String? email;
+  DateTime? createdAt;
   bool? isRoot;
 
   UserModel({
@@ -17,9 +17,9 @@ class UserModel {
     required this.unisonId,
     required this.name,
     required this.passcode,
-    required this.email,
     required this.dateOfBirth,
-    required this.createdAt,
+    this.email,
+    this.createdAt,
     this.isRoot,
   });
 
@@ -48,4 +48,14 @@ class UserModel {
         email = snapshot.data()['email'],
         dateOfBirth = (snapshot.data()['dateOfBirth'] as Timestamp).toDate(),
         createdAt = (snapshot.data()['createdAt'] as Timestamp).toDate();
+
+  Map<String, dynamic> toJson() => {
+        'csiId': csiId,
+        'unisonId': unisonId,
+        'name': name,
+        'passcode': passcode,
+        'email': email,
+        'dateOfBirth': dateOfBirth,
+        'createdAt': createdAt,
+      };
 }

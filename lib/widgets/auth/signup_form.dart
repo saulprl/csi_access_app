@@ -1,21 +1,15 @@
-import 'package:csi_door_logs/utils/globals.dart';
-import 'package:csi_door_logs/widgets/auth/fetch_field.dart';
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:flutter/material.dart';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
-import "package:cloud_firestore/cloud_firestore.dart";
-
-import 'package:email_validator/email_validator.dart';
-
-import "package:flutter_secure_storage/flutter_secure_storage.dart";
-
-import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
-
-import 'package:csi_door_logs/models/models.dart';
-
-import 'package:csi_door_logs/utils/styles.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import 'package:csi_door_logs/providers/auth_provider.dart';
+
+import 'package:csi_door_logs/widgets/auth/room_field.dart';
+
+import 'package:csi_door_logs/utils/globals.dart';
+import 'package:csi_door_logs/utils/styles.dart';
 
 class SignupForm extends StatefulWidget {
   const SignupForm({super.key});
@@ -25,32 +19,61 @@ class SignupForm extends StatefulWidget {
 }
 
 class _SignupFormState extends State<SignupForm> {
-  final _auth = FirebaseAuth.instance;
-  final _dbInstance = FirebaseDatabase.instance;
-  final _firestore = FirebaseFirestore.instance;
-  final _storage = const FlutterSecureStorage();
+  double _getStartedTransitionValue = 0.0;
 
-  final GlobalKey<FormState> _formKey = GlobalKey(debugLabel: "signup_form");
+  final _pageController = PageController();
+  final _formKey = GlobalKey<FormState>(debugLabel: "signup_form");
+  final _unisonIdKey = GlobalKey<FormFieldState>(debugLabel: "unison_id");
+  final _passcodeKey = GlobalKey<FormFieldState>(debugLabel: "passcode");
+  final _nameKey = GlobalKey<FormFieldState>(debugLabel: "name");
+  final _dateKey = GlobalKey<FormFieldState>(debugLabel: "date");
+  final _roleKey = GlobalKey<FormFieldState>(debugLabel: "role");
+  final _roomKey = GlobalKey<FormFieldState>(debugLabel: "room");
+
   final unisonIdCtrl = TextEditingController();
   final passcodeCtrl = TextEditingController();
   final nameCtrl = TextEditingController();
   final dateCtrl = TextEditingController();
   final roleCtrl = TextEditingController()..text = "Guest";
-  DateTime? dob;
+  final roomCtrl = TextEditingController();
+  DateTime? _dob;
 
-  final cPwdFocus = FocusNode();
   final unisonIdFocus = FocusNode();
   final passcodeFocus = FocusNode();
   final nameFocus = FocusNode();
 
-  var _isAllowedAccess = false;
+  String? _room;
   var _showPassword = false;
   var _showPasscode = false;
-  var _editPasscode = false;
-  var _editName = false;
   var _isLoading = false;
 
-  Widget get sizedBox => const SizedBox(height: 12.0);
+  @override
+  void initState() {
+    super.initState();
+    _startTransition();
+  }
+
+  void _startTransition() {
+    Future.delayed(const Duration(milliseconds: 1950), () {
+      setState(() {
+        _getStartedTransitionValue = 1.0;
+      });
+    });
+  }
+
+  void _previousPage() {
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOutCubic,
+    );
+  }
+
+  void _nextPage() {
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOutCubic,
+    );
+  }
 
   void toggleShowPassword() {
     setState(() {
@@ -64,41 +87,12 @@ class _SignupFormState extends State<SignupForm> {
     });
   }
 
-  Future<void> _fetchUser() async {
-    if (unisonIdCtrl.text.isEmpty) {
-      return;
-    }
-
-    final existingSnapshot = await _dbInstance
-        .ref("users")
-        .orderByChild("unisonId")
-        .equalTo(unisonIdCtrl.text)
-        .get();
-
-    if (existingSnapshot.value == null) {
-      setState(() {
-        _editName = true;
-        _editPasscode = true;
-      });
-
-      return;
-    }
-
-    final existingUser = existingSnapshot.value as Map;
-    final existingUserKey = existingUser.keys.first;
-
-    roleCtrl.text = "Member";
-    nameCtrl.text = existingUser[existingUserKey]["name"];
+  void setRoom(String? value) {
+    if (value == null) return;
 
     setState(() {
-      _editName = true;
-      _editPasscode = true;
-      _isAllowedAccess = true;
+      _room = value;
     });
-  }
-
-  bool _validateEmail(String email) {
-    return EmailValidator.validate(email);
   }
 
   Widget buildDivider(String label) {
@@ -123,7 +117,7 @@ class _SignupFormState extends State<SignupForm> {
       builder: (ctx) {
         return AlertDialog(
           title: const Text("Error"),
-          content: Text(message),
+          content: Text(message, style: const TextStyle(fontSize: 18.0)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
@@ -152,7 +146,7 @@ class _SignupFormState extends State<SignupForm> {
     );
 
     if (pickedDate != null) {
-      dob = pickedDate;
+      _dob = pickedDate;
       dateCtrl.text = DateFormat("MMMM dd, yyyy").format(pickedDate);
     }
   }
@@ -161,106 +155,84 @@ class _SignupFormState extends State<SignupForm> {
     Navigator.of(context).pop();
   }
 
-  void _saveForm() async {
-    _auth.signOut();
+  Future<bool> _validatePersonalData() async {
+    setState(() => _isLoading = true);
 
-    if (!_formKey.currentState!.validate()) {
+    bool isValid = true;
+    final fieldKeys = [_unisonIdKey, _nameKey, _dateKey];
+
+    for (final key in fieldKeys) {
+      final fieldState = key.currentState;
+
+      if (fieldState == null || !fieldState.validate()) {
+        isValid = false;
+      }
+    }
+
+    if (!isValid) {
+      return false;
+    }
+
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    if (await auth.unisonIdExists(unisonIdCtrl.text.trim())) {
+      setState(() => _isLoading = false);
+      showModal("Unison ID already in use.");
+      return false;
+    }
+
+    setState(() => _isLoading = false);
+
+    return true;
+  }
+
+  void _saveForm() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
 
-    // if (dob == null) {
-    //   showModal("Something went wrong while validating the date of birth.");
-    //   return;
-    // }
+    if (_dob == null) {
+      showModal("Your date of birth is required.");
+      return;
+    }
 
-    // setState(() {
-    //   _isLoading = true;
-    // });
+    if (_room == null) {
+      showModal("You must select a room.");
+    }
 
-    // final unisonId = unisonIdCtrl.text;
-    // final csiPasscode = passcodeCtrl.text.toUpperCase();
-    // final name = nameCtrl.text;
-    // final role = roleCtrl.text;
+    setState(() {
+      _isLoading = true;
+    });
 
-    // try {
-    //   final existingUnisonID = await _dbInstance
-    //       .ref("users")
-    //       .orderByChild("unisonId")
-    //       .equalTo(unisonId)
-    //       .get();
+    if (auth.user == null) {
+      showModal("Something went wrong. Please try again later.");
+      return;
+    }
 
-    //   if (existingUnisonID.value == null) {
-    //     showModal("No user with provided UniSon ID found.");
-    //     return;
-    //   }
-
-    //   final existingUser = existingUnisonID.value as Map;
-    //   final existingKey = existingUser.keys.first;
-    //   if (!await CSIUser.globalCompareCredentials(
-    //     unisonId: existingUser[existingKey]["unisonId"],
-    //     csiId: existingUser[existingKey]["csiId"].toString(),
-    //     passcode: existingUser[existingKey]["passcode"],
-    //     inputUnisonId: unisonId,
-    //     inputCsiId: csiId,
-    //     inputPasscode: csiPasscode,
-    //   )) {
-    //     showModal("Your CSI Credentials are incorrect.");
-    //     return;
-    //   }
-
-    //   final authenticatedUser = await _auth.createUserWithEmailAndPassword(
-    //     email: email,
-    //     password: password,
-    //   );
-
-    //   final roleRef = await _firestore
-    //       .collection("roles")
-    //       .where("name", isEqualTo: role)
-    //       .limit(1)
-    //       .get();
-
-    //   final migratedUser = CSIUser(
-    //     csiId: int.parse(csiId),
-    //     name: name,
-    //     unisonId: unisonId,
-    //     email: email,
-    //     passcode: existingUser[existingKey]["passcode"],
-    //     role: roleRef.docs[0].reference,
-    //     isAllowedAccess: _isAllowedAccess,
-    //     createdAt: Timestamp.now(),
-    //     dateOfBirth: Timestamp.fromDate(dob!),
-    //   );
-
-    //   await _firestore
-    //       .collection("users")
-    //       .doc(authenticatedUser.user!.uid)
-    //       .set(migratedUser.toJson(keyless: true));
-
-    //   await _storage.deleteAll();
-    //   await _storage.write(
-    //       key: firebaseUidStorageKey, value: authenticatedUser.user!.uid);
-    //   await _storage.write(key: unisonIdStorageKey, value: unisonId);
-    //   await _storage.write(key: csiIdStorageKey, value: csiId);
-    //   await _storage.write(key: passcodeStorageKey, value: csiPasscode);
-
-    //   popBack();
-    // } on FirebaseAuthException catch (error) {
-    //   var message = "An error occurred, please check your credentials!";
-    //   if (error.message != null) {
-    //     message = error.message!;
-    //   }
-
-    //   showModal(message);
-    // } catch (error) {
-    //   var message = "An error occurred, please check your credentials!";
-    //   message = error.toString();
-
-    //   showModal(message);
-    // } finally {
-    //   setState(() {
-    //     _isLoading = false;
-    //   });
-    // }
+    final unisonId = unisonIdCtrl.text.trim();
+    final passcode = passcodeCtrl.text.trim().toUpperCase();
+    final name = nameCtrl.text.trim();
+    final role = roleCtrl.text.trim();
+    final room = _room!;
+    final dob = _dob!;
+    try {
+      await auth.populateUserData(
+        name: name,
+        unisonId: unisonId,
+        passcode: passcode,
+        dob: dob,
+        roomId: room,
+        roleName: role,
+      );
+    } catch (error) {
+      showModal(error.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -271,10 +243,6 @@ class _SignupFormState extends State<SignupForm> {
     dateCtrl.dispose();
     roleCtrl.dispose();
 
-    cPwdFocus.dispose();
-    unisonIdFocus.dispose();
-    nameFocus.dispose();
-
     super.dispose();
   }
 
@@ -282,38 +250,217 @@ class _SignupFormState extends State<SignupForm> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-          vertical: 8.0,
-          horizontal: 16.0,
-        ),
+      child: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: [
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 750),
+            curve: Curves.easeInOutCubic,
+            opacity: _getStartedTransitionValue,
+            child: buildWelcomePage(),
+          ),
+          buildPersonalDataSection(),
+          buildAccessDataSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildWelcomePage() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Welcome",
+            style: TextStyle(
+              fontSize: 48.0,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16.0),
+          Text(
+            "It seems you're new here",
+            style: TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16.0),
+          FilledButton(
+            onPressed: _nextPage,
+            child: const Text(
+              "Get started",
+              style: TextStyle(fontSize: 20.0),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildPersonalDataSection() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            buildDivider("CSI PRO Data"),
+            buildSectionTitle("Personal data"),
             sizedBox,
-            FetchField(
-              ctrl: unisonIdCtrl,
-              focus: unisonIdFocus,
-              onPressed: _fetchUser,
-              onEditingComplete: () {
-                unisonIdFocus.unfocus();
-                _fetchUser();
+            TextFormField(
+              key: _unisonIdKey,
+              controller: unisonIdCtrl,
+              focusNode: unisonIdFocus,
+              decoration: InputDecoration(
+                prefixIcon: Icon(unisonIdIcon),
+                label: const Text("Unison ID"),
+                hintText: "e.g. 217200160",
+                counterText: "",
+              ),
+              enabled: !_isLoading,
+              keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.next,
+              maxLength: 9,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "This field is required.";
+                }
+
+                if (value.length < 5) {
+                  return "Your ID must be at least 5 characters long.";
+                }
+
+                return null;
               },
             ),
             sizedBox,
             TextFormField(
+              key: _nameKey,
+              focusNode: nameFocus,
+              controller: nameCtrl,
+              decoration: InputDecoration(
+                prefixIcon: Icon(nameIcon),
+                label: const Text("Name"),
+                hintText: "e.g. Saúl Ramos",
+                counterText: "",
+              ),
+              maxLength: 50,
+              autocorrect: false,
+              enabled: !_isLoading,
+              keyboardType: TextInputType.name,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.done,
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "This field is required.";
+                }
+
+                return null;
+              },
+            ),
+            sizedBox,
+            TextFormField(
+              key: _dateKey,
+              controller: dateCtrl,
+              decoration: InputDecoration(
+                prefixIcon: Icon(calendarIcon),
+                label: const Text("Date of birth"),
+              ),
+              autocorrect: false,
+              enabled: !_isLoading,
+              readOnly: true,
+              onTap: () async {
+                _showDatePicker();
+              },
+              validator: (value) {
+                if (value!.isEmpty) {
+                  _pageController.jumpToPage(1);
+                  return "This field is required.";
+                }
+
+                return null;
+              },
+            ),
+            sizedBox,
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    onPressed: !_isLoading
+                        ? () async {
+                            setState(() => _isLoading = true);
+
+                            final isValid = await _validatePersonalData();
+
+                            setState(() => _isLoading = false);
+
+                            if (!isValid) {
+                              return;
+                            }
+
+                            _nextPage();
+                          }
+                        : null,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 12.0,
+                        horizontal: 8.0,
+                      ),
+                      child: Text(
+                        "Next step",
+                        style: signupButtonTextStyle,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            sizedBox,
+            if (_isLoading)
+              AdaptiveSpinner(color: Theme.of(context).colorScheme.primary)
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildAccessDataSection() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+        child: Column(
+          children: [
+            buildSectionTitle("Access data"),
+            sizedBox,
+            TextFormField(
+              key: _passcodeKey,
               focusNode: passcodeFocus,
               controller: passcodeCtrl,
-              decoration: mainInputDecoration.copyWith(
+              decoration: InputDecoration(
                 prefixIcon: Icon(passcodeIcon),
                 label: const Text("CSI Passcode"),
-                contentPadding: const EdgeInsets.symmetric(vertical: 17.0),
                 suffixIcon: IconButton(
                   icon: Icon(
-                      _showPasscode ? Icons.visibility_off : Icons.visibility),
+                    _showPasscode ? Icons.visibility : Icons.visibility_off,
+                    color: _showPasscode
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
                   onPressed: toggleShowPasscode,
                 ),
+                counterText: "",
+                errorMaxLines: 4,
               ),
+              maxLength: 8,
               autocorrect: false,
               enabled: !_isLoading,
               keyboardType: TextInputType.text,
@@ -329,7 +476,7 @@ class _SignupFormState extends State<SignupForm> {
                   r"(?=.*[\d])(?=.*[A-D])[\dA-D]{4,8}",
                   caseSensitive: false,
                 ).hasMatch(value)) {
-                  return "Passcode must be 4 to 8 characters long and contain at least one number and one letter from A to D.";
+                  return "Must be 4 to 8 characters long and contain at least one number and one letter from A to D.";
                 }
 
                 return null;
@@ -338,8 +485,9 @@ class _SignupFormState extends State<SignupForm> {
             ),
             sizedBox,
             TextFormField(
+              key: _roleKey,
               controller: roleCtrl,
-              decoration: mainInputDecoration.copyWith(
+              decoration: InputDecoration(
                 prefixIcon: Icon(roleIcon),
                 label: const Text("Role"),
               ),
@@ -354,73 +502,83 @@ class _SignupFormState extends State<SignupForm> {
               },
             ),
             sizedBox,
-            buildDivider("Personal Data"),
-            sizedBox,
-            TextFormField(
-              focusNode: nameFocus,
-              controller: nameCtrl,
-              decoration: mainInputDecoration.copyWith(
-                prefixIcon: Icon(nameIcon),
-                label: const Text("Name"),
-                hintText: "e.g. Saúl Ramos",
+            RoomField(
+              key: _roomKey,
+              value: _room,
+              onChange: setRoom,
+            ),
+            const SizedBox(height: 4.0),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                roomDisclaimer,
+                textAlign: TextAlign.justify,
               ),
-              autocorrect: false,
-              enabled: !_isLoading && _editName,
-              keyboardType: TextInputType.name,
-              textInputAction: TextInputAction.done,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                return null;
-              },
             ),
             sizedBox,
-            TextFormField(
-              controller: dateCtrl,
-              decoration: mainInputDecoration.copyWith(
-                prefixIcon: Icon(calendarIcon),
-                label: const Text("Date of birth"),
-              ),
-              autocorrect: false,
-              enabled: !_isLoading,
-              readOnly: true,
-              onTap: () async {
-                _showDatePicker();
-              },
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                return null;
-              },
-            ),
-            sizedBox,
-            _isLoading
-                ? AdaptiveSpinner(
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : FilledButton.icon(
-                    style: ButtonStyle(
-                      padding: const MaterialStatePropertyAll(
-                        EdgeInsets.all(12.0),
-                      ),
-                      shape: MaterialStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                      ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: !_isLoading ? _previousPage : null,
+                    child: const Text(
+                      "Go back",
+                      style: signupButtonTextStyle,
                     ),
-                    icon: Icon(signupIcon),
-                    label: const Text("Sign up"),
-                    onPressed: _saveForm,
                   ),
+                ),
+                const SizedBox(width: 8.0),
+                Expanded(
+                  flex: 2,
+                  child: FilledButton(
+                    onPressed: !_isLoading ? _saveForm : null,
+                    child: const Text(
+                      "Complete setup",
+                      style: signupButtonTextStyle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             sizedBox,
+            if (_isLoading)
+              AdaptiveSpinner(color: Theme.of(context).colorScheme.primary)
           ],
         ),
       ),
     );
   }
+
+  Text buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.primary,
+        fontSize: 20.0,
+      ),
+    );
+  }
+
+  // Widget get signUpButton => _isLoading
+  //     ? AdaptiveSpinner(
+  //         color: Theme.of(context).colorScheme.primary,
+  //       )
+  //     : FilledButton.icon(
+  //         style: ButtonStyle(
+  //           padding: const MaterialStatePropertyAll(
+  //             EdgeInsets.all(12.0),
+  //           ),
+  //           shape: MaterialStatePropertyAll(
+  //             RoundedRectangleBorder(
+  //               borderRadius: BorderRadius.circular(8.0),
+  //             ),
+  //           ),
+  //         ),
+  //         icon: Icon(signupIcon),
+  //         label: const Text("Sign up"),
+  //         onPressed: _saveForm,
+  //       );
+
+  Widget get sizedBox => const SizedBox(height: 16.0);
 }

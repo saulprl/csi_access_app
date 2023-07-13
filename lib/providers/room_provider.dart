@@ -1,47 +1,64 @@
 import 'dart:async';
 
-import 'package:csi_door_logs/models/user_model.dart';
 import 'package:flutter/material.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:csi_door_logs/models/room.dart';
+import 'package:csi_door_logs/models/user_model.dart';
 
 class RoomProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Room> _rooms = [];
   List<Room> _userRooms = [];
   String _selectedRoom = "";
+  User? _authUser;
   UserModel? _user;
-  StreamSubscription? _roomsSubscription;
-  StreamSubscription? _userRoomSubscription;
+  StreamSubscription? _roomsSub;
+  StreamSubscription? _userRoomsSub;
 
   UserModel? get user => _user;
   List<Room> get rooms => _rooms;
   List<Room> get userRooms => _userRooms;
   String get selectedRoom => _selectedRoom;
 
-  RoomProvider({UserModel? user}) {
+  RoomProvider({User? authUser, UserModel? user}) {
+    setAuthUser(authUser);
     setUser(user);
+  }
+
+  void setAuthUser(User? authUser) {
+    if (authUser != null) {
+      _authUser = authUser;
+      _initializeSubs();
+    } else {
+      _roomsSub?.cancel();
+    }
   }
 
   void setUser(UserModel? user) {
     if (user != null) {
       _user = user;
-      _initializeSubscriptions();
+      _initializeSubs();
     } else {
-      _roomsSubscription?.cancel();
-      _userRoomSubscription?.cancel();
+      _userRoomsSub?.cancel();
     }
   }
 
-  void _initializeSubscriptions() {
-    if (_user == null) return;
+  void _initializeSubs() {
+    if (_user == null && _authUser == null) return;
 
-    _roomsSubscription =
-        _firestore.collection("rooms").snapshots().listen((rooms) {
+    _initializeRoomsSub();
+    _initializeUserRoomsSub();
+  }
+
+  void _initializeRoomsSub() {
+    if (_authUser == null) return;
+
+    _roomsSub = _firestore.collection("rooms").snapshots().listen((rooms) {
       _rooms =
           rooms.docs.map((room) => Room.fromQueryDocSnapshot(room)).toList();
 
@@ -50,8 +67,12 @@ class RoomProvider with ChangeNotifier {
       }
       notifyListeners();
     });
+  }
 
-    _userRoomSubscription = _firestore
+  void _initializeUserRoomsSub() {
+    if (_user == null) return;
+
+    _userRoomsSub = _firestore
         .collection("user_roles")
         .doc(_user!.key)
         .collection("room_roles")
@@ -160,8 +181,8 @@ class RoomProvider with ChangeNotifier {
 
   @override
   dispose() {
-    _roomsSubscription?.cancel();
-    _userRoomSubscription?.cancel();
+    _roomsSub?.cancel();
+    _userRoomsSub?.cancel();
 
     super.dispose();
   }

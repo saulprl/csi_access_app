@@ -41,23 +41,26 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
                   )
                   .toList(),
               onSelected: (value) => rooms.selectRoom(value),
-              child: Row(
-                children: [
-                  Text(
-                    rooms.userRooms
-                        .firstWhere((room) => room.key == rooms.selectedRoom)
-                        .name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14.0,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Text(
+                      rooms.userRooms
+                          .firstWhere((room) => room.key == rooms.selectedRoom)
+                          .name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.0,
+                      ),
                     ),
-                  ),
-                  const Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.white,
-                    size: 24.0,
-                  ),
-                ],
+                    const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white,
+                      size: 24.0,
+                    ),
+                  ],
+                ),
               ),
             ),
         ],

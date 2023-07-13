@@ -3,6 +3,22 @@ import "dart:io";
 import "package:flutter/cupertino.dart";
 import "package:flutter/material.dart";
 
+// primary: Color(0xFF7145D6),
+//       secondary: Color(0xFFE91E63),
+//       tertiary: Color(0xFF0080FF),
+//       error: Color(0xFFFF6F00),
+//       background: Colors.white,
+//       onPrimary: Colors.white,
+//       onBackground: Colors.black87,
+
+const primaryColor = Color(0xFF7145D6);
+const secondaryColor = Color(0xFFE91E63);
+const tertiaryColor = Color(0xFF0080FF);
+const errorColor = Color(0xFFFF6F00);
+const backgroundColor = Colors.white;
+const onPrimaryColor = Colors.white;
+const onBackgroundColor = Colors.black87;
+
 const iconColor = Colors.white;
 const iconSize = 40.0;
 
@@ -38,6 +54,24 @@ const mainInputDecoration = InputDecoration(
   isDense: true,
   border: OutlineInputBorder(),
 );
+
+final signupInputDecoration = InputDecoration(
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(32.0),
+  ),
+  // fillColor: Colors.white,
+  // filled: true,
+);
+
+const signupButtonTextStyle = TextStyle(fontSize: 18.0);
+
+final signupInputPrefixColor = MaterialStateColor.resolveWith((states) {
+  if (states.contains(MaterialState.focused)) {
+    return Colors.white;
+  } else {
+    return Colors.grey;
+  }
+});
 
 const screenSubtitle = TextStyle(
   color: Colors.black87,
@@ -92,6 +126,9 @@ IconData get csiIdIcon =>
 IconData get passcodeIcon => Icons.pin;
 
 IconData get roleIcon => Platform.isIOS ? CupertinoIcons.star_fill : Icons.star;
+
+IconData get roomIcon =>
+    Platform.isIOS ? CupertinoIcons.location_solid : Icons.room;
 
 IconData get nameIcon =>
     Platform.isIOS ? CupertinoIcons.person_circle_fill : Icons.person;

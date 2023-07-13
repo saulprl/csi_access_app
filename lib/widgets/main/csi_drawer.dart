@@ -1,14 +1,11 @@
-import "package:csi_door_logs/providers/auth_provider.dart";
-import "package:csi_door_logs/providers/role_provider.dart";
 import "package:flutter/material.dart";
-
-import "package:firebase_auth/firebase_auth.dart";
 
 import "package:provider/provider.dart";
 
-import "package:flutter_secure_storage/flutter_secure_storage.dart";
-
 import "package:shared_preferences/shared_preferences.dart";
+
+import "package:csi_door_logs/providers/auth_provider.dart";
+import "package:csi_door_logs/providers/role_provider.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 
@@ -16,8 +13,6 @@ import "package:csi_door_logs/utils/routes.dart";
 import "package:csi_door_logs/utils/styles.dart";
 
 class CSIDrawer extends StatelessWidget {
-  final _auth = FirebaseAuth.instance;
-  final _storage = const FlutterSecureStorage();
   final _key = GlobalKey<ScaffoldState>(debugLabel: "drawer_key");
 
   CSIDrawer({super.key});
@@ -111,7 +106,6 @@ class CSIDrawer extends StatelessWidget {
               "Sign out",
               logoutIcon,
               () async {
-                await _storage.deleteAll();
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
 
