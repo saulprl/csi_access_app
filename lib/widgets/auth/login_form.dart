@@ -1,3 +1,4 @@
+import 'package:csi_door_logs/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -23,28 +24,8 @@ class _LoginFormState extends State<LoginForm> {
   final String serious = "Sign in with email";
   var _emailProvider = "Sign in with email";
 
-  void showModal(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message, style: const TextStyle(fontSize: 18.0)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
-                "OK",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void showModal({String title = "Error", required String message}) {
+    showAlertDialog(context: context, title: title, message: message);
   }
 
   void signInWithGitHub() {
@@ -53,7 +34,7 @@ class _LoginFormState extends State<LoginForm> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       auth.signInWithGitHub();
     } catch (error) {
-      showModal(error.toString());
+      showModal(message: error.toString());
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -67,7 +48,7 @@ class _LoginFormState extends State<LoginForm> {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       auth.signInWithGoogle();
     } catch (error) {
-      showModal(error.toString());
+      showModal(message: error.toString());
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

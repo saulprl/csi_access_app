@@ -1,3 +1,4 @@
+import "package:csi_door_logs/utils/utils.dart";
 import "package:flutter/material.dart";
 
 import "package:provider/provider.dart";
@@ -52,7 +53,11 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
         _canEditPasscode = true;
       });
     } catch (error) {
-      showModal(error.toString());
+      showAlertDialog(
+        context: context,
+        title: "Error",
+        message: "Something went wrong while retrieving your credentials",
+      );
     }
   }
 
@@ -64,33 +69,6 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
 
   void popBack() {
     Navigator.of(context).pop();
-  }
-
-  void showModal(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(
-            message,
-            style: const TextStyle(fontSize: 18.0),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
-                "OK",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _saveForm() async {
@@ -118,7 +96,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
       var message = "An error occurred, please check your credentials!";
       message = error.toString();
 
-      showModal(message);
+      showAlertDialog(context: context, title: "Error", message: message);
     } finally {
       if (mounted) {
         setState(() {

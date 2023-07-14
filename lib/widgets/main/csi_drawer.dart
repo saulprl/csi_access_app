@@ -78,12 +78,10 @@ class CSIDrawer extends StatelessWidget {
                 ),
                 _buildTile(
                   context,
-                  "CSI Credentials",
-                  settingsIcon,
+                  "Rooms",
+                  roomIcon,
                   () => Navigator.of(context).push(
-                    Routes.pushFromRight(
-                      const CSICredentialsScreen(isEdit: true),
-                    ),
+                    Routes.pushFromRight(const RoomsScreen()),
                   ),
                 ),
                 _buildTile(
@@ -96,6 +94,16 @@ class CSIDrawer extends StatelessWidget {
                   enabled: ((role?.canGrantOrRevokeAccess ?? false) ||
                           (role?.canSetRoles ?? false)) ||
                       (user?.isRootUser ?? false),
+                ),
+                _buildTile(
+                  context,
+                  "CSI Credentials",
+                  settingsIcon,
+                  () => Navigator.of(context).push(
+                    Routes.pushFromRight(
+                      const CSICredentialsScreen(isEdit: true),
+                    ),
+                  ),
                 ),
               ],
             ),

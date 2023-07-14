@@ -1,3 +1,4 @@
+import 'package:csi_door_logs/utils/utils.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -124,28 +125,8 @@ class _CreateUserFormState extends State<CreateUserForm> {
     );
   }
 
-  void showModal(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
-                "OK",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void showModal({String title = "Error", required String message}) {
+    showAlertDialog(context: context, title: title, message: message);
   }
 
   Future<void> _showDatePicker() async {
@@ -174,7 +155,9 @@ class _CreateUserFormState extends State<CreateUserForm> {
     }
 
     if (dob == null) {
-      showModal("Something went wrong while validating the date of birth.");
+      showModal(
+        message: "Something went wrong while validating the date of birth.",
+      );
       return;
     }
 
@@ -192,7 +175,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
 
     try {
       final secondaryApp = await Firebase.initializeApp(
-        name: 'ephimeral',
+        name: 'ephemeral',
         options: DefaultFirebaseOptions.currentPlatform,
       );
       final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
@@ -204,7 +187,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
           .get();
 
       if (existingUnisonID.value == null) {
-        showModal("No user with provided UniSon ID found.");
+        showModal(message: "No user with provided UniSon ID found.");
         return;
       }
 
@@ -218,7 +201,7 @@ class _CreateUserFormState extends State<CreateUserForm> {
         inputCsiId: csiId,
         inputPasscode: csiPasscode,
       )) {
-        showModal("Your CSI Credentials are incorrect.");
+        showModal(message: "Your CSI Credentials are incorrect.");
         return;
       }
 
@@ -266,12 +249,12 @@ class _CreateUserFormState extends State<CreateUserForm> {
         message = error.message!;
       }
 
-      showModal(message);
+      showModal(message: message);
     } catch (error) {
       var message = "An error occurred, please check your credentials!";
       message = error.toString();
 
-      showModal(message);
+      showModal(message: message);
     } finally {
       setState(() {
         _isLoading = false;

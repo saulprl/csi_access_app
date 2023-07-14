@@ -179,6 +179,43 @@ class RoomProvider with ChangeNotifier {
     await prefs.setString("selectedRoom", room);
   }
 
+  void requestAccess(String roomKey) async {
+    if (_user == null) {
+      throw "You must be logged in to request access to a room.";
+    }
+
+    if (_userRooms.map((room) => room.key).contains(roomKey)) {
+      throw "You already have access to this room.";
+    }
+
+    try {
+      final guestRole = await _firestore
+          .collection("roles")
+          .where("name", isEqualTo: "Guest")
+          .limit(1)
+          .get();
+
+      if (guestRole.docs.isEmpty) {
+        throw "Something went wrong while submitting the request.";
+      }
+
+      final guestRoleRef = guestRole.docs.first.reference;
+
+      await _firestore
+          .collection("user_roles")
+          .doc(_user!.key)
+          .collection("room_roles")
+          .doc(roomKey)
+          .set({
+        "roleId": guestRoleRef,
+        "accessGranted": false,
+        "key": roomKey,
+      });
+    } catch (error) {
+      throw error.toString();
+    }
+  }
+
   @override
   dispose() {
     _roomsSub?.cancel();

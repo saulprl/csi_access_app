@@ -23,3 +23,31 @@ Padding buildDivider(BuildContext ctx, String title) {
     ),
   );
 }
+
+void showAlertDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+}) {
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(message, style: const TextStyle(fontSize: 18.0)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text(
+              "OK",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}

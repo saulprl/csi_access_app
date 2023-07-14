@@ -1,3 +1,4 @@
+import 'package:csi_door_logs/utils/utils.dart';
 import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:flutter/material.dart';
 
@@ -111,28 +112,8 @@ class _SignupFormState extends State<SignupForm> {
     );
   }
 
-  void showModal(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text("Error"),
-          content: Text(message, style: const TextStyle(fontSize: 18.0)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text(
-                "OK",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.0,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void showModal({String title = "Error", required String message}) {
+    showAlertDialog(context: context, title: title, message: message);
   }
 
   Future<void> _showDatePicker() async {
@@ -177,7 +158,7 @@ class _SignupFormState extends State<SignupForm> {
 
     if (await auth.unisonIdExists(unisonIdCtrl.text.trim())) {
       setState(() => _isLoading = false);
-      showModal("Unison ID already in use.");
+      showModal(message: "Unison ID already in use.");
       return false;
     }
 
@@ -194,12 +175,12 @@ class _SignupFormState extends State<SignupForm> {
     }
 
     if (_dob == null) {
-      showModal("Your date of birth is required.");
+      showModal(message: "Your date of birth is required.");
       return;
     }
 
     if (_room == null) {
-      showModal("You must select a room.");
+      showModal(message: "You must select a room.");
     }
 
     setState(() {
@@ -207,7 +188,7 @@ class _SignupFormState extends State<SignupForm> {
     });
 
     if (auth.user == null) {
-      showModal("Something went wrong. Please try again later.");
+      showModal(message: "Something went wrong. Please try again later.");
       return;
     }
 
@@ -227,7 +208,7 @@ class _SignupFormState extends State<SignupForm> {
         roleName: role,
       );
     } catch (error) {
-      showModal(error.toString());
+      showModal(message: error.toString());
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -282,7 +263,7 @@ class _SignupFormState extends State<SignupForm> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 8.0),
           Text(
             "It seems you're new here",
             style: TextStyle(
