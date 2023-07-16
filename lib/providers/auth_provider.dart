@@ -21,7 +21,9 @@ import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:csi_door_logs/models/user_model.dart';
 
 const clientId = "cc8283f8877f892c04b3";
-const redirectUri = "com.csipro.access";
+const uriScheme = "com.csipro.access";
+const redirectUri =
+    "https://csipro-access-auth.cyclic.app/oauth/callback/mobile";
 
 class AuthProvider with ChangeNotifier {
   final _auth = FirebaseAuth.instance;
@@ -106,8 +108,8 @@ class AuthProvider with ChangeNotifier {
     try {
       final result = await FlutterWebAuth2.authenticate(
         url:
-            'https://github.com/login/oauth/authorize?client_id=$clientId&scope=user:email',
-        callbackUrlScheme: redirectUri,
+            'https://github.com/login/oauth/authorize?client_id=$clientId&redirect_uri=$redirectUri&scope=user:email',
+        callbackUrlScheme: uriScheme,
       );
 
       final ghCode = Uri.parse(result).queryParameters['code'];
