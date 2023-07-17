@@ -46,9 +46,9 @@ class _PibleScreenState extends State<PibleScreen> {
   LocalAuthState authState = LocalAuthState.waiting;
   EncryptionState encryptionState = EncryptionState.waiting;
 
-  late StreamSubscription scanningSub;
-  late StreamSubscription scanResultsSub;
-  late StreamSubscription deviceStateSub;
+  StreamSubscription? scanningSub;
+  StreamSubscription? scanResultsSub;
+  StreamSubscription? deviceStateSub;
 
   @override
   void didChangeDependencies() {
@@ -89,6 +89,11 @@ class _PibleScreenState extends State<PibleScreen> {
   }
 
   Future<void> discoverDevices() async {
+    //TODO: Take a look at this later
+    // scanningSub?.cancel();
+    // scanResultsSub?.cancel();
+    // deviceStateSub?.cancel();
+
     if (Platform.isAndroid) {
       if (await Permission.bluetoothConnect.isGranted && !isBluetoothOn) {
         flutterBlue.turnOn();
@@ -235,14 +240,11 @@ class _PibleScreenState extends State<PibleScreen> {
       flutterBlue.stopScan();
     }
 
-    scanningSub.cancel();
-    scanResultsSub.cancel();
-    deviceStateSub.cancel();
+    scanningSub?.cancel();
+    scanResultsSub?.cancel();
+    deviceStateSub?.cancel();
 
-    if (deviceState != BluetoothDeviceState.disconnected && pible != null) {
-      pible!.disconnect();
-    }
-    pible = null;
+    pible?.disconnect();
 
     super.dispose();
   }
