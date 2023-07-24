@@ -1,20 +1,21 @@
-import "package:csi_door_logs/providers/logs_provider.dart";
-import "package:csi_door_logs/providers/role_provider.dart";
-import "package:csi_door_logs/utils/styles.dart";
 import "package:flutter/material.dart";
 
 import "package:provider/provider.dart";
 
-import "package:firebase_messaging/firebase_messaging.dart";
 import "package:firebase_core/firebase_core.dart";
+import "package:firebase_messaging/firebase_messaging.dart";
 
 import "package:flutter_dotenv/flutter_dotenv.dart";
-
-import "package:csi_door_logs/screens/screens.dart";
 
 import "package:csi_door_logs/providers/auth_provider.dart";
 import "package:csi_door_logs/providers/csi_users.dart";
 import "package:csi_door_logs/providers/room_provider.dart";
+import "package:csi_door_logs/providers/logs_provider.dart";
+import "package:csi_door_logs/providers/role_provider.dart";
+
+import "package:csi_door_logs/screens/screens.dart";
+
+import "package:csi_door_logs/utils/styles.dart";
 
 import "package:csi_door_logs/firebase_options.dart";
 

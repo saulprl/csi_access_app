@@ -37,7 +37,7 @@ class SplashScreen extends StatelessWidget {
                     child: const AdaptiveSpinner(),
                   ),
             Center(
-              child: Image.asset("assets/Access_splash.png", height: 300.0),
+              child: Image.asset("assets/access_logo_fg.png", height: 300.0),
             ),
           ],
         ),

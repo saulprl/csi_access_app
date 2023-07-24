@@ -88,12 +88,14 @@ class _PibleScreenState extends State<PibleScreen> {
     return nonce;
   }
 
-  Future<void> discoverDevices() async {
-    //TODO: Take a look at this later
-    // scanningSub?.cancel();
-    // scanResultsSub?.cancel();
-    // deviceStateSub?.cancel();
+  Future<void> _restartScan() async {
+    await scanResultsSub?.cancel();
+    await deviceStateSub?.cancel();
 
+    discoverDevices();
+  }
+
+  Future<void> discoverDevices() async {
     if (Platform.isAndroid) {
       if (await Permission.bluetoothConnect.isGranted && !isBluetoothOn) {
         flutterBlue.turnOn();
@@ -263,7 +265,7 @@ class _PibleScreenState extends State<PibleScreen> {
               ScanningBubble(
                 isScanning: isScanning,
                 onTap: !isScanning && pible == null || canRescan
-                    ? discoverDevices
+                    ? _restartScan
                     : null,
               ),
               DeviceBubble(state: deviceState),

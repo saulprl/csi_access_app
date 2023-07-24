@@ -38,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _isLoading = true;
       });
     }
-    await Future.delayed(const Duration(milliseconds: 1250));
+    await Future.delayed(const Duration(milliseconds: 750));
 
     final storage = await _storage.readAll();
     if (storage.isNotEmpty) {
@@ -159,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         };
 
   Widget get floatingChild => _hasStorage
-      ? Image.asset("assets/Access_logo.png")
+      ? Image.asset("assets/access_logo_fg.png")
       : const Icon(
           Icons.error_rounded,
           size: 40.0,

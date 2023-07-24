@@ -71,16 +71,26 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
 flutter_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
-  image_path: "assets/CSI_PRO_Access_icon.png"
+  image_path: "assets/access_icon.png"
+  image_path_ios: "assets/access_icon.png"
   adaptive_icon_background: "#7145D6"
-  adaptive_icon_foreground: "assets/CSI_PRO_Access_icon.png"
+  adaptive_icon_foreground: "assets/access_logo_fg.png"
   remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#7145D6"
-  image: "assets/Access_splash.png"
+  image: "assets/access_logo_fg@4x.png"
+  branding: "assets/csipro_branding.png"
+  branding_mode: "bottom"
+
+  android_12:
+    image: "assets/access_logo_fg@4x.png"
+    color: "#7145D6"
+    branding: "assets/csipro_branding.png"
+
+  web: false
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -98,7 +108,12 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - .env
-    - assets/Access_logo.png
+    - assets/access_icon.png
+    - assets/access_logo_fg.png
+    - assets/access_logo_fg@4x.png
+    - assets/csipro_logo.png
+    - assets/csipro_branding.png
+    # - assets/Access_logo.png
     - assets/Access_splash.png
     - assets/CSI_PRO_Access_icon.png
     - assets/CSI_PRO_Access_Logotipo.png
