@@ -81,12 +81,11 @@ flutter_icons:
 
 flutter_native_splash:
   color: "#7145D6"
-  image: "assets/access_logo_fg@4x.png"
+  image: "assets/access_splash@4x.png"
   branding: "assets/csipro_branding.png"
-  branding_mode: "bottom"
 
   android_12:
-    image: "assets/access_logo_fg@4x.png"
+    image: "assets/access_splash_12.png"
     color: "#7145D6"
     branding: "assets/csipro_branding.png"
 
@@ -110,16 +109,20 @@ flutter:
     - .env
     - assets/access_icon.png
     - assets/access_logo_fg.png
-    - assets/access_logo_fg@4x.png
-    - assets/csipro_logo.png
+    - assets/access_splash_12.png
+    - assets/access_splash@4x.png
     - assets/csipro_branding.png
-    # - assets/Access_logo.png
-    - assets/Access_splash.png
-    - assets/CSI_PRO_Access_icon.png
     - assets/CSI_PRO_Access_Logotipo.png
     - assets/CSI_PRO_Access_Logotipo_inverted.png
     - assets/auth_providers/github-mark.png
     - assets/auth_providers/google-g.png
+    # - assets/csipro_logo.png
+    # - assets/access_icon.png
+    # - assets/access_logo_fg.png
+    # - assets/access_logo_fg@4x.png
+    # - assets/Access_logo.png
+    # - assets/Access_splash.png
+    # - assets/CSI_PRO_Access_icon.png
     #  - assets/CSI_Access_Logs.png
     #  - assets/CSI_PRO_Access.png
 

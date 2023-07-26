@@ -143,7 +143,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: _isLoading ? null : onAttemptAccess,
         backgroundColor: Theme.of(context).colorScheme.primary,
         child: _isLoading
-            ? const AdaptiveSpinner(color: Colors.white)
+            ? const SizedBox(
+                width: 26.0,
+                height: 26.0,
+                child: AdaptiveSpinner(color: Colors.white),
+              )
             : floatingChild,
       );
 
@@ -162,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ? Image.asset("assets/access_logo_fg.png")
       : const Icon(
           Icons.error_rounded,
-          size: 40.0,
+          size: 34.0,
           color: Colors.white,
         );
 }
