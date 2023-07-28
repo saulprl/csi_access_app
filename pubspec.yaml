@@ -71,12 +71,12 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
 flutter_icons:
-  android: true
+  android: false
   ios: true
   image_path: "assets/access_icon.png"
   image_path_ios: "assets/access_icon.png"
-  adaptive_icon_background: "#7145D6"
-  adaptive_icon_foreground: "assets/access_logo_fg.png"
+  # adaptive_icon_background: "#7145D6"
+  # adaptive_icon_foreground: "assets/access_logo_fg.png"
   remove_alpha_ios: true
 
 flutter_native_splash:
