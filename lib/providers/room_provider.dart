@@ -15,7 +15,7 @@ class RoomProvider with ChangeNotifier {
   List<Room> _rooms = [];
   List<Room> _userRooms = [];
   String _selectedRoom = "";
-  bool _isRoomless = true;
+  bool _isRoomless = false;
   User? _authUser;
   UserModel? _user;
   StreamSubscription? _roomsSub;
@@ -93,6 +93,8 @@ class RoomProvider with ChangeNotifier {
         _isRoomless = true;
       } else if (_selectedRoom == "" ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {
+        _isRoomless = false;
+
         final prefs = SharedPreferences.getInstance();
         prefs.then((prefs) {
           final selectedRoom = prefs.getString("selectedRoom");
@@ -151,6 +153,8 @@ class RoomProvider with ChangeNotifier {
         _isRoomless = true;
       } else if ((_selectedRoom == "" && _userRooms.isNotEmpty) ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {
+        _isRoomless = false;
+
         final prefs = await SharedPreferences.getInstance();
         final selectedRoom = prefs.getString("selectedRoom");
 

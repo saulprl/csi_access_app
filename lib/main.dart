@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/requests_provider.dart";
 import "package:flutter/material.dart";
 
 import "package:provider/provider.dart";
@@ -82,6 +83,22 @@ class MyApp extends StatelessWidget {
 
             return role ??
                 RoleProvider(
+                  userId: room.user?.key,
+                  roomId: room.selectedRoom,
+                  isRoot: room.user?.isRootUser ?? false,
+                );
+          },
+        ),
+        ChangeNotifierProxyProvider<RoomProvider, RequestsProvider>(
+          create: (ctx) => RequestsProvider(),
+          update: (ctx, room, requests) {
+            requests?.setData(
+              userId: room.user?.key,
+              roomId: room.selectedRoom,
+            );
+
+            return requests ??
+                RequestsProvider(
                   userId: room.user?.key,
                   roomId: room.selectedRoom,
                   isRoot: room.user?.isRootUser ?? false,

@@ -110,38 +110,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 )
               : Center(
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      text:
-                          "You're not a member of any rooms yet! Check out the ",
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 18.0,
-                        fontFamily: "Poppins",
-                      ),
-                      children: [
-                        TextSpan(
-                          text: "Rooms",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const TextSpan(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
                           text:
-                              " screen to request access to a room or look at your active ",
-                        ),
-                        TextSpan(
-                          text: "Requests",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
+                              "You're not a member of any rooms yet! Check out the ",
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 18.0,
+                            fontFamily: "Poppins",
                           ),
+                          children: [
+                            TextSpan(
+                              text: "Rooms",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const TextSpan(
+                              text:
+                                  " screen to request access to a room or look at your active ",
+                            ),
+                            TextSpan(
+                              text: "Requests",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
-                        const TextSpan(text: "."),
-                      ],
-                    ),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            Routes.pushFromRight(const RoomsScreen(page: 1)),
+                          );
+                        },
+                        child: const Text(
+                          "Go to Requests",
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            Routes.pushFromRight(const RoomsScreen()),
+                          );
+                        },
+                        child: const Text(
+                          "Go to Rooms",
+                          style: TextStyle(fontSize: 16.0),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
         ),
