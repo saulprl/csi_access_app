@@ -27,7 +27,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
 
   static const List<Map<String, dynamic>> _pages = [
     {"title": "Rooms", "page": RoomsList()},
-    {"title": "Requests", "page": RequestsList()},
+    {"title": "Requests", "page": UserRequests()},
   ];
 
   void _onItemTapped(int index) {

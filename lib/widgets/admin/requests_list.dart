@@ -1,85 +1,99 @@
-import 'package:csi_door_logs/models/room.dart';
-import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
-import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
 
 import 'package:provider/provider.dart';
 
-import 'package:csi_door_logs/models/request.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:csi_door_logs/providers/requests_provider.dart';
+import 'package:csi_door_logs/providers/role_provider.dart';
+
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
+
+import 'package:csi_door_logs/models/request.dart';
+import 'package:csi_door_logs/models/room.dart';
 
 import 'package:csi_door_logs/utils/styles.dart';
 import 'package:csi_door_logs/utils/utils.dart';
 
-class UserRequests extends StatelessWidget {
-  const UserRequests({super.key});
+class RequestsList extends StatelessWidget {
+  const RequestsList({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).userData;
+    final role = Provider.of<RoleProvider>(context).userRole;
     final requests = Provider.of<RequestsProvider>(context);
 
-    final pendingRequests = requests.userRequests
+    final pendingRequests = requests.roomRequests
         .where(
           (request) => request.status == RequestStatus.pending,
         )
         .toList();
 
-    final resolvedRequests = requests.userRequests
+    final resolvedRequests = requests.roomRequests
         .where(
           (request) => request.status != RequestStatus.pending,
         )
         .toList();
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          buildDivider(context, "Pending requests"),
-          if (pendingRequests.isEmpty)
-            const Center(
-              child: Text(
-                "No pending requests",
-                style: TextStyle(fontSize: 18.0),
-              ),
-            ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const ClampingScrollPhysics(),
-            itemCount: pendingRequests.length,
-            itemBuilder: (ctx, index) {
-              final request = pendingRequests[index];
+    return (user?.isRootUser ?? false) || (role?.canHandleRequests ?? false)
+        ? SingleChildScrollView(
+            child: Column(
+              children: [
+                buildDivider(context, "Pending requests"),
+                if (pendingRequests.isEmpty)
+                  const Center(
+                    child: Text(
+                      "No pending requests",
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                  ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: pendingRequests.length,
+                  itemBuilder: (ctx, index) {
+                    final request = pendingRequests[index];
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: RequestItem(request: request),
-              );
-            },
-          ),
-          buildDivider(context, "Resolved requests"),
-          if (resolvedRequests.isEmpty)
-            const Center(
-              child: Text(
-                "No resolved requests",
-                style: TextStyle(fontSize: 18.0),
-              ),
-            ),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const ClampingScrollPhysics(),
-            itemCount: resolvedRequests.length,
-            itemBuilder: (ctx, index) {
-              final request = resolvedRequests[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: RequestItem(request: request),
+                    );
+                  },
+                ),
+                buildDivider(context, "Resolved requests"),
+                if (resolvedRequests.isEmpty)
+                  const Center(
+                    child: Text(
+                      "No resolved requests",
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                  ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemCount: resolvedRequests.length,
+                  itemBuilder: (ctx, index) {
+                    final request = resolvedRequests[index];
 
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: RequestItem(request: request),
-              );
-            },
-          ),
-        ],
-      ),
-    );
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: RequestItem(request: request),
+                    );
+                  },
+                ),
+              ],
+            ),
+          )
+        : const Center(
+            child: Text(
+              "You don't have permission to handle requests for this room",
+              style: TextStyle(fontSize: 18.0),
+            ),
+          );
   }
 }
 

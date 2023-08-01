@@ -8,6 +8,7 @@ class RoleModel {
   final bool canGrantOrRevokeAccess;
   final bool canReadLogs;
   final bool canCreateUsers;
+  final bool canHandleRequests;
 
   RoleModel({
     required this.key,
@@ -17,6 +18,7 @@ class RoleModel {
     required this.canGrantOrRevokeAccess,
     required this.canReadLogs,
     required this.canCreateUsers,
+    required this.canHandleRequests,
   });
 
   factory RoleModel.fromDocSnapshot(
@@ -31,6 +33,7 @@ class RoleModel {
       canGrantOrRevokeAccess: data['canGrantOrRevokeAccess'],
       canReadLogs: data['canReadLogs'],
       canCreateUsers: data['canCreateUsers'],
+      canHandleRequests: data['canHandleRequests'] ?? false,
     );
   }
 
@@ -46,6 +49,7 @@ class RoleModel {
       canGrantOrRevokeAccess: data['canGrantOrRevokeAccess'],
       canReadLogs: data['canReadLogs'],
       canCreateUsers: data['canCreateUsers'],
+      canHandleRequests: data['canHandleRequests'] ?? false,
     );
   }
 }

@@ -23,48 +23,46 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
     final rooms = Provider.of<RoomProvider>(context);
 
     return AppBar(
-      title: Row(
-        children: [
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white),
-          ),
-          const Spacer(),
-          if (roomSelector && rooms.userRooms.isNotEmpty)
-            PopupMenuButton(
-              itemBuilder: (ctx) => rooms.userRooms
-                  .map(
-                    (room) => PopupMenuItem(
-                      value: room.key,
-                      child: Text(room.name),
-                    ),
-                  )
-                  .toList(),
-              onSelected: (value) => rooms.selectRoom(value),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Text(
-                      rooms.userRooms
-                          .firstWhere((room) => room.key == rooms.selectedRoom)
-                          .name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14.0,
-                      ),
-                    ),
-                    const Icon(
-                      Icons.arrow_drop_down,
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white),
+      ),
+      actions: [
+        if (roomSelector && rooms.userRooms.isNotEmpty)
+          PopupMenuButton(
+            tooltip: "Show rooms",
+            itemBuilder: (ctx) => rooms.userRooms
+                .map(
+                  (room) => PopupMenuItem(
+                    value: room.key,
+                    child: Text(room.name),
+                  ),
+                )
+                .toList(),
+            onSelected: (value) => rooms.selectRoom(value),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Text(
+                    rooms.userRooms
+                        .firstWhere((room) => room.key == rooms.selectedRoom)
+                        .name,
+                    style: const TextStyle(
                       color: Colors.white,
-                      size: 24.0,
+                      fontSize: 14.0,
                     ),
-                  ],
-                ),
+                  ),
+                  const Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.white,
+                    size: 24.0,
+                  ),
+                ],
               ),
             ),
-        ],
-      ),
+          ),
+      ],
       iconTheme: const IconThemeData(color: Colors.white),
       backgroundColor: Theme.of(context).colorScheme.primary,
     );

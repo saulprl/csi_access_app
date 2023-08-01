@@ -1,3 +1,6 @@
+import 'package:csi_door_logs/utils/styles.dart';
+import 'package:csi_door_logs/widgets/admin/members_list.dart';
+import 'package:csi_door_logs/widgets/admin/requests_list.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -18,72 +21,64 @@ import 'package:csi_door_logs/models/role_model.dart';
 
 import 'package:csi_door_logs/utils/routes.dart';
 
-class ManagementScreen extends StatelessWidget {
-  final _firestore = FirebaseFirestore.instance;
+class ManagementScreen extends StatefulWidget {
+  final int page;
 
-  ManagementScreen({super.key});
+  const ManagementScreen({this.page = 0, super.key});
+
+  @override
+  State<ManagementScreen> createState() => _ManagementScreenState();
+}
+
+class _ManagementScreenState extends State<ManagementScreen> {
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _currentIndex = widget.page;
+  }
+
+  static final List<Map<String, dynamic>> _pages = [
+    {"title": "User Control", "page": MembersList()},
+    {"title": "Access Requests", "page": const RequestsList()},
+  ];
 
   void pushCreateUser(BuildContext ctx) => Navigator.of(ctx).push(
         Routes.pushFromRight(const CreateUserScreen()),
       );
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final roles = Provider.of<RoleProvider>(context);
-
     return Scaffold(
-      appBar: const CSIAppBar("User Control", roomSelector: true),
+      appBar: CSIAppBar(_pages[_currentIndex]["title"], roomSelector: true),
       body: SafeArea(
-        child: ListView.builder(
-          padding: const EdgeInsets.all(8.0) +
-              const EdgeInsets.only(
-                bottom: 80.0,
-              ),
-          itemCount: roles.roles.length,
-          itemBuilder: (ctx, index) => roleList(roles.roles[index].key),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: _pages[_currentIndex]["page"],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(groupIcon),
+            label: "Users",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(requestIcon),
+            label: "Access requests",
+          ),
+        ],
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
       ),
     );
   }
-
-  FutureBuilder<DocumentSnapshot<Map<String, dynamic>>> roleList(
-    String roleId,
-  ) {
-    return FutureBuilder(
-      future: _firestore.collection("roles").doc(roleId).get(),
-      builder: (ctx, snapshot) {
-        if (snapshot.hasData) {
-          final roleSnap = snapshot.data!;
-          final role = RoleModel.fromDocSnapshot(roleSnap);
-
-          return RoleUsersList(
-            roleRef: roleSnap.reference,
-            roleName: role.name,
-          );
-        } else if (snapshot.hasError) {
-          return const Center(
-            child: Text("Error loading roles"),
-          );
-        }
-
-        return skeleton;
-      },
-    );
-  }
-
-  Column get skeleton => const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SkeletonText(
-                height: 28.0,
-              ),
-            ],
-          ),
-          SizedBox(height: 4.0),
-          SkeletonList(count: 1),
-        ],
-      );
 }

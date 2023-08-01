@@ -32,6 +32,7 @@ class RequestsProvider with ChangeNotifier {
     final userRequests = (await _firestore
             .collection("requests")
             .where("userId", isEqualTo: userRef)
+            .orderBy("createdAt", descending: true)
             .get())
         .docs;
 
@@ -45,6 +46,7 @@ class RequestsProvider with ChangeNotifier {
       final roomRequests = (await _firestore
               .collection("requests")
               .where("roomId", isEqualTo: roomRef)
+              .orderBy("createdAt", descending: true)
               .get())
           .docs;
 
