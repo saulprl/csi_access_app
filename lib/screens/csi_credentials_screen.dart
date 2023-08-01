@@ -123,6 +123,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
         style: const TextStyle(
           color: Colors.black54,
           fontSize: 16.0,
+          fontFamily: "Poppins",
         ),
         children: [
           TextSpan(
@@ -146,6 +147,7 @@ class _CSICredentialsScreenState extends State<CSICredentialsScreen> {
           style: const TextStyle(
             color: Colors.black54,
             fontSize: 16.0,
+            fontFamily: "Poppins",
           ),
           children: [
             TextSpan(

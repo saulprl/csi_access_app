@@ -1,3 +1,4 @@
+import 'package:csi_door_logs/providers/room_provider.dart';
 import 'package:csi_door_logs/utils/utils.dart';
 import "package:flutter/material.dart";
 
@@ -6,6 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/widgets/dashboard/summary/bubble.dart';
 
 import 'package:csi_door_logs/models/access_log.dart';
+import 'package:provider/provider.dart';
 
 class Summary extends StatefulWidget {
   const Summary({super.key});
@@ -29,23 +31,50 @@ class _SummaryState extends State<Summary> {
 
   @override
   Widget build(BuildContext context) {
+    final rooms = Provider.of<RoomProvider>(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         buildDivider(context, "Summary"),
-        StreamBuilder(
-          stream: _firestore
-              .collection("logs")
-              .where(
-                "timestamp",
-                isGreaterThanOrEqualTo: Timestamp.fromDate(
-                  DateTime(now.year, now.month, now.day),
+        if (!rooms.isRoomless)
+          FutureBuilder(
+            future: _firestore.doc("rooms/${rooms.selectedRoom}").get(),
+            builder: (ctx, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return skeletons(context);
+              }
+
+              if (snap.hasData && snap.data != null) {
+                final roomRef = snap.data!.reference;
+
+                return StreamBuilder(
+                  stream: _firestore
+                      .collection("logs")
+                      .where("room", isEqualTo: roomRef)
+                      .where(
+                        "timestamp",
+                        isGreaterThanOrEqualTo: Timestamp.fromDate(
+                          DateTime(now.year, now.month, now.day),
+                        ),
+                      )
+                      .orderBy("timestamp", descending: true)
+                      .snapshots(),
+                  builder: streamBuilder,
+                );
+              }
+
+              return const Center(
+                child: Text(
+                  "You haven't selected a room yet. You can do so at the top!",
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 18.0,
+                  ),
                 ),
-              )
-              .orderBy("timestamp", descending: true)
-              .snapshots(),
-          builder: streamBuilder,
-        ),
+              );
+            },
+          ),
       ],
     );
   }

@@ -21,7 +21,7 @@ class RoleProvider with ChangeNotifier {
   }
 
   void setData({String? userId, String? roomId, bool isRoot = false}) {
-    if (!isRoot && userId != null && roomId != null) {
+    if (!isRoot && userId != null && roomId != null && roomId.isNotEmpty) {
       _initializeSubscriptions(userId, roomId, isRoot);
     }
   }

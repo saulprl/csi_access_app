@@ -15,6 +15,7 @@ class RoomProvider with ChangeNotifier {
   List<Room> _rooms = [];
   List<Room> _userRooms = [];
   String _selectedRoom = "";
+  bool _isRoomless = true;
   User? _authUser;
   UserModel? _user;
   StreamSubscription? _roomsSub;
@@ -24,6 +25,7 @@ class RoomProvider with ChangeNotifier {
   List<Room> get rooms => _rooms;
   List<Room> get userRooms => _userRooms;
   String get selectedRoom => _selectedRoom;
+  bool get isRoomless => _isRoomless;
 
   RoomProvider({User? authUser, UserModel? user}) {
     setAuthUser(authUser);
@@ -87,7 +89,9 @@ class RoomProvider with ChangeNotifier {
             _rooms.where((room) => userRoomIds.contains(room.key)).toList();
       }
 
-      if ((_selectedRoom == "" && _userRooms.isNotEmpty) ||
+      if (_userRooms.isEmpty) {
+        _isRoomless = true;
+      } else if (_selectedRoom == "" ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {
         final prefs = SharedPreferences.getInstance();
         prefs.then((prefs) {
@@ -143,7 +147,9 @@ class RoomProvider with ChangeNotifier {
             roomsData.map((room) => Room.fromQueryDocSnapshot(room)).toList();
       }
 
-      if ((_selectedRoom == "" && _userRooms.isNotEmpty) ||
+      if (_userRooms.isEmpty) {
+        _isRoomless = true;
+      } else if ((_selectedRoom == "" && _userRooms.isNotEmpty) ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {
         final prefs = await SharedPreferences.getInstance();
         final selectedRoom = prefs.getString("selectedRoom");

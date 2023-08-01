@@ -30,7 +30,7 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
             style: const TextStyle(color: Colors.white),
           ),
           const Spacer(),
-          if (roomSelector)
+          if (roomSelector && rooms.userRooms.isNotEmpty)
             PopupMenuButton(
               itemBuilder: (ctx) => rooms.userRooms
                   .map(

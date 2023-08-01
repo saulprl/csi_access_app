@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/room_provider.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
@@ -10,6 +11,7 @@ import "package:csi_door_logs/widgets/dashboard/summary/summary.dart";
 import "package:csi_door_logs/widgets/main/index.dart";
 
 import "package:csi_door_logs/utils/routes.dart";
+import "package:provider/provider.dart";
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -93,19 +95,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final rooms = Provider.of<RoomProvider>(context);
+
     return WillPopScope(
       onWillPop: willPopHandler,
       child: Scaffold(
         appBar: const CSIAppBar("Dashboard", roomSelector: true),
         drawer: CSIDrawer(),
         body: SafeArea(
-          child: SingleChildScrollView(
-            child: Builder(
-              builder: builder,
-            ),
-          ),
+          child: !rooms.isRoomless
+              ? SingleChildScrollView(
+                  child: Builder(
+                    builder: builder,
+                  ),
+                )
+              : Center(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      text:
+                          "You're not a member of any rooms yet! Check out the ",
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 18.0,
+                        fontFamily: "Poppins",
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "Rooms",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const TextSpan(
+                          text:
+                              " screen to request access to a room or look at your active ",
+                        ),
+                        TextSpan(
+                          text: "Requests",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const TextSpan(text: "."),
+                      ],
+                    ),
+                  ),
+                ),
         ),
-        floatingActionButton: floatingActionButton,
+        floatingActionButton: !rooms.isRoomless ? floatingActionButton : null,
       ),
     );
   }

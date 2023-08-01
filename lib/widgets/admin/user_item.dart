@@ -79,6 +79,7 @@ class _UserItemState extends State<UserItem> {
                   style: const TextStyle(
                     color: Colors.black87,
                     fontSize: 18.0,
+                    fontFamily: "Poppins",
                   ),
                   children: [
                     TextSpan(

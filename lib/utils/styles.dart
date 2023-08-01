@@ -139,6 +139,9 @@ IconData get settingsIcon =>
 
 IconData get groupIcon => Platform.isIOS ? CupertinoIcons.group : Icons.group;
 
+IconData get requestIcon =>
+    Platform.isIOS ? CupertinoIcons.news : Icons.pending_actions;
+
 IconData get logoutIcon => Platform.isIOS ? Icons.logout_rounded : Icons.logout;
 
 IconData get createUserIcon =>
