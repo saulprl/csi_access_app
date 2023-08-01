@@ -34,7 +34,7 @@ void showAlertDialog({
     builder: (ctx) {
       return AlertDialog(
         title: Text(title),
-        content: Text(message, style: const TextStyle(fontSize: 18.0)),
+        content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),

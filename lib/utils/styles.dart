@@ -50,6 +50,7 @@ const mainInputDecoration = InputDecoration(
 
 const signupButtonTextStyle = TextStyle(fontSize: 18.0);
 const modalActionsTextStyle = TextStyle(fontSize: 18.0);
+const baseTextStyle = TextStyle(fontSize: 16.0);
 
 final signupInputPrefixColor = MaterialStateColor.resolveWith((states) {
   if (states.contains(MaterialState.focused)) {

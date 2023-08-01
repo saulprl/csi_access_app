@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csi_door_logs/models/role_model.dart';
 
 class UserModel {
   final String key;
@@ -10,6 +11,7 @@ class UserModel {
   String? email;
   DateTime? createdAt;
   bool? isRoot;
+  RoleModel? role;
 
   UserModel({
     required this.key,
@@ -21,11 +23,14 @@ class UserModel {
     this.email,
     this.createdAt,
     this.isRoot,
+    this.role,
   });
 
   set setIsRoot(bool? value) => isRoot = value;
 
   bool get isRootUser => isRoot ?? false;
+
+  set setRole(RoleModel? value) => role = value;
 
   UserModel.fromDocSnapshot(
     DocumentSnapshot<Map<String, dynamic>> snapshot,

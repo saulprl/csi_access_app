@@ -1,3 +1,4 @@
+import 'package:csi_door_logs/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -107,6 +108,8 @@ class RequestItem extends StatefulWidget {
 }
 
 class _RequestItemState extends State<RequestItem> {
+  final reasonCtrl = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -114,41 +117,46 @@ class _RequestItemState extends State<RequestItem> {
         color: _generateStatusColor(),
         borderRadius: BorderRadius.circular(10.0),
       ),
-      child: FutureBuilder(
-        future: request.roomId.get(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: AdaptiveSpinner());
-          }
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        type: MaterialType.transparency,
+        borderRadius: BorderRadius.circular(10.0),
+        child: FutureBuilder(
+          future: request.userId.get(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: AdaptiveSpinner());
+            }
 
-          if (snapshot.hasData) {
-            final room = Room.fromDocSnapshot(snapshot.data!);
+            if (snapshot.hasData) {
+              final requestingUser = UserModel.fromDocSnapshot(snapshot.data!);
 
-            return ListTile(
-              title: Text(
-                "${room.name} (${room.building}-${room.room})",
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+              return ListTile(
+                title: Text(
+                  requestingUser.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              subtitle: Text(
-                "${request.status.name} - ${timeago.format(request.updatedAt.toDate())}",
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white),
-              ),
-              onTap: () => _showRequestDetails(room: room, request: request),
-            );
-          }
+                subtitle: Text(
+                  "${request.status.name} - ${timeago.format(request.updatedAt.toDate())}",
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                onTap: () => _showRequestDetails(user: requestingUser),
+              );
+            }
 
-          return const Center(
-            child: Text(
-              "Error loading request data",
-              style: TextStyle(color: Colors.white),
-            ),
-          );
-        },
+            return const Center(
+              child: Text(
+                "Error loading request data",
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -166,31 +174,31 @@ class _RequestItemState extends State<RequestItem> {
     }
   }
 
-  void _showRequestDetails({required Room room, required Request request}) {
-    showDialog(
+  Future<void> _showRequestDetails({required UserModel user}) async {
+    final result = await showDialog<bool>(
       context: context,
       builder: (ctx) {
         return AlertDialog(
           title: Text(
             "Request details",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Room: ${room.name} (${room.building}-${room.room})",
-                style: const TextStyle(fontSize: 16.0),
+                "Name: ${user.name}",
+                style: baseTextStyle,
+              ),
+              Text(
+                "UniSon ID: ${user.unisonId}",
+                style: baseTextStyle,
               ),
               RichText(
                 text: TextSpan(
                   text: "Status: ",
-                  style: const TextStyle(
-                    fontSize: 16.0,
+                  style: baseTextStyle.copyWith(
                     color: Colors.black,
                     fontFamily: "Poppins",
                   ),
@@ -207,18 +215,228 @@ class _RequestItemState extends State<RequestItem> {
               ),
               Text(
                 "Created at: ${DateFormat("MMMM dd yyyy HH:mm").format(request.createdAt.toDate())} (${timeago.format(request.createdAt.toDate())})",
-                style: const TextStyle(fontSize: 16.0),
+                style: baseTextStyle,
               ),
               Text(
                 "Updated at: ${DateFormat("MMMM dd yyyy HH:mm").format(request.updatedAt.toDate())} (${timeago.format(request.updatedAt.toDate())})",
-                style: const TextStyle(fontSize: 16.0),
+                style: baseTextStyle,
+              ),
+              Text(
+                "User message: ${request.userComment ?? "No user message available"}",
+                style: baseTextStyle,
+              ),
+              FutureBuilder(
+                future: request.adminId?.get(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text(
+                      "Loading admin data...",
+                      style: baseTextStyle,
+                    );
+                  }
+
+                  if (snapshot.hasData) {
+                    final admin = UserModel.fromDocSnapshot(snapshot.data!);
+
+                    return ListView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      children: [
+                        Text(
+                          "Admin: ${admin.name} (${admin.unisonId})",
+                          style: baseTextStyle,
+                        ),
+                        Text(
+                          "Admin message: ${request.adminComment ?? "No admin message available"}",
+                          style: baseTextStyle,
+                        ),
+                      ],
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return const Text(
+                      "Error loading admin data.",
+                      style: baseTextStyle,
+                    );
+                  }
+
+                  return const SizedBox();
+                },
+              ),
+            ],
+          ),
+          actions: request.status == RequestStatus.pending
+              ? [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: Text(
+                      "Approve",
+                      style: baseTextStyle.copyWith(color: successColor),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(
+                      "Reject",
+                      style: baseTextStyle.copyWith(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  ),
+                ]
+              : [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text(
+                      "Close",
+                      style: baseTextStyle,
+                    ),
+                  ),
+                ],
+        );
+      },
+    );
+
+    if (request.status != RequestStatus.pending || result == null) return;
+
+    if (result) {
+      await _showApproveDialog();
+    } else {
+      await _showRejectDialog();
+    }
+  }
+
+  Future<void> _showApproveDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(
+            "Approve request",
+            style: TextStyle(color: Theme.of(context).colorScheme.primary),
+          ),
+          content: const Text(
+            "Are you sure you want to approve this request?",
+            style: baseTextStyle,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                "Yes",
+                style: baseTextStyle.copyWith(color: successColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(
+                "No",
+                style: baseTextStyle.copyWith(
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) return;
+
+    try {
+      await request.approve();
+
+      _showSnackBar("Request approved successfully!");
+    } catch (error) {
+      _showErrorDialog(error.toString());
+    }
+  }
+
+  Future<void> _showRejectDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(
+            "Reject request",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Are you sure you want to reject this request? You can provide a reason below.",
+                style: baseTextStyle,
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: reasonCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Reason (optional)",
+                ),
+                maxLength: 120,
               ),
             ],
           ),
           actions: [
             TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(
+                "Yes",
+                style: baseTextStyle.copyWith(
+                  fontSize: 16.0,
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("No", style: baseTextStyle),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) return;
+
+    try {
+      await request.reject(
+        message: reasonCtrl.text.isNotEmpty ? reasonCtrl.text : null,
+      );
+
+      _showSnackBar("Request rejected successfully.");
+    } catch (error) {
+      _showErrorDialog(error.toString());
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message, style: baseTextStyle),
+    ));
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text(
+            "Error",
+            style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+          ),
+          content: Text(
+            "Something went wrong while rejecting the request. Details: $message",
+            style: baseTextStyle,
+          ),
+          actions: [
+            TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Close", style: TextStyle(fontSize: 16.0)),
+              child: const Text("OK"),
             ),
           ],
         );

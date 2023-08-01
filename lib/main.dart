@@ -77,13 +77,13 @@ class MyApp extends StatelessWidget {
           create: (ctx) => RoleProvider(),
           update: (ctx, room, role) {
             role?.setData(
-              userId: room.user?.key,
+              user: room.user,
               roomId: room.selectedRoom,
             );
 
             return role ??
                 RoleProvider(
-                  userId: room.user?.key,
+                  user: room.user,
                   roomId: room.selectedRoom,
                   isRoot: room.user?.isRootUser ?? false,
                 );
@@ -93,13 +93,13 @@ class MyApp extends StatelessWidget {
           create: (ctx) => RequestsProvider(),
           update: (ctx, room, requests) {
             requests?.setData(
-              userId: room.user?.key,
+              user: room.user,
               roomId: room.selectedRoom,
             );
 
             return requests ??
                 RequestsProvider(
-                  userId: room.user?.key,
+                  user: room.user,
                   roomId: room.selectedRoom,
                   isRoot: room.user?.isRootUser ?? false,
                 );

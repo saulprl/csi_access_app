@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:csi_door_logs/models/user_model.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,24 +17,24 @@ class RoleProvider with ChangeNotifier {
   RoleModel? get userRole => _userRole;
   List<RoleModel> get roles => _roles;
 
-  RoleProvider({String? userId, String? roomId, bool isRoot = false}) {
-    setData(userId: userId, roomId: roomId, isRoot: isRoot);
+  RoleProvider({UserModel? user, String? roomId, bool isRoot = false}) {
+    setData(user: user, roomId: roomId, isRoot: isRoot);
   }
 
-  void setData({String? userId, String? roomId, bool isRoot = false}) {
-    if (!isRoot && userId != null && roomId != null && roomId.isNotEmpty) {
-      _initializeSubscriptions(userId, roomId, isRoot);
+  void setData({UserModel? user, String? roomId, bool isRoot = false}) {
+    if (!isRoot && user != null && roomId != null && roomId.isNotEmpty) {
+      _initializeSubscriptions(user, roomId, isRoot);
     }
   }
 
   Future<void> _initializeSubscriptions(
-    String userId,
+    UserModel user,
     String roomId,
     bool isRoot,
   ) async {
     final room = (await _firestore
         .collection("user_roles")
-        .doc(userId)
+        .doc(user.key)
         .collection("room_roles")
         .doc(roomId)
         .get());
@@ -43,6 +44,8 @@ class RoleProvider with ChangeNotifier {
 
       _roleSubscription = roleRef.snapshots().listen((role) {
         _userRole = RoleModel.fromDocSnapshot(role);
+        user.setRole = _userRole;
+
         notifyListeners();
       });
     }
