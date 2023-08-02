@@ -42,10 +42,7 @@ class MembersList extends StatelessWidget {
           final roleSnap = snapshot.data!;
           final role = RoleModel.fromDocSnapshot(roleSnap);
 
-          return RoleUsersList(
-            roleRef: roleSnap.reference,
-            roleName: role.name,
-          );
+          return RoleUsersList(roleId: roleSnap.id, roleName: role.name);
         } else if (snapshot.hasError) {
           return const Center(
             child: Text("Error loading roles"),

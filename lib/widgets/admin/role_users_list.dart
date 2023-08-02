@@ -16,11 +16,11 @@ import 'package:csi_door_logs/models/user_model.dart';
 import 'package:csi_door_logs/utils/utils.dart';
 
 class RoleUsersList extends StatefulWidget {
-  final DocumentReference roleRef;
+  final String roleId;
   final String roleName;
 
   const RoleUsersList({
-    required this.roleRef,
+    required this.roleId,
     required this.roleName,
     super.key,
   });
@@ -47,7 +47,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
             stream: _firestore
                 .collectionGroup("room_roles")
                 .where("key", isEqualTo: rooms.selectedRoom)
-                .where("roleId", isEqualTo: roleRef)
+                .where("roleId", isEqualTo: roleId)
                 .snapshots(),
             builder: (ctx, roleSnap) {
               if (roleSnap.hasData) {
@@ -111,42 +111,6 @@ class _RoleUsersListState extends State<RoleUsersList> {
                         }
                       },
                     );
-                    // final user = CSIUser.fromDocQuerySnapshot(
-                    //   snapshot.data!.docs[index],
-                    // );
-
-                    // return FutureBuilder(
-                    //   future: user.role.get(),
-                    //   builder: (ctx, snapshot) {
-                    //     // if (snapshot.hasData && snapshot.data != null) {
-                    //     //   final userRole = Role.fromDocSnapshot(snapshot.data!);
-
-                    //     //   final isEditable = roles == null
-                    //     //       ? false
-                    //     //       : roles.canSetRoles
-                    //     //           ? userRole.level < roles.level
-                    //     //           : false;
-
-                    //     //   final isTogglable = roles == null
-                    //     //       ? false
-                    //     //       : roles.canAllowAndRevokeAccess
-                    //     //           ? userRole.level < roles.level
-                    //     //           : false;
-
-                    //     //   return UserItem(
-                    //     //     key: ValueKey(user.key),
-                    //     //     uid: user.key!,
-                    //     //     name: user.name,
-                    //     //     isAllowedAccess: user.isAllowedAccess,
-                    //     //     isEditable: isEditable,
-                    //     //     isTogglable: isTogglable,
-                    //     //     role: user.role,
-                    //     //   );
-                    //     // }
-
-                    //     return const SkeletonList(count: 2);
-                    //   },
-                    // );
                   },
                 );
               }
@@ -159,6 +123,6 @@ class _RoleUsersListState extends State<RoleUsersList> {
     );
   }
 
-  DocumentReference get roleRef => widget.roleRef;
+  String get roleId => widget.roleId;
   String get roleName => widget.roleName;
 }
