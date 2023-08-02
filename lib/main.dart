@@ -22,7 +22,7 @@ import "package:csi_door_logs/firebase_options.dart";
 
 @pragma("vm:entry-point")
 Future<void> _bgMessageHandler(RemoteMessage message) async {
-  debugPrint("Incoming message: ${message.notification!.body}");
+  debugPrint("Incoming message: ${message.notification?.body}");
 }
 
 Future<void> main() async {
