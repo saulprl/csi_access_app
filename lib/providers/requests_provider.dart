@@ -25,6 +25,9 @@ class RequestsProvider with ChangeNotifier {
   void setData({UserModel? user, String? roomId, bool isRoot = false}) {
     if (user != null && roomId != null) {
       _initializeSubscriptions(user, roomId, isRoot);
+    } else {
+      _userRequestsSub?.cancel();
+      _roomRequestsSub?.cancel();
     }
   }
 
@@ -33,11 +36,9 @@ class RequestsProvider with ChangeNotifier {
     String roomId,
     bool isRoot,
   ) async {
-    final userRef =
-        (await _firestore.collection("users").doc(user.key).get()).reference;
     _userRequestsSub = (_firestore
         .collection("requests")
-        .where("userId", isEqualTo: userRef)
+        .where("userId", isEqualTo: user.key)
         .orderBy("createdAt", descending: true)
         .snapshots()
         .listen((snapshot) {
@@ -48,11 +49,9 @@ class RequestsProvider with ChangeNotifier {
     }));
 
     if (roomId.isNotEmpty) {
-      final roomRef =
-          (await _firestore.collection("rooms").doc(roomId).get()).reference;
-      final roomRequests = (_firestore
+      _roomRequestsSub = (_firestore
           .collection("requests")
-          .where("roomId", isEqualTo: roomRef)
+          .where("roomId", isEqualTo: roomId)
           .orderBy("createdAt", descending: true)
           .snapshots()
           .listen((snapshot) {

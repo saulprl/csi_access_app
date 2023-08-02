@@ -283,10 +283,10 @@ class AuthProvider with ChangeNotifier {
     try {
       await _storage.deleteAll();
       await _auth.signOut();
+      await _userSub?.cancel();
+      await _isRootSub?.cancel();
       _user = null;
       _authUser = null;
-      _userSub?.cancel();
-      _isRootSub?.cancel();
 
       notifyListeners();
     } on FirebaseAuthException catch (e) {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,55 +17,71 @@ class RoomProvider with ChangeNotifier {
   List<Room> _userRooms = [];
   String _selectedRoom = "";
   bool _isRoomless = false;
-  User? _authUser;
-  UserModel? _user;
+  // User? _authUser;
+  // UserModel? _user;
   StreamSubscription? _roomsSub;
   StreamSubscription? _userRoomsSub;
+  AuthProvider? _authProvider;
 
-  UserModel? get user => _user;
+  // UserModel? get user => _user;
+  AuthProvider? get authProvider => _authProvider;
   List<Room> get rooms => _rooms;
   List<Room> get userRooms => _userRooms;
   String get selectedRoom => _selectedRoom;
   bool get isRoomless => _isRoomless;
 
-  RoomProvider({User? authUser, UserModel? user}) {
-    setAuthUser(authUser);
-    setUser(user);
+  RoomProvider({AuthProvider? auth, User? authUser, UserModel? user}) {
+    setAuthProvider(auth);
+    // setAuthUser(authUser);
+    // setUser(user);
   }
 
-  void setAuthUser(User? authUser) {
-    if (authUser != null) {
-      _authUser = authUser;
+  void setAuthProvider(AuthProvider? auth) {
+    if (auth != null) {
+      _authProvider = auth;
       _initializeSubs();
-    } else {
+    }
+
+    if (_authProvider?.userData == null || _authProvider?.userData == null) {
       _roomsSub?.cancel();
+      _userRoomsSub?.cancel();
+      _selectedRoom = "";
     }
   }
 
-  void setUser(UserModel? user) {
-    if (user != null) {
-      _user = user;
-      _initializeSubs();
-    } else {
-      _userRoomsSub?.cancel();
-    }
-  }
+  // void setAuthUser(User? authUser) {
+  //   if (authUser != null) {
+  //     _authUser = authUser;
+  //     _initializeSubs();
+  //   } else {
+  //     _roomsSub?.cancel();
+  //   }
+  // }
+
+  // void setUser(UserModel? user) {
+  //   if (user != null) {
+  //     _user = user;
+  //     _initializeSubs();
+  //   } else {
+  //     _userRoomsSub?.cancel();
+  //   }
+  // }
 
   void _initializeSubs() {
-    if (_user == null && _authUser == null) return;
+    if (_authProvider == null) return;
 
     _initializeRoomsSub();
     _initializeUserRoomsSub();
   }
 
   void _initializeRoomsSub() {
-    if (_authUser == null) return;
+    if (_authProvider == null || _authProvider?.userData == null) return;
 
     _roomsSub = _firestore.collection("rooms").snapshots().listen((rooms) {
       _rooms =
           rooms.docs.map((room) => Room.fromQueryDocSnapshot(room)).toList();
 
-      if (user != null && _user!.isRootUser) {
+      if (_authProvider!.userData!.isRootUser) {
         _userRooms = _rooms;
       }
       notifyListeners();
@@ -72,17 +89,17 @@ class RoomProvider with ChangeNotifier {
   }
 
   void _initializeUserRoomsSub() {
-    if (_user == null) return;
+    if (_authProvider == null || _authProvider?.userData == null) return;
 
     _userRoomsSub = _firestore
         .collection("user_roles")
-        .doc(_user!.key)
+        .doc(_authProvider!.userData!.key)
         .collection("room_roles")
         .snapshots()
         .listen((userRooms) {
       final userRoomIds = userRooms.docs.map((room) => room.id).toList();
 
-      if (user != null && _user!.isRootUser) {
+      if (_authProvider?.userData?.isRootUser ?? false) {
         _userRooms = _rooms;
       } else {
         _userRooms =
@@ -124,11 +141,13 @@ class RoomProvider with ChangeNotifier {
     }
   }
 
-  Future<void> fetchUserRooms(String userId) async {
+  Future<void> fetchUserRooms() async {
+    if (_authProvider == null || _authProvider?.userData == null) return;
+
     try {
       final userRooms = await _firestore
           .collection("user_roles")
-          .doc(userId)
+          .doc(_authProvider!.userData!.key)
           .collection("room_roles")
           .get();
       final userRoomIds = userRooms.docs.map((room) => room.id).toList();
@@ -142,7 +161,7 @@ class RoomProvider with ChangeNotifier {
           .map((room) => Room.fromQueryDocSnapshot(room))
           .toList();
 
-      if (user != null && _user!.isRootUser) {
+      if (_authProvider?.userData?.isRootUser ?? false) {
         _userRooms = _rooms;
       } else {
         _userRooms =
@@ -187,43 +206,6 @@ class RoomProvider with ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("selectedRoom", room);
-  }
-
-  void requestAccess(String roomKey) async {
-    if (_user == null) {
-      throw "You must be logged in to request access to a room.";
-    }
-
-    if (_userRooms.map((room) => room.key).contains(roomKey)) {
-      throw "You already have access to this room.";
-    }
-
-    try {
-      final guestRole = await _firestore
-          .collection("roles")
-          .where("name", isEqualTo: "Guest")
-          .limit(1)
-          .get();
-
-      if (guestRole.docs.isEmpty) {
-        throw "Something went wrong while submitting the request.";
-      }
-
-      final guestRoleRef = guestRole.docs.first.reference;
-
-      await _firestore
-          .collection("user_roles")
-          .doc(_user!.key)
-          .collection("room_roles")
-          .doc(roomKey)
-          .set({
-        "roleId": guestRoleRef,
-        "accessGranted": false,
-        "key": roomKey,
-      });
-    } catch (error) {
-      throw error.toString();
-    }
   }
 
   @override

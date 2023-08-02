@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/models/room.dart';
+import 'package:csi_door_logs/models/user_model.dart';
 import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -93,6 +95,8 @@ class RequestItem extends StatefulWidget {
 }
 
 class _RequestItemState extends State<RequestItem> {
+  final _firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -101,7 +105,7 @@ class _RequestItemState extends State<RequestItem> {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: FutureBuilder(
-        future: request.roomId.get(),
+        future: _firestore.collection("rooms").doc(request.roomId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: AdaptiveSpinner());
@@ -199,6 +203,51 @@ class _RequestItemState extends State<RequestItem> {
                 "Updated at: ${DateFormat("MMMM dd yyyy HH:mm").format(request.updatedAt.toDate())} (${timeago.format(request.updatedAt.toDate())})",
                 style: const TextStyle(fontSize: 16.0),
               ),
+              Text(
+                "User message: ${request.userComment ?? "No user message available"}",
+                style: baseTextStyle,
+              ),
+              if (request.adminId != null)
+                FutureBuilder(
+                  future:
+                      _firestore.collection("users").doc(request.adminId).get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        "Loading admin data...",
+                        style: baseTextStyle,
+                      );
+                    }
+
+                    if (snapshot.hasData) {
+                      final admin = UserModel.fromDocSnapshot(snapshot.data!);
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Admin: ${admin.name} (${admin.unisonId})",
+                            style: baseTextStyle,
+                          ),
+                          Text(
+                            "Admin message: ${request.adminComment ?? "No admin message available"}",
+                            style: baseTextStyle,
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return const Text(
+                        "Error loading admin data.",
+                        style: baseTextStyle,
+                      );
+                    }
+
+                    return const SizedBox();
+                  },
+                ),
             ],
           ),
           actions: [

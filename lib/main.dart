@@ -64,28 +64,25 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<AuthProvider, RoomProvider>(
           create: (ctx) => RoomProvider(),
           update: (ctx, auth, room) {
-            room?.setAuthUser(auth.user);
-            room?.setUser(auth.userData);
-            return room ??
-                RoomProvider(
-                  authUser: auth.user,
-                  user: auth.userData,
-                );
+            room?.setAuthProvider(auth);
+            // room?.setAuthUser(auth.user);
+            // room?.setUser(auth.userData);
+            return room ?? RoomProvider(auth: auth);
           },
         ),
         ChangeNotifierProxyProvider<RoomProvider, RoleProvider>(
           create: (ctx) => RoleProvider(),
           update: (ctx, room, role) {
             role?.setData(
-              user: room.user,
+              user: room.authProvider?.userData,
               roomId: room.selectedRoom,
             );
 
             return role ??
                 RoleProvider(
-                  user: room.user,
+                  user: room.authProvider?.userData,
                   roomId: room.selectedRoom,
-                  isRoot: room.user?.isRootUser ?? false,
+                  isRoot: room.authProvider?.userData?.isRootUser ?? false,
                 );
           },
         ),
@@ -93,15 +90,15 @@ class MyApp extends StatelessWidget {
           create: (ctx) => RequestsProvider(),
           update: (ctx, room, requests) {
             requests?.setData(
-              user: room.user,
+              user: room.authProvider?.userData,
               roomId: room.selectedRoom,
             );
 
             return requests ??
                 RequestsProvider(
-                  user: room.user,
+                  user: room.authProvider?.userData,
                   roomId: room.selectedRoom,
-                  isRoot: room.user?.isRootUser ?? false,
+                  isRoot: room.authProvider?.userData?.isRootUser ?? false,
                 );
           },
         ),
@@ -180,9 +177,7 @@ class MyApp extends StatelessWidget {
                           future: Provider.of<RoomProvider>(
                             ctx,
                             listen: false,
-                          ).fetchUserRooms(
-                            Provider.of<AuthProvider>(ctx).user!.uid,
-                          ),
+                          ).fetchUserRooms(),
                           builder: (ctx, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {

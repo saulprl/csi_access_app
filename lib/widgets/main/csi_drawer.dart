@@ -117,7 +117,7 @@ class CSIDrawer extends StatelessWidget {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.clear();
 
-                auth.signOut();
+                await auth.signOut();
               },
             ),
           ),

@@ -13,9 +13,9 @@ enum RequestStatus {
 class Request {
   final String key;
   final RequestStatus status;
-  final DocumentReference<Map<String, dynamic>> userId;
-  final DocumentReference<Map<String, dynamic>> roomId;
-  final DocumentReference<Map<String, dynamic>>? adminId;
+  final String userId;
+  final String roomId;
+  final String? adminId;
   final String? userComment;
   final String? adminComment;
   final Timestamp createdAt;
@@ -56,16 +56,41 @@ class Request {
         updatedAt = snapshot.data()["updatedAt"],
         status = RequestStatus.values[snapshot.data()["status"] ?? 0];
 
-  Future<void> _updateStatus(RequestStatus status, String? message) async {
-    await FirebaseFirestore.instance.collection("requests").doc(key).update({
+  static Future<void> createRequest({
+    required String userId,
+    required String roomId,
+    String? message,
+  }) async {
+    final firestore = FirebaseFirestore.instance;
+    final creationDate = Timestamp.now();
+
+    await firestore.collection("requests").add({
+      "status": RequestStatus.pending.index,
+      "userId": userId,
+      "roomId": roomId,
+      "userComment": message,
+      "createdAt": creationDate,
+      "updatedAt": creationDate,
+    });
+  }
+
+  Future<void> _updateStatus(
+    String adminId,
+    RequestStatus status,
+    String? message,
+  ) async {
+    final firestore = FirebaseFirestore.instance;
+
+    await firestore.collection("requests").doc(key).update({
       "status": status.index,
+      "adminId": adminId,
       "adminComment": message,
       "updatedAt": Timestamp.now(),
     });
   }
 
-  Future<void> approve({String? message}) async {
-    await _updateStatus(RequestStatus.approved, message);
+  Future<void> approve({required String adminId, String? message}) async {
+    await _updateStatus(adminId, RequestStatus.approved, message);
 
     final firestore = FirebaseFirestore.instance;
 
@@ -83,17 +108,17 @@ class Request {
 
     await firestore
         .collection("user_roles")
-        .doc(userId.id)
+        .doc(userId)
         .collection("room_roles")
-        .doc(roomId.id)
+        .doc(roomId)
         .set({
       "roleId": guestRoleRef,
       "accessGranted": true,
-      "key": roomId.id,
+      "key": roomId,
     });
   }
 
-  Future<void> reject({String? message}) async {
-    await _updateStatus(RequestStatus.rejected, message);
+  Future<void> reject({required String adminId, String? message}) async {
+    await _updateStatus(adminId, RequestStatus.rejected, message);
   }
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csi_door_logs/models/user_model.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +15,6 @@ import 'package:csi_door_logs/providers/role_provider.dart';
 import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 
 import 'package:csi_door_logs/models/request.dart';
-import 'package:csi_door_logs/models/room.dart';
 
 import 'package:csi_door_logs/utils/styles.dart';
 import 'package:csi_door_logs/utils/utils.dart';
@@ -60,6 +60,7 @@ class RequestsList extends StatelessWidget {
                     final request = pendingRequests[index];
 
                     return Padding(
+                      key: ValueKey(request.key),
                       padding: const EdgeInsets.all(8.0),
                       child: RequestItem(request: request),
                     );
@@ -81,6 +82,7 @@ class RequestsList extends StatelessWidget {
                     final request = resolvedRequests[index];
 
                     return Padding(
+                      key: ValueKey(request.key),
                       padding: const EdgeInsets.all(8.0),
                       child: RequestItem(request: request),
                     );
@@ -108,6 +110,8 @@ class RequestItem extends StatefulWidget {
 }
 
 class _RequestItemState extends State<RequestItem> {
+  final _firestore = FirebaseFirestore.instance;
+
   final reasonCtrl = TextEditingController();
 
   @override
@@ -122,7 +126,7 @@ class _RequestItemState extends State<RequestItem> {
         type: MaterialType.transparency,
         borderRadius: BorderRadius.circular(10.0),
         child: FutureBuilder(
-          future: request.userId.get(),
+          future: _firestore.collection("users").doc(request.userId).get(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: AdaptiveSpinner());
@@ -225,45 +229,47 @@ class _RequestItemState extends State<RequestItem> {
                 "User message: ${request.userComment ?? "No user message available"}",
                 style: baseTextStyle,
               ),
-              FutureBuilder(
-                future: request.adminId?.get(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Text(
-                      "Loading admin data...",
-                      style: baseTextStyle,
-                    );
-                  }
+              if (request.adminId != null)
+                FutureBuilder(
+                  future:
+                      _firestore.collection("users").doc(request.adminId).get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Text(
+                        "Loading admin data...",
+                        style: baseTextStyle,
+                      );
+                    }
 
-                  if (snapshot.hasData) {
-                    final admin = UserModel.fromDocSnapshot(snapshot.data!);
+                    if (snapshot.hasData) {
+                      final admin = UserModel.fromDocSnapshot(snapshot.data!);
 
-                    return ListView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      children: [
-                        Text(
-                          "Admin: ${admin.name} (${admin.unisonId})",
-                          style: baseTextStyle,
-                        ),
-                        Text(
-                          "Admin message: ${request.adminComment ?? "No admin message available"}",
-                          style: baseTextStyle,
-                        ),
-                      ],
-                    );
-                  }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Admin: ${admin.name} (${admin.unisonId})",
+                            style: baseTextStyle,
+                          ),
+                          Text(
+                            "Admin message: ${request.adminComment ?? "No admin message available"}",
+                            style: baseTextStyle,
+                          ),
+                        ],
+                      );
+                    }
 
-                  if (snapshot.hasError) {
-                    return const Text(
-                      "Error loading admin data.",
-                      style: baseTextStyle,
-                    );
-                  }
+                    if (snapshot.hasError) {
+                      return const Text(
+                        "Error loading admin data.",
+                        style: baseTextStyle,
+                      );
+                    }
 
-                  return const SizedBox();
-                },
-              ),
+                    return const SizedBox();
+                  },
+                ),
             ],
           ),
           actions: request.status == RequestStatus.pending
@@ -301,13 +307,22 @@ class _RequestItemState extends State<RequestItem> {
     if (request.status != RequestStatus.pending || result == null) return;
 
     if (result) {
-      await _showApproveDialog();
+      _showApproveDialog();
     } else {
-      await _showRejectDialog();
+      _showRejectDialog();
     }
   }
 
   Future<void> _showApproveDialog() async {
+    final userId =
+        Provider.of<AuthProvider>(context, listen: false).userData?.key;
+
+    if (userId == null) {
+      _showErrorDialog("Something went wrong while retrieving user data.");
+
+      return;
+    }
+
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -345,7 +360,7 @@ class _RequestItemState extends State<RequestItem> {
     if (result != true) return;
 
     try {
-      await request.approve();
+      await request.approve(adminId: userId);
 
       _showSnackBar("Request approved successfully!");
     } catch (error) {
@@ -354,6 +369,15 @@ class _RequestItemState extends State<RequestItem> {
   }
 
   Future<void> _showRejectDialog() async {
+    final userId =
+        Provider.of<AuthProvider>(context, listen: false).userData?.key;
+
+    if (userId == null) {
+      _showErrorDialog("Something went wrong while retrieving user data.");
+
+      return;
+    }
+
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) {
@@ -377,6 +401,7 @@ class _RequestItemState extends State<RequestItem> {
                 decoration: const InputDecoration(
                   labelText: "Reason (optional)",
                 ),
+                textCapitalization: TextCapitalization.sentences,
                 maxLength: 120,
               ),
             ],
@@ -401,16 +426,23 @@ class _RequestItemState extends State<RequestItem> {
       },
     );
 
-    if (result != true) return;
+    if (result != true) {
+      reasonCtrl.clear();
+
+      return;
+    }
 
     try {
       await request.reject(
+        adminId: userId,
         message: reasonCtrl.text.isNotEmpty ? reasonCtrl.text : null,
       );
 
       _showSnackBar("Request rejected successfully.");
     } catch (error) {
       _showErrorDialog(error.toString());
+    } finally {
+      reasonCtrl.clear();
     }
   }
 
@@ -430,13 +462,13 @@ class _RequestItemState extends State<RequestItem> {
             style: TextStyle(color: Theme.of(context).colorScheme.secondary),
           ),
           content: Text(
-            "Something went wrong while rejecting the request. Details: $message",
+            "Something went wrong while handling the request. Details: $message",
             style: baseTextStyle,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text("OK"),
+              child: const Text("OK", style: baseTextStyle),
             ),
           ],
         );
