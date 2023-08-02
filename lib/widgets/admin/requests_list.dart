@@ -364,7 +364,9 @@ class _RequestItemState extends State<RequestItem> {
 
       _showSnackBar("Request approved successfully!");
     } catch (error) {
-      _showErrorDialog(error.toString());
+      if (mounted) {
+        _showErrorDialog(error.toString());
+      }
     }
   }
 
@@ -440,9 +442,13 @@ class _RequestItemState extends State<RequestItem> {
 
       _showSnackBar("Request rejected successfully.");
     } catch (error) {
-      _showErrorDialog(error.toString());
+      if (mounted) {
+        _showErrorDialog(error.toString());
+      }
     } finally {
-      reasonCtrl.clear();
+      if (mounted) {
+        reasonCtrl.clear();
+      }
     }
   }
 

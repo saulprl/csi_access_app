@@ -104,7 +104,7 @@ class Request {
       throw "Something went wrong while submitting the adding the user to the room's guest list.";
     }
 
-    final guestRoleRef = guestRole.docs.first.reference;
+    final guestRoleId = guestRole.docs.first.id;
 
     await firestore
         .collection("user_roles")
@@ -112,7 +112,7 @@ class Request {
         .collection("room_roles")
         .doc(roomId)
         .set({
-      "roleId": guestRoleRef,
+      "roleId": guestRoleId,
       "accessGranted": true,
       "key": roomId,
     });
