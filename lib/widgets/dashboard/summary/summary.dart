@@ -1,13 +1,15 @@
-import 'package:csi_door_logs/providers/room_provider.dart';
-import 'package:csi_door_logs/utils/utils.dart';
 import "package:flutter/material.dart";
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+
+import 'package:csi_door_logs/providers/logs_provider.dart';
+import 'package:csi_door_logs/providers/room_provider.dart';
 
 import 'package:csi_door_logs/widgets/dashboard/summary/bubble.dart';
 
 import 'package:csi_door_logs/models/access_log.dart';
-import 'package:provider/provider.dart';
+
+import 'package:csi_door_logs/utils/utils.dart';
 
 class Summary extends StatefulWidget {
   const Summary({super.key});
@@ -17,7 +19,6 @@ class Summary extends StatefulWidget {
 }
 
 class _SummaryState extends State<Summary> {
-  final _firestore = FirebaseFirestore.instance;
   final skeletonHeight = 145.0;
 
   late DateTime now;
@@ -32,99 +33,64 @@ class _SummaryState extends State<Summary> {
   @override
   Widget build(BuildContext context) {
     final rooms = Provider.of<RoomProvider>(context);
+    final logs = Provider.of<LogsProvider>(context);
+
+    if (rooms.selectedRoom.isEmpty) {
+      return const Center(
+        child: Text(
+          "You haven't selected a room yet. You can do so at the top!",
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 18.0,
+          ),
+        ),
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         buildDivider(context, "Summary"),
-        if (!rooms.isRoomless)
-          FutureBuilder(
-            future: _firestore.doc("rooms/${rooms.selectedRoom}").get(),
-            builder: (ctx, snap) {
-              if (snap.connectionState == ConnectionState.waiting) {
-                return skeletons(context);
-              }
-
-              if (snap.hasData && snap.data != null) {
-                final roomRef = snap.data!.reference;
-
-                return StreamBuilder(
-                  stream: _firestore
-                      .collection("logs")
-                      .where("room", isEqualTo: roomRef)
-                      .where(
-                        "timestamp",
-                        isGreaterThanOrEqualTo: Timestamp.fromDate(
-                          DateTime(now.year, now.month, now.day),
-                        ),
-                      )
-                      .orderBy("timestamp", descending: true)
-                      .snapshots(),
-                  builder: streamBuilder,
-                );
-              }
-
-              return const Center(
-                child: Text(
-                  "You haven't selected a room yet. You can do so at the top!",
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 18.0,
-                  ),
-                ),
-              );
-            },
-          ),
+        if (!rooms.isRoomless) logsBuilder(context, logs.currentDayLogs),
       ],
     );
   }
 
-  Widget streamBuilder(
-    BuildContext context,
-    AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot,
-  ) {
+  Widget logsBuilder(BuildContext context, List<AccessLog> logs) {
     var accessCount = 0;
     var failedCount = 0;
     var unknownCount = 0;
     var bluetoothCount = 0;
 
-    if (snapshot.hasData && snapshot.data != null) {
-      final docs = snapshot.data!.docs;
-
-      for (final doc in docs) {
-        final log = AccessLog.fromQueryDocSnapshot(doc);
-
-        if (log.accessed) {
-          accessCount++;
-        }
-        if (!log.accessed) {
-          failedCount++;
-        }
-        if (log.attempt != null) {
-          unknownCount++;
-        }
-        if (log.bluetooth) {
-          bluetoothCount++;
-        }
+    for (final log in logs) {
+      if (log.accessed) {
+        accessCount++;
       }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(children: [successfulBubble(context, accessCount)]),
-          Row(children: [bluetoothBubble(context, bluetoothCount)]),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              failedBubble(context, failedCount),
-              unknownBubble(context, unknownCount),
-            ],
-          ),
-        ],
-      );
+      if (!log.accessed) {
+        failedCount++;
+      }
+      if (log.attempt?.csiId != null) {
+        unknownCount++;
+      }
+      if (log.bluetooth) {
+        bluetoothCount++;
+      }
     }
 
-    return skeletons(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(children: [successfulBubble(context, accessCount)]),
+        Row(children: [bluetoothBubble(context, bluetoothCount)]),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            failedBubble(context, failedCount),
+            unknownBubble(context, unknownCount),
+          ],
+        ),
+      ],
+    );
   }
 
   Expanded successfulBubble(BuildContext context, int? accessCount) {

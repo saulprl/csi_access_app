@@ -1,9 +1,12 @@
-import "package:csi_door_logs/providers/role_provider.dart";
-import "package:csi_door_logs/providers/room_provider.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 
+import "package:provider/provider.dart";
+
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
+
+import "package:csi_door_logs/providers/role_provider.dart";
+import "package:csi_door_logs/providers/room_provider.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
 
@@ -12,7 +15,6 @@ import "package:csi_door_logs/widgets/dashboard/summary/summary.dart";
 import "package:csi_door_logs/widgets/main/index.dart";
 
 import "package:csi_door_logs/utils/routes.dart";
-import "package:provider/provider.dart";
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -106,11 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         drawer: CSIDrawer(),
         body: SafeArea(
           child: !rooms.isRoomless
-              ? SingleChildScrollView(
-                  child: Builder(
-                    builder: builder,
-                  ),
-                )
+              ? SingleChildScrollView(child: Builder(builder: builder))
               : Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
