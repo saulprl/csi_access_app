@@ -6,38 +6,34 @@ import 'package:flutter/material.dart';
 
 class LogsProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  StreamSubscription? _logsSubscription;
   List<AccessLog> _logs = [];
-  bool _isLoading = false;
+  List<AccessLog> _currentDayLogs = [];
+
+  StreamSubscription? _logsSub;
+  StreamSubscription? _currentDayLogsSub;
 
   List<AccessLog> get logs => _logs;
-  bool get isLoading => _isLoading;
+  List<AccessLog> get currentDayLogs => _currentDayLogs;
 
   LogsProvider({String? roomId}) {
     setRoom(roomId: roomId);
   }
 
   void setRoom({String? roomId}) {
-    if (roomId != null) {
-      _initializeSubscriptions(roomId);
+    if (roomId != null && roomId.isNotEmpty) {
+      _initSubs(roomId);
     } else {
-      _logsSubscription?.cancel();
+      _logsSub?.cancel();
+      _currentDayLogsSub?.cancel();
     }
   }
 
-  void _initializeSubscriptions(String roomId) async {
-    _isLoading = true;
-    notifyListeners();
+  void _initSubs(String roomId) async {
+    final now = DateTime.now();
 
-    final roomRef =
-        (await _firestore.collection("rooms").doc(roomId).get()).reference;
-
-    _isLoading = false;
-    notifyListeners();
-
-    _logsSubscription = _firestore
+    _logsSub = _firestore
         .collection("logs")
-        .where("room", isEqualTo: roomRef)
+        .where("room", isEqualTo: roomId)
         .orderBy("timestamp", descending: true)
         .limit(20)
         .snapshots()
@@ -46,11 +42,27 @@ class LogsProvider with ChangeNotifier {
           logs.docs.map((log) => AccessLog.fromQueryDocSnapshot(log)).toList();
       notifyListeners();
     });
+
+    _currentDayLogsSub = _firestore
+        .collection("logs")
+        .where("room", isEqualTo: roomId)
+        .where("timestamp",
+            isGreaterThanOrEqualTo: Timestamp.fromDate(
+              DateTime(now.year, now.month, now.day),
+            ))
+        .orderBy("timestamp", descending: true)
+        .snapshots()
+        .listen((logs) {
+      _currentDayLogs =
+          logs.docs.map((log) => AccessLog.fromQueryDocSnapshot(log)).toList();
+      notifyListeners();
+    });
   }
 
   @override
   void dispose() {
-    _logsSubscription?.cancel();
+    _logsSub?.cancel();
+    _currentDayLogsSub?.cancel();
     super.dispose();
   }
 }

@@ -4,9 +4,9 @@ import "package:csi_door_logs/models/attempt.dart";
 
 class AccessLog {
   final String key;
-  final DocumentReference<Map<String, dynamic>>? user;
+  final String? user;
   final Timestamp timestamp;
-  final DocumentReference<Map<String, dynamic>> room;
+  final String room;
   final bool accessed;
   final bool bluetooth;
   final Attempt? attempt;
@@ -27,12 +27,12 @@ class AccessLog {
     final data = snapshot.data() as Map<String, dynamic>;
     return AccessLog(
       key: snapshot.id,
-      user: data['user'] as DocumentReference<Map<String, dynamic>>?,
-      room: data['room'] as DocumentReference<Map<String, dynamic>>,
+      user: data['user'],
+      room: data['room'],
       timestamp: data['timestamp'] as Timestamp,
       attempt: Attempt(
-        csiId: data["attemptData"]?["csiId"] as String?,
-        passcode: data["attemptData"]?["passcode"] as String?,
+        csiId: data["attemptData"]?["csiId"],
+        passcode: data["attemptData"]?["passcode"],
       ),
       accessed: data['accessed'] as bool,
       bluetooth: data['bluetooth'] as bool,
@@ -45,12 +45,12 @@ class AccessLog {
     final data = snapshot.data();
     return AccessLog(
       key: snapshot.id,
-      user: data['user'] as DocumentReference<Map<String, dynamic>>?,
-      room: data['room'] as DocumentReference<Map<String, dynamic>>,
+      user: data['user'],
+      room: data['room'],
       timestamp: data['timestamp'] as Timestamp,
       attempt: Attempt(
-        csiId: data["attemptData"]?["csiId"] as String?,
-        passcode: data["attemptData"]?["passcode"] as String?,
+        csiId: data["attemptData"]?["csiId"],
+        passcode: data["attemptData"]?["passcode"],
       ),
       accessed: data['accessed'] as bool,
       bluetooth: data['bluetooth'] as bool,

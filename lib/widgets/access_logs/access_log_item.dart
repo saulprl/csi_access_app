@@ -1,3 +1,5 @@
+import "package:cloud_firestore/cloud_firestore.dart";
+import "package:csi_door_logs/models/user_model.dart";
 import "package:flutter/material.dart";
 
 import "package:intl/intl.dart";
@@ -9,9 +11,10 @@ import "package:csi_door_logs/models/models.dart";
 import "package:csi_door_logs/utils/styles.dart";
 
 class AccessLogItem extends StatelessWidget {
-  final AccessLog log;
+  AccessLogItem(this.log, {super.key});
 
-  const AccessLogItem(this.log, {super.key});
+  final AccessLog log;
+  final _firestore = FirebaseFirestore.instance;
 
   Color generateTileColor(BuildContext ctx) {
     if (log.accessed && log.bluetooth) {
@@ -28,15 +31,15 @@ class AccessLogItem extends StatelessWidget {
   Widget getTileTitle() {
     if (log.user == null) return Text("Unknown user", style: failedLogTitle);
 
-    return StreamBuilder(
-      stream: log.user!.snapshots(),
+    return FutureBuilder(
+      future: _firestore.doc("users/${log.user}").get(),
       builder: (ctx, snapshot) {
         if (snapshot.hasData && snapshot.data != null) {
-          final csiUser = CSIUser.fromDocSnapshot(snapshot.data!);
+          final logUser = UserModel.fromDocSnapshot(snapshot.data!);
 
           return Expanded(
             child: Text(
-              csiUser.name,
+              logUser.name,
               style: log.accessed ? successfulLogTitle : failedLogTitle,
               overflow: TextOverflow.ellipsis,
             ),
