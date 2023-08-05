@@ -1,3 +1,5 @@
+import 'package:csi_door_logs/utils/styles.dart';
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:flutter/material.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,21 +17,21 @@ import 'package:csi_door_logs/models/user_model.dart';
 
 import 'package:csi_door_logs/utils/utils.dart';
 
-class RoleUsersList extends StatefulWidget {
+class MembersList extends StatefulWidget {
   final String roleId;
   final String roleName;
 
-  const RoleUsersList({
+  const MembersList({
     required this.roleId,
     required this.roleName,
     super.key,
   });
 
   @override
-  State<RoleUsersList> createState() => _RoleUsersListState();
+  State<MembersList> createState() => _MembersListState();
 }
 
-class _RoleUsersListState extends State<RoleUsersList> {
+class _MembersListState extends State<MembersList> {
   final _firestore = FirebaseFirestore.instance;
 
   @override
@@ -92,7 +94,7 @@ class _RoleUsersListState extends State<RoleUsersList> {
                                       : false;
 
                               return UserItem(
-                                key: ValueKey(user.key),
+                                key: ValueKey("User item: ${user.key}"),
                                 uid: user.key,
                                 name: user.name,
                                 isAllowedAccess: roleSnap.data!.docs[index]
@@ -106,16 +108,23 @@ class _RoleUsersListState extends State<RoleUsersList> {
                               );
                             },
                           );
-                        } else {
-                          return const SkeletonList(count: 1);
                         }
+
+                        if (userIdSnap.hasError) {
+                          return buildItemSkeleton(
+                            message: "User not found",
+                            error: true,
+                          );
+                        }
+
+                        return buildItemSkeleton(message: "Loading");
                       },
                     );
                   },
                 );
               }
 
-              return const SkeletonList(count: 1);
+              return buildItemSkeleton(message: "Loading");
             },
           ),
         ),
@@ -125,4 +134,27 @@ class _RoleUsersListState extends State<RoleUsersList> {
 
   String get roleId => widget.roleId;
   String get roleName => widget.roleName;
+
+  Widget buildItemSkeleton({required String message, bool error = false}) {
+    final color = error
+        ? Theme.of(context).colorScheme.secondary
+        : Theme.of(context).colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: color.withOpacity(0.15),
+        ),
+        child: ListTile(
+          title: Center(child: Text(message, style: baseTextStyle)),
+          trailing: AdaptiveSpinner(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
 }

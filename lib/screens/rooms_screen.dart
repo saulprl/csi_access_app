@@ -40,12 +40,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CSIAppBar(_pages[_currentIndex]["title"]),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _pages[_currentIndex]["page"],
-        ),
-      ),
+      body: SafeArea(child: _pages[_currentIndex]["page"]),
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(

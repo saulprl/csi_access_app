@@ -1,5 +1,6 @@
 import "package:csi_door_logs/providers/requests_provider.dart";
 import "package:flutter/material.dart";
+import "package:permission_handler/permission_handler.dart";
 
 import "package:provider/provider.dart";
 
@@ -28,11 +29,18 @@ Future<void> _bgMessageHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  if (!await Permission.notification.isPermanentlyDenied) {
+    await Permission.notification.request();
+  }
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  FirebaseMessaging.onBackgroundMessage(_bgMessageHandler);
+
+  if (await Permission.notification.isGranted) {
+    FirebaseMessaging.onBackgroundMessage(_bgMessageHandler);
+    print("Init messaging");
+  }
   // final fcm = FirebaseMessaging.instance;
   // fcm.subscribeToTopic("access_logs");
   // fcm.subscribeToTopic("event_logs");

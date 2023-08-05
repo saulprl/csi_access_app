@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/role_provider.dart";
 import "package:csi_door_logs/providers/room_provider.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -96,6 +97,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final rooms = Provider.of<RoomProvider>(context);
+    Provider.of<RoleProvider>(context);
 
     return WillPopScope(
       onWillPop: willPopHandler,

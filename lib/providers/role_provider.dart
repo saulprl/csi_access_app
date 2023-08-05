@@ -94,10 +94,10 @@ class RoleProvider with ChangeNotifier {
 
         if (role.canHandleRequests &&
             !_subbedTopics.contains("requests_${doc.id}")) {
-          _messaging.subscribeToTopic("requests_${doc.id}");
+          await _messaging.subscribeToTopic("requests_${doc.id}");
           _subbedTopics.add("requests_${doc.id}");
         } else if (_subbedTopics.contains("requests_${doc.id}")) {
-          _messaging.unsubscribeFromTopic("requests_${doc.id}");
+          await _messaging.unsubscribeFromTopic("requests_${doc.id}");
           _subbedTopics.remove("requests_${doc.id}");
         }
       }

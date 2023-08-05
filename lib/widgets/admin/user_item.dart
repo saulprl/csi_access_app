@@ -33,7 +33,6 @@ class UserItem extends StatefulWidget {
 }
 
 class _UserItemState extends State<UserItem> {
-  final _firestore = FirebaseFirestore.instance;
   late String roleKey;
 
   MaterialStateProperty<Icon?> get thumbIcon =>
@@ -46,9 +45,7 @@ class _UserItemState extends State<UserItem> {
       });
 
   void toggleAccessPermission(bool value) {
-    roomRoleRef.set({
-      "accessGranted": value,
-    }, SetOptions(merge: true));
+    roomRoleRef.set({"accessGranted": value}, SetOptions(merge: true));
   }
 
   void popBack(bool updated) {
@@ -125,14 +122,9 @@ class _UserItemState extends State<UserItem> {
 
   Future<void> updateRole() async {
     final result = await showUpdateDialog();
-    if (result == null) return;
-    if (!result) return;
+    if (result != true) return;
 
-    final updatedRole = (await _firestore.doc("roles/$roleKey").get());
-
-    await roomRoleRef.set({
-      "roleId": updatedRole.reference,
-    }, SetOptions(merge: true));
+    await roomRoleRef.set({"roleId": roleKey}, SetOptions(merge: true));
   }
 
   @override
@@ -142,12 +134,12 @@ class _UserItemState extends State<UserItem> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.secondary,
-            width: 1.0,
-          ),
-          borderRadius: BorderRadius.circular(50.0),
-          color: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+          // border: Border.all(
+          //   color: Theme.of(context).colorScheme.secondary,
+          //   width: 1.0,
+          // ),
+          borderRadius: BorderRadius.circular(10.0),
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
         ),
         child: ListTile(
           style: ListTileStyle.list,
@@ -187,47 +179,6 @@ class _UserItemState extends State<UserItem> {
         ),
       ),
     );
-
-    // return Padding(
-    //   padding: const EdgeInsets.symmetric(vertical: 4.0),
-    //   child: ListTile(
-    //     style: ListTileStyle.list,
-    //     tileColor: Theme.of(context).colorScheme.secondary.withOpacity(0.3),
-    //     dense: true,
-    //     leading: Tooltip(
-    //       message: isEditable ? "Edit role" : "No permission to edit role",
-    //       child: IconButton(
-    //         icon: Icon(
-    //           editIcon,
-    //           color: isEditable
-    //               ? Theme.of(context).colorScheme.primary
-    //               : Colors.black38,
-    //         ),
-    //         onPressed: isEditable ? updateRole : null,
-    //       ),
-    //     ),
-    //     title: Tooltip(
-    //       message: name,
-    //       child: Text(
-    //         name,
-    //         style: const TextStyle(fontSize: 18.0),
-    //         overflow: TextOverflow.ellipsis,
-    //       ),
-    //     ),
-    //     trailing: Tooltip(
-    //       message: isTogglable
-    //           ? isAllowedAccess
-    //               ? "Revoke access"
-    //               : "Grant access"
-    //           : "No permission to toggle access",
-    //       child: Switch(
-    //         value: isAllowedAccess,
-    //         thumbIcon: thumbIcon,
-    //         onChanged: isTogglable ? toggleAccessPermission : null,
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
 
   String get uid => widget.uid;

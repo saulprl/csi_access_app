@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:csi_door_logs/screens/create_user_screen.dart';
 
-import 'package:csi_door_logs/widgets/admin/members_list.dart';
+import 'package:csi_door_logs/widgets/admin/roles_list.dart';
 import 'package:csi_door_logs/widgets/admin/requests_list.dart';
 import 'package:csi_door_logs/widgets/main/index.dart';
 
@@ -29,7 +29,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
   }
 
   static final List<Map<String, dynamic>> _pages = [
-    {"title": "User Control", "page": MembersList()},
+    {"title": "User Control", "page": RolesList()},
     {"title": "Access Requests", "page": const RequestsList()},
   ];
 
@@ -47,12 +47,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CSIAppBar(_pages[_currentIndex]["title"], roomSelector: true),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: _pages[_currentIndex]["page"],
-        ),
-      ),
+      body: SafeArea(child: _pages[_currentIndex]["page"]),
       bottomNavigationBar: BottomNavigationBar(
         items: [
           BottomNavigationBarItem(
