@@ -54,13 +54,13 @@ class EncryptionBubble extends StatelessWidget {
   Widget get generateChild {
     switch (state) {
       case EncryptionState.done:
-        return SingleChildScrollView(
-          physics: const NeverScrollableScrollPhysics(),
+        return const SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
-            children: const [
+            children: [
               Text("Welcome in!", style: pibleBubbleTextStyle),
               Text(
                 "Don't forget to close the door!",

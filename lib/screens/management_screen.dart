@@ -29,7 +29,7 @@ class _ManagementScreenState extends State<ManagementScreen> {
   }
 
   static final List<Map<String, dynamic>> _pages = [
-    {"title": "User Control", "page": RolesList()},
+    {"title": "User Control", "page": const RolesList()},
     {"title": "Access Requests", "page": const RequestsList()},
   ];
 

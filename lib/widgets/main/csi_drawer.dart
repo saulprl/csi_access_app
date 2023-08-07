@@ -89,7 +89,7 @@ class CSIDrawer extends StatelessWidget {
                   "Manage Users",
                   Icons.group,
                   () => Navigator.of(context).push(
-                    Routes.pushFromRight(ManagementScreen()),
+                    Routes.pushFromRight(const ManagementScreen()),
                   ),
                   enabled: ((role?.canGrantOrRevokeAccess ?? false) ||
                           (role?.canSetRoles ?? false)) ||
