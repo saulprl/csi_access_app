@@ -39,7 +39,7 @@ Future<void> main() async {
 
   if (await Permission.notification.isGranted) {
     FirebaseMessaging.onBackgroundMessage(_bgMessageHandler);
-    print("Init messaging");
+    // print("Init messaging");
   }
   // final fcm = FirebaseMessaging.instance;
   // fcm.subscribeToTopic("access_logs");

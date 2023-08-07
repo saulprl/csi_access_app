@@ -85,12 +85,12 @@ class _RoomItemState extends State<RoomItem> {
       padding: const EdgeInsets.all(4.0),
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50.0),
+          borderRadius: BorderRadius.circular(10.0),
           color: room.key == rooms.selectedRoom
-              ? Theme.of(context).colorScheme.secondary.withOpacity(0.15)
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
               : null,
           border: Border.all(
-            color: Theme.of(context).colorScheme.secondary,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         child: ListTile(
@@ -110,9 +110,7 @@ class _RoomItemState extends State<RoomItem> {
                     )
                   : null,
           onTap: rooms.userRooms.contains(room)
-              ? () {
-                  rooms.selectRoom(room.key);
-                }
+              ? () => rooms.selectRoom(room.key)
               : null,
         ),
       ),
