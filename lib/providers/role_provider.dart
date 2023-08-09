@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:csi_door_logs/models/room.dart';
 import 'package:csi_door_logs/models/user_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -92,6 +93,13 @@ class RoleProvider with ChangeNotifier {
         final roleId = _firestore.collection("roles").doc(doc["roleId"]);
         final role = RoleModel.fromDocSnapshot(await roleId.get());
 
+        if (role.level >= 20) {
+          await _attemptSubToBirthdaysTopic(doc.id);
+        } else if (_subbedTopics.contains("birthdays_$doc.id")) {
+          await _messaging.unsubscribeFromTopic("birthdays_$doc.id");
+          _subbedTopics.remove("birthdays_$doc.id");
+        }
+
         if (role.canHandleRequests &&
             !_subbedTopics.contains("requests_${doc.id}")) {
           await _messaging.subscribeToTopic("requests_${doc.id}");
@@ -102,6 +110,21 @@ class RoleProvider with ChangeNotifier {
         }
       }
     });
+  }
+
+  Future<void> _attemptSubToBirthdaysTopic(String roomId) async {
+    final roomData = await _firestore.collection("rooms").doc(roomId).get();
+
+    if (roomData.exists) {
+      final room = Room.fromDocSnapshot(roomData);
+
+      if (room.name == "CSI PRO" &&
+          room.building == "5J" &&
+          room.room == "205") {
+        await _messaging.subscribeToTopic("birthdays_$roomId");
+        _subbedTopics.add("birthdays_$roomId");
+      }
+    }
   }
 
   void _unsubFromAllTopics() {

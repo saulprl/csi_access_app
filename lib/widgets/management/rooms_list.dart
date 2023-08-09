@@ -102,7 +102,7 @@ class _RoomItemState extends State<RoomItem> {
             overflow: TextOverflow.ellipsis,
           ),
           trailing: room.key == rooms.selectedRoom
-              ? Icon(checkIcon)
+              ? Icon(checkIcon, color: Theme.of(context).colorScheme.primary)
               : !rooms.userRooms.contains(room)
                   ? FilledButton(
                       onPressed: _showRequestDialog,
