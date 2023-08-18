@@ -38,23 +38,31 @@ class LogsProvider with ChangeNotifier {
         .limit(20)
         .snapshots()
         .listen((logs) {
-      _logs =
+      final transformedLogs =
           logs.docs.map((log) => AccessLog.fromQueryDocSnapshot(log)).toList();
+
+      for (final _ in transformedLogs) {}
+
+      _logs = transformedLogs;
       notifyListeners();
     });
 
     _currentDayLogsSub = _firestore
         .collection("logs")
-        .where("room", isEqualTo: roomId)
         .where("timestamp",
             isGreaterThanOrEqualTo: Timestamp.fromDate(
               DateTime(now.year, now.month, now.day),
             ))
+        .where("room", isEqualTo: roomId)
         .orderBy("timestamp", descending: true)
         .snapshots()
         .listen((logs) {
-      _currentDayLogs =
+      final transformedLogs =
           logs.docs.map((log) => AccessLog.fromQueryDocSnapshot(log)).toList();
+
+      for (final _ in transformedLogs) {}
+
+      _currentDayLogs = transformedLogs;
       notifyListeners();
     });
   }

@@ -3,6 +3,7 @@ import "dart:convert";
 import "dart:io";
 import "dart:math";
 
+import "package:csi_door_logs/providers/room_provider.dart";
 import "package:csi_door_logs/utils/enums.dart";
 import "package:csi_door_logs/widgets/main/csi_appbar.dart";
 import "package:csi_door_logs/widgets/pible/index.dart";
@@ -14,6 +15,7 @@ import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 import "package:local_auth/local_auth.dart";
 import "package:permission_handler/permission_handler.dart";
+import "package:provider/provider.dart";
 import "package:steel_crypt/steel_crypt.dart";
 
 class PibleScreen extends StatefulWidget {
@@ -96,6 +98,17 @@ class _PibleScreenState extends State<PibleScreen> {
   }
 
   Future<void> discoverDevices() async {
+    final roomsProvider = Provider.of<RoomProvider>(context, listen: false);
+    final rooms = roomsProvider.userRooms;
+
+    if (roomsProvider.selectedRoom.isEmpty || rooms.isEmpty) {
+      popBack();
+    }
+
+    final room = rooms.firstWhere(
+      (room) => room.key == roomsProvider.selectedRoom,
+    );
+
     if (Platform.isAndroid) {
       if (await Permission.bluetoothConnect.isGranted && !isBluetoothOn) {
         flutterBlue.turnOn();
@@ -118,13 +131,14 @@ class _PibleScreenState extends State<PibleScreen> {
 
     flutterBlue.startScan(
       timeout: const Duration(seconds: 5),
-      macAddresses: [pibleAddress!],
+      // macAddresses: [pibleAddress!],
+      withServices: [Guid(serviceUuid!)],
     );
 
     scanResultsSub = flutterBlue.scanResults.skip(1).listen((result) {
       for (ScanResult scanResult in result) {
         // debugPrint("Advertisement data: ${scanResult.advertisementData}");
-        if (scanResult.advertisementData.localName == "PiBLE" &&
+        if (scanResult.advertisementData.localName == "PiBLE-${room.name}" &&
             scanResult.advertisementData.connectable) {
           if (mounted) {
             flutterBlue.stopScan();

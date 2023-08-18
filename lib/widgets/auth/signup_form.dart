@@ -1,16 +1,18 @@
-import 'package:csi_door_logs/utils/utils.dart';
-import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:csi_door_logs/providers/auth_provider.dart';
 
 import 'package:csi_door_logs/widgets/auth/room_field.dart';
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 
 import 'package:csi_door_logs/utils/globals.dart';
 import 'package:csi_door_logs/utils/styles.dart';
+import 'package:csi_door_logs/utils/utils.dart';
 
 class SignupForm extends StatefulWidget {
   const SignupForm({super.key});
@@ -28,14 +30,12 @@ class _SignupFormState extends State<SignupForm> {
   final _passcodeKey = GlobalKey<FormFieldState>(debugLabel: "passcode");
   final _nameKey = GlobalKey<FormFieldState>(debugLabel: "name");
   final _dateKey = GlobalKey<FormFieldState>(debugLabel: "date");
-  final _roleKey = GlobalKey<FormFieldState>(debugLabel: "role");
   final _roomKey = GlobalKey<FormFieldState>(debugLabel: "room");
 
   final unisonIdCtrl = TextEditingController();
   final passcodeCtrl = TextEditingController();
   final nameCtrl = TextEditingController();
   final dateCtrl = TextEditingController();
-  final roleCtrl = TextEditingController()..text = "Guest";
   final roomCtrl = TextEditingController();
   DateTime? _dob;
 
@@ -136,6 +136,12 @@ class _SignupFormState extends State<SignupForm> {
     Navigator.of(context).pop();
   }
 
+  void launchWebApp() {
+    final url = Uri.https("csipro-access.vercel.app");
+
+    launchUrl(url);
+  }
+
   Future<bool> _validatePersonalData() async {
     setState(() => _isLoading = true);
 
@@ -195,7 +201,6 @@ class _SignupFormState extends State<SignupForm> {
     final unisonId = unisonIdCtrl.text.trim();
     final passcode = passcodeCtrl.text.trim().toUpperCase();
     final name = nameCtrl.text.trim();
-    final role = roleCtrl.text.trim();
     final room = _room!;
     final dob = _dob!;
     try {
@@ -205,7 +210,6 @@ class _SignupFormState extends State<SignupForm> {
         passcode: passcode,
         dob: dob,
         roomId: room,
-        roleName: role,
       );
     } catch (error) {
       showModal(message: error.toString());
@@ -222,7 +226,6 @@ class _SignupFormState extends State<SignupForm> {
     passcodeCtrl.dispose();
     nameCtrl.dispose();
     dateCtrl.dispose();
-    roleCtrl.dispose();
 
     super.dispose();
   }
@@ -249,36 +252,90 @@ class _SignupFormState extends State<SignupForm> {
   }
 
   Widget buildWelcomePage() {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final size = MediaQuery.of(context).size;
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
+        fit: StackFit.loose,
         children: [
-          Text(
-            "Welcome",
-            style: TextStyle(
-              fontSize: 48.0,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
+          Positioned.fill(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Welcome",
+                  style: TextStyle(
+                    fontSize: 48.0,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8.0),
+                Text(
+                  "It seems you're new here",
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16.0),
+                FilledButton(
+                  onPressed: _nextPage,
+                  child: const Text(
+                    "Get started",
+                    style: TextStyle(fontSize: 20.0),
+                  ),
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8.0),
-          Text(
-            "It seems you're new here",
-            style: TextStyle(
-              fontSize: 18.0,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16.0),
-          FilledButton(
-            onPressed: _nextPage,
-            child: const Text(
-              "Get started",
-              style: TextStyle(fontSize: 20.0),
+          Positioned(
+            bottom: 8.0,
+            width: size.width,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontFamily: "Poppins",
+                    ),
+                    children: [
+                      const TextSpan(text: "Already had a code? "),
+                      TextSpan(
+                        text: "Migrate your user here",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = launchWebApp,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8.0),
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    text: "Log out",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "Poppins",
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () => auth.signOut(),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -302,7 +359,7 @@ class _SignupFormState extends State<SignupForm> {
               focusNode: unisonIdFocus,
               decoration: InputDecoration(
                 prefixIcon: Icon(unisonIdIcon),
-                label: const Text("Unison ID"),
+                label: const Text("UniSon ID"),
                 hintText: "e.g. 217200160",
                 counterText: "",
               ),
@@ -344,6 +401,10 @@ class _SignupFormState extends State<SignupForm> {
                   return "This field is required.";
                 }
 
+                if (value.length < 4) {
+                  return "Your name must be at least 4 characters long.";
+                }
+
                 return null;
               },
             ),
@@ -373,6 +434,16 @@ class _SignupFormState extends State<SignupForm> {
             sizedBox,
             Row(
               children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: !_isLoading ? _previousPage : null,
+                    child: const Text(
+                      "Back",
+                      style: signupButtonTextStyle,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8.0),
                 Expanded(
                   child: FilledButton(
                     onPressed: !_isLoading
@@ -454,33 +525,15 @@ class _SignupFormState extends State<SignupForm> {
                 }
 
                 if (!RegExp(
-                  r"(?=.*[\d])(?=.*[A-D])[\dA-D]{4,8}",
+                  r"(?=.*[\d])(?=.*[A-D])[\dA-D]{4,10}",
                   caseSensitive: false,
                 ).hasMatch(value)) {
-                  return "Must be 4 to 8 characters long and contain at least one number and one letter from A to D.";
+                  return "Must be 4 to 10 characters long and contain at least one number and one letter from A to D.";
                 }
 
                 return null;
               },
               onEditingComplete: () => nameFocus.requestFocus(),
-            ),
-            sizedBox,
-            TextFormField(
-              key: _roleKey,
-              controller: roleCtrl,
-              decoration: InputDecoration(
-                prefixIcon: Icon(roleIcon),
-                label: const Text("Role"),
-              ),
-              autocorrect: false,
-              enabled: false,
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return "This field is required.";
-                }
-
-                return null;
-              },
             ),
             sizedBox,
             RoomField(
@@ -504,7 +557,7 @@ class _SignupFormState extends State<SignupForm> {
                   child: ElevatedButton(
                     onPressed: !_isLoading ? _previousPage : null,
                     child: const Text(
-                      "Go back",
+                      "Back",
                       style: signupButtonTextStyle,
                     ),
                   ),

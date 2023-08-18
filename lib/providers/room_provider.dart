@@ -32,8 +32,6 @@ class RoomProvider with ChangeNotifier {
 
   RoomProvider({AuthProvider? auth, User? authUser, UserModel? user}) {
     setAuthProvider(auth);
-    // setAuthUser(authUser);
-    // setUser(user);
   }
 
   void setAuthProvider(AuthProvider? auth) {
@@ -42,46 +40,24 @@ class RoomProvider with ChangeNotifier {
       _initializeSubs();
     }
 
-    if (_authProvider?.userData == null || _authProvider?.userData == null) {
+    if (auth?.user == null) {
       _roomsSub?.cancel();
       _userRoomsSub?.cancel();
       _selectedRoom = "";
     }
   }
 
-  // void setAuthUser(User? authUser) {
-  //   if (authUser != null) {
-  //     _authUser = authUser;
-  //     _initializeSubs();
-  //   } else {
-  //     _roomsSub?.cancel();
-  //   }
-  // }
-
-  // void setUser(UserModel? user) {
-  //   if (user != null) {
-  //     _user = user;
-  //     _initializeSubs();
-  //   } else {
-  //     _userRoomsSub?.cancel();
-  //   }
-  // }
-
   void _initializeSubs() {
-    if (_authProvider == null) return;
-
     _initializeRoomsSub();
     _initializeUserRoomsSub();
   }
 
   void _initializeRoomsSub() {
-    if (_authProvider == null || _authProvider?.userData == null) return;
-
     _roomsSub = _firestore.collection("rooms").snapshots().listen((rooms) {
       _rooms =
           rooms.docs.map((room) => Room.fromQueryDocSnapshot(room)).toList();
 
-      if (_authProvider!.userData!.isRootUser) {
+      if (_authProvider!.userData?.isRootUser ?? false) {
         _userRooms = _rooms;
       }
       notifyListeners();

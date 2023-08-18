@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:csi_door_logs/models/request.dart';
 import 'package:csi_door_logs/utils/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -173,7 +174,6 @@ class AuthProvider with ChangeNotifier {
     required String passcode,
     required DateTime dob,
     required String roomId,
-    required String roleName,
   }) async {
     try {
       if (await unisonIdExists(unisonId)) {
@@ -183,15 +183,6 @@ class AuthProvider with ChangeNotifier {
       final room = await _firestore.collection("rooms").doc(roomId).get();
       if (!room.exists) {
         throw Exception("Room does not exist");
-      }
-
-      final role = await _firestore
-          .collection("roles")
-          .where("name", isEqualTo: roleName)
-          .limit(1)
-          .get();
-      if (role.docs.isEmpty) {
-        throw Exception("Role does not exist");
       }
 
       if (_authUser == null) {
@@ -228,16 +219,11 @@ class AuthProvider with ChangeNotifier {
         "key": _authUser!.uid,
       });
 
-      await _firestore
-          .collection("user_roles")
-          .doc(_authUser!.uid)
-          .collection("room_roles")
-          .doc(room.id)
-          .set({
-        "key": room.id,
-        "roleId": role.docs.first.reference,
-        "accessGranted": false,
-      });
+      await Request.createRequest(
+        roomId: roomId,
+        userId: _authUser!.uid,
+        message: "Post-sign up request",
+      );
 
       _initializeSubs();
     } on FirebaseAuthException catch (e) {

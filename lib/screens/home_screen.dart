@@ -5,7 +5,6 @@ import "package:provider/provider.dart";
 
 import "package:flutter_secure_storage/flutter_secure_storage.dart";
 
-import "package:csi_door_logs/providers/role_provider.dart";
 import "package:csi_door_logs/providers/room_provider.dart";
 
 import "package:csi_door_logs/screens/screens.dart";
@@ -99,7 +98,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final rooms = Provider.of<RoomProvider>(context);
-    Provider.of<RoleProvider>(context);
 
     return WillPopScope(
       onWillPop: willPopHandler,

@@ -39,7 +39,10 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Container(
                 alignment: Alignment.center,
                 color: Theme.of(context).colorScheme.primary,
-                child: Image.asset("assets/Access_splash.png", height: 300.0),
+                child: Image.asset(
+                  "assets/access_logo_fg.png",
+                  width: size.width * 0.8,
+                ),
               ),
             ),
             AnimatedPositioned(
@@ -49,17 +52,11 @@ class _SignupScreenState extends State<SignupScreen> {
               right: -_transitionValue * size.width,
               top: 0,
               bottom: 0,
-              child: Container(
-                color: Colors.white,
-              ),
+              child: Container(color: Colors.white),
             ),
             const SignupForm(),
           ],
         ),
-
-        // SingleChildScrollView(
-        //   child:
-        // ),
       ),
     );
   }
