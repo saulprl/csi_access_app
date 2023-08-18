@@ -20,6 +20,9 @@ class LogsProvider with ChangeNotifier {
   }
 
   void setRoom({String? roomId}) {
+    _logsSub?.cancel();
+    _currentDayLogsSub?.cancel();
+
     if (roomId != null && roomId.isNotEmpty) {
       _initSubs(roomId);
     } else {
@@ -41,7 +44,9 @@ class LogsProvider with ChangeNotifier {
       final transformedLogs =
           logs.docs.map((log) => AccessLog.fromQueryDocSnapshot(log)).toList();
 
-      for (final _ in transformedLogs) {}
+      if (transformedLogs.any((log) => log.room != roomId)) {
+        return;
+      }
 
       _logs = transformedLogs;
       notifyListeners();
@@ -60,7 +65,9 @@ class LogsProvider with ChangeNotifier {
       final transformedLogs =
           logs.docs.map((log) => AccessLog.fromQueryDocSnapshot(log)).toList();
 
-      for (final _ in transformedLogs) {}
+      if (transformedLogs.any((log) => log.room != roomId)) {
+        return;
+      }
 
       _currentDayLogs = transformedLogs;
       notifyListeners();

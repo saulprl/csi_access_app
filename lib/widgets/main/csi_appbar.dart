@@ -1,3 +1,5 @@
+import "package:csi_door_logs/providers/auth_provider.dart";
+import "package:csi_door_logs/providers/role_provider.dart";
 import "package:flutter/material.dart";
 
 import "package:provider/provider.dart";
@@ -21,12 +23,31 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final rooms = Provider.of<RoomProvider>(context);
+    final isRoot =
+        Provider.of<AuthProvider>(context).userData?.isRootUser ?? false;
+    final hasAccess = Provider.of<RoleProvider>(context).hasAccess;
 
     return AppBar(
       title: Text(
         title,
         style: const TextStyle(color: Colors.white),
       ),
+      bottom: !isRoot
+          ? !hasAccess
+              ? PreferredSize(
+                  preferredSize: const Size(double.infinity, 16.0),
+                  child: Container(
+                    width: double.infinity,
+                    color: Theme.of(context).colorScheme.error,
+                    child: const Text(
+                      "You currently have no access to this room",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                )
+              : null
+          : null,
       actions: [
         if (roomSelector && rooms.userRooms.isNotEmpty)
           PopupMenuButton(

@@ -17,6 +17,7 @@ class RoleProvider with ChangeNotifier {
 
   RoleModel? _userRole;
   List<RoleModel> _roles = [];
+  bool _hasAccess = false;
 
   StreamSubscription? _currentRoleSub;
   StreamSubscription? _rolesSub;
@@ -24,6 +25,7 @@ class RoleProvider with ChangeNotifier {
 
   RoleModel? get userRole => _userRole;
   List<RoleModel> get roles => _roles;
+  bool get hasAccess => _hasAccess;
 
   RoleProvider({
     UserModel? user,
@@ -38,6 +40,10 @@ class RoleProvider with ChangeNotifier {
     String? roomId,
     bool isRoot = false,
   }) {
+    _currentRoleSub?.cancel();
+    _rolesSub?.cancel();
+    _userRolesSub?.cancel();
+
     if (user != null && roomId != null && roomId.isNotEmpty) {
       _initializeSubscriptions(user, roomId, isRoot);
     } else {
@@ -62,6 +68,7 @@ class RoleProvider with ChangeNotifier {
 
     if (room.exists) {
       final roleRef = _firestore.collection("roles").doc(room["roleId"]);
+      _hasAccess = room["accessGranted"] ?? false;
 
       _currentRoleSub = roleRef.snapshots().listen((role) {
         _userRole = RoleModel.fromDocSnapshot(role);
@@ -95,9 +102,9 @@ class RoleProvider with ChangeNotifier {
 
         if (role.level >= 20) {
           await _attemptSubToBirthdaysTopic(doc.id);
-        } else if (_subbedTopics.contains("birthdays_$doc.id")) {
-          await _messaging.unsubscribeFromTopic("birthdays_$doc.id");
-          _subbedTopics.remove("birthdays_$doc.id");
+        } else if (_subbedTopics.contains("birthdays_${doc.id}")) {
+          await _messaging.unsubscribeFromTopic("birthdays_${doc.id}");
+          _subbedTopics.remove("birthdays_${doc.id}");
         }
 
         if (role.canHandleRequests &&
