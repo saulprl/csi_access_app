@@ -102,9 +102,31 @@ class RoleProvider with ChangeNotifier {
 
         if (role.level >= 20) {
           await _attemptSubToBirthdaysTopic(doc.id);
-        } else if (_subbedTopics.contains("birthdays_${doc.id}")) {
-          await _messaging.unsubscribeFromTopic("birthdays_${doc.id}");
-          _subbedTopics.remove("birthdays_${doc.id}");
+
+          if (!_subbedTopics.contains("access_logs_${doc.id}")) {
+            await _messaging.subscribeToTopic("access_logs_${doc.id}");
+            _subbedTopics.add("access_logs_${doc.id}");
+          }
+
+          if (!_subbedTopics.contains("event_logs_${doc.id}")) {
+            await _messaging.subscribeToTopic("event_logs_${doc.id}");
+            _subbedTopics.add("event_logs_${doc.id}");
+          }
+        } else {
+          if (_subbedTopics.contains("birthdays_${doc.id}")) {
+            await _messaging.unsubscribeFromTopic("birthdays_${doc.id}");
+            _subbedTopics.remove("birthdays_${doc.id}");
+          }
+
+          if (_subbedTopics.contains("access_logs_${doc.id}")) {
+            await _messaging.unsubscribeFromTopic("access_logs_${doc.id}");
+            _subbedTopics.remove("access_logs_${doc.id}");
+          }
+
+          if (_subbedTopics.contains("event_logs_${doc.id}")) {
+            await _messaging.unsubscribeFromTopic("event_logs_${doc.id}");
+            _subbedTopics.remove("event_logs_${doc.id}");
+          }
         }
 
         if (role.canHandleRequests &&
