@@ -32,21 +32,19 @@ class CSIAppBar extends StatelessWidget implements PreferredSizeWidget {
         title,
         style: const TextStyle(color: Colors.white),
       ),
-      bottom: !isRoot
-          ? !hasAccess
-              ? PreferredSize(
-                  preferredSize: const Size(double.infinity, 16.0),
-                  child: Container(
-                    width: double.infinity,
-                    color: Theme.of(context).colorScheme.error,
-                    child: const Text(
-                      "You currently have no access to this room",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                )
-              : null
+      bottom: !rooms.isRoomless && !isRoot && !hasAccess
+          ? PreferredSize(
+              preferredSize: const Size(double.infinity, 16.0),
+              child: Container(
+                width: double.infinity,
+                color: Theme.of(context).colorScheme.error,
+                child: const Text(
+                  "You currently have no access to this room",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            )
           : null,
       actions: [
         if (roomSelector && rooms.userRooms.isNotEmpty)

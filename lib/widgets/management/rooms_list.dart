@@ -1,5 +1,6 @@
 import 'package:csi_door_logs/models/request.dart';
 import 'package:csi_door_logs/providers/auth_provider.dart';
+import 'package:csi_door_logs/providers/requests_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
@@ -120,6 +121,22 @@ class _RoomItemState extends State<RoomItem> {
   Room get room => widget.room;
 
   Future<void> _showRequestDialog() async {
+    final userRequests =
+        Provider.of<RequestsProvider>(context, listen: false).userRequests;
+
+    if (userRequests.any((request) {
+      return request.roomId == room.key &&
+          request.status == RequestStatus.pending &&
+          request.createdAt
+              .toDate()
+              .isAfter(DateTime.now().subtract(const Duration(days: 1)));
+    })) {
+      _showErrorDialog(
+          "You already have a pending request for this room. You can submit another request after 24 hours.");
+
+      return;
+    }
+
     final userId =
         Provider.of<AuthProvider>(context, listen: false).userData?.key;
 

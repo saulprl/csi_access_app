@@ -84,6 +84,7 @@ class RoomProvider with ChangeNotifier {
 
       if (_userRooms.isEmpty) {
         _isRoomless = true;
+        _selectedRoom = "";
       } else if (_selectedRoom == "" ||
           !_userRooms.any((room) => room.key == _selectedRoom)) {
         _isRoomless = false;
