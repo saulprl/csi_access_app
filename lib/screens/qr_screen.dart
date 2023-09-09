@@ -150,13 +150,23 @@ class _QRScreenState extends State<QRScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(height: size.height * 0.06),
-                    Text(
-                      "Show your QR code on the scanner",
-                      style: screenSubtitle.copyWith(
-                        fontSize: 18.0,
-                        color: Theme.of(context).colorScheme.primary,
+                    Container(
+                      decoration: BoxDecoration(
+                        border: BorderDirectional(
+                          bottom: BorderSide(
+                            color: Theme.of(context).colorScheme.primary,
+                            width: 2.0,
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
+                      child: Text(
+                        "Show your QR code on the scanner",
+                        style: screenSubtitle.copyWith(
+                          fontSize: 18.0,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                     SizedBox(height: size.height * 0.02),
                     FutureBuilder(
@@ -168,7 +178,6 @@ class _QRScreenState extends State<QRScreen> {
                           return QrImageView(
                             data: encryptedString,
                             version: QrVersions.auto,
-                            gapless: false,
                             eyeStyle: const QrEyeStyle(
                               color: darkColor,
                               eyeShape: QrEyeShape.square,
