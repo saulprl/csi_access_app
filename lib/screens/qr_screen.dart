@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import 'package:steel_crypt/steel_crypt.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -23,6 +24,7 @@ class QRScreen extends StatefulWidget {
 class _QRScreenState extends State<QRScreen> {
   final _storage = const FlutterSecureStorage();
   final _localAuth = LocalAuthentication();
+  final _brightness = ScreenBrightness();
 
   final _encryptionString = dotenv.env["AES_ENCRYPTION_KEY"];
   final _ivValue = dotenv.env["IV_VALUE"];
@@ -31,8 +33,6 @@ class _QRScreenState extends State<QRScreen> {
 
   late Timer _regenTimer;
 
-  String? _identityToe;
-  bool? _rememberIdentity;
   bool _isAuthenticated = false;
   bool _isInit = false;
 
@@ -42,6 +42,7 @@ class _QRScreenState extends State<QRScreen> {
 
     if (!_isInit) {
       _handleAuthentication();
+      _maxBrightness();
 
       _regenTimer = Timer.periodic(qrDuration, (timer) async {
         if (mounted) {
@@ -51,6 +52,10 @@ class _QRScreenState extends State<QRScreen> {
 
       _isInit = true;
     }
+  }
+
+  Future<void> _maxBrightness() async {
+    await _brightness.setScreenBrightness(1.0);
   }
 
   Future<bool> _checkForIdToe() async {
@@ -103,7 +108,6 @@ class _QRScreenState extends State<QRScreen> {
             const Duration(hours: 6),
           )
           .millisecondsSinceEpoch;
-      print(DateTime.fromMillisecondsSinceEpoch(timeOfExpiration));
 
       await _storage.write(
         key: "CSIPRO-ACCESS-ID-TOE",
@@ -125,6 +129,7 @@ class _QRScreenState extends State<QRScreen> {
   @override
   void dispose() {
     _regenTimer.cancel();
+    _brightness.resetScreenBrightness();
 
     super.dispose();
   }

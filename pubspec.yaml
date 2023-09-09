@@ -58,6 +58,7 @@ dependencies:
   google_sign_in: ^6.1.4
   timeago: ^3.5.0
   qr_flutter: ^4.1.0
+  screen_brightness: ^0.2.2+1
 
 dev_dependencies:
   flutter_launcher_icons: ^0.12.0

@@ -111,7 +111,7 @@ class CSIDrawer extends StatelessWidget {
                   "QR Code",
                   Icons.qr_code,
                   () => Navigator.of(context).push(
-                    Routes.pushFromRight(QRScreen()),
+                    Routes.pushFromRight(const QRScreen()),
                   ),
                 ),
               ],
