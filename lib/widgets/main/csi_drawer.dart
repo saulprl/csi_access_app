@@ -1,3 +1,4 @@
+import "package:csi_door_logs/screens/qr_screen.dart";
 import "package:flutter/material.dart";
 
 import "package:provider/provider.dart";
@@ -103,6 +104,14 @@ class CSIDrawer extends StatelessWidget {
                     Routes.pushFromRight(
                       const CSICredentialsScreen(isEdit: true),
                     ),
+                  ),
+                ),
+                _buildTile(
+                  context,
+                  "QR Code",
+                  Icons.qr_code,
+                  () => Navigator.of(context).push(
+                    Routes.pushFromRight(QRScreen()),
                   ),
                 ),
               ],
