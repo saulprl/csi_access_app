@@ -11,6 +11,7 @@ const successColor = Color(0xFF36827F);
 const backgroundColor = Colors.white;
 const onPrimaryColor = Colors.white;
 const onBackgroundColor = Colors.black87;
+const darkColor = Color(0xFF222222);
 
 const iconColor = Colors.white;
 const iconSize = 40.0;
