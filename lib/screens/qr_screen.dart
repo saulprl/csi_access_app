@@ -81,10 +81,9 @@ class _QRScreenState extends State<QRScreen> {
       key: base64.encode(_encryptionString!.codeUnits),
     );
 
-    final encryptedString = base64.encode(
-      cipher.cbc
-          .encrypt(inp: concatenated, iv: base64.encode(_ivValue!.codeUnits))
-          .codeUnits,
+    final encryptedString = cipher.cbc.encrypt(
+      inp: concatenated,
+      iv: base64.encode(_ivValue!.codeUnits),
     );
 
     return encryptedString;
