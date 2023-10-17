@@ -1,3 +1,4 @@
+import "package:csi_door_logs/screens/convenience_home_screen.dart";
 import "package:csi_door_logs/screens/qr_screen.dart";
 import "package:flutter/material.dart";
 
@@ -65,7 +66,9 @@ class CSIDrawer extends StatelessWidget {
                   context,
                   "Dashboard",
                   dashboardIcon,
-                  () {},
+                  () => Navigator.of(context).pushReplacement(
+                    Routes.pushFromRight(const DashboardScreen()),
+                  ),
                 ),
                 _buildTile(
                   context,
@@ -112,6 +115,14 @@ class CSIDrawer extends StatelessWidget {
                   Icons.qr_code,
                   () => Navigator.of(context).push(
                     Routes.pushFromRight(const QRScreen()),
+                  ),
+                ),
+                _buildTile(
+                  context,
+                  "Convenience",
+                  Icons.home,
+                  () => Navigator.of(context).push(
+                    Routes.pushFromRight(const ConvenienceHomeScreen()),
                   ),
                 ),
               ],
