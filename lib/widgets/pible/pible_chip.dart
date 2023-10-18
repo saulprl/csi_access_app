@@ -2,23 +2,22 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:csi_door_logs/models/pible_device.dart';
+import 'package:csi_door_logs/providers/pible_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:steel_crypt/steel_crypt.dart';
 
 class PibleChip extends StatefulWidget {
-  final ScanResult scanItem;
-  final void Function(bool value) onConnect;
-  final bool isConnecting;
+  final PibleDevice pible;
 
   const PibleChip({
-    required this.scanItem,
-    required this.onConnect,
-    required this.isConnecting,
+    required this.pible,
     super.key,
   });
 
@@ -46,12 +45,11 @@ class _PibleChipState extends State<PibleChip> {
   }
 
   Future<void> handleConnection() async {
-    onConnect(true);
+    Provider.of<PibleProvider>(context, listen: false).pauseTimer();
 
     try {
-      await scanItem.device.connect(timeout: const Duration(seconds: 3));
-      List<BluetoothService> services =
-          await scanItem.device.discoverServices();
+      await pible.device.connect(timeout: const Duration(seconds: 3));
+      List<BluetoothService> services = await pible.device.discoverServices();
 
       final service = services.firstWhere(
         (svc) => svc.uuid.toString() == serviceUuid,
@@ -66,8 +64,7 @@ class _PibleChipState extends State<PibleChip> {
       } catch (error) {
         rethrow;
       } finally {
-        await scanItem.device.disconnect();
-        onConnect(false);
+        await pible.device.disconnect();
       }
     } on PlatformException catch (error) {
       debugPrint(error.toString());
@@ -79,7 +76,7 @@ class _PibleChipState extends State<PibleChip> {
       debugPrint(error.toString());
       rethrow;
     } finally {
-      onConnect(false);
+      Provider.of<PibleProvider>(context, listen: false).startTimer();
     }
   }
 
@@ -116,35 +113,36 @@ class _PibleChipState extends State<PibleChip> {
 
   @override
   void dispose() {
-    scanItem.device.disconnect();
-    onConnect(false);
+    pible.device.disconnect();
 
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isConnecting = !Provider.of<PibleProvider>(context).isActive;
+    final isPressable = !isConnecting && pible.hasAccess;
+
     return GestureDetector(
-      onTap: isConnecting ? () {} : handleConnection,
+      onTap: isPressable ? handleConnection : () {},
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8.0),
-          color: isConnecting
-              ? Theme.of(context).colorScheme.tertiary.withOpacity(0.45)
-              : Theme.of(context).colorScheme.tertiary,
+          borderRadius: BorderRadius.circular(4.0),
+          color: isPressable ? Colors.white : Colors.white.withOpacity(0.75),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        padding: const EdgeInsets.all(12.0),
         child: Center(
           child: Text(
-            scanItem.advertisementData.localName.replaceAll("PiBLE-", ""),
-            style: const TextStyle(color: Colors.white),
+            pible.name.replaceAll("PiBLE-", ""),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.tertiary,
+              fontWeight: isPressable ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ),
       ),
     );
   }
 
-  ScanResult get scanItem => widget.scanItem;
-  void Function(bool value) get onConnect => widget.onConnect;
-  bool get isConnecting => widget.isConnecting;
+  PibleDevice get pible => widget.pible;
 }

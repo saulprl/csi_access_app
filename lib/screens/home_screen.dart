@@ -171,42 +171,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
         ),
         floatingActionButton: !rooms.isRoomless ? floatingActionButton : null,
-        bottomSheet: BottomSheet(
-          enableDrag: false,
-          showDragHandle: false,
-          onClosing: () {},
-          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(
-                0.24,
-              ),
-          builder: (ctx) {
-            if (_hasStorage) {
-              return const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(top: 24.0),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        "Nearby rooms",
-                        style: TextStyle(fontSize: 18.0),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                  PibleSlider(),
-                ],
-              );
-            }
+        // bottomSheet: BottomSheet(
+        //   enableDrag: false,
+        //   showDragHandle: false,
+        //   onClosing: () {},
+        //   backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(
+        //         0.24,
+        //       ),
+        //   builder: (ctx) {
+        //     if (_hasStorage) {
+        //       return const Column(
+        //         crossAxisAlignment: CrossAxisAlignment.start,
+        //         mainAxisSize: MainAxisSize.min,
+        //         children: [
+        //           Padding(
+        //             padding: EdgeInsets.only(top: 24.0),
+        //             child: Align(
+        //               alignment: Alignment.center,
+        //               child: Text(
+        //                 "Nearby rooms",
+        //                 style: TextStyle(fontSize: 18.0),
+        //                 textAlign: TextAlign.center,
+        //               ),
+        //             ),
+        //           ),
+        //           PibleSlider(),
+        //         ],
+        //       );
+        //     }
 
-            return const SizedBox(
-              height: 96.0,
-              width: double.infinity,
-              child: Center(child: Text("No access credentials found")),
-            );
-          },
-        ),
+        //     return const SizedBox(
+        //       height: 96.0,
+        //       width: double.infinity,
+        //       child: Center(child: Text("No access credentials found")),
+        //     );
+        //   },
+        // ),
       ),
     );
   }

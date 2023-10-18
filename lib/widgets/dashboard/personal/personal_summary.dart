@@ -38,7 +38,7 @@ class _PersonalSummaryState extends State<PersonalSummary> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        buildDivider(context, "Personal Data"),
+        // buildDivider(context, "Personal Data"),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [successfulBubble(accessed), failedBubble(failed)],
@@ -53,8 +53,8 @@ class _PersonalSummaryState extends State<PersonalSummary> {
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
           borderRadius: const BorderRadius.horizontal(
-            left: Radius.circular(32.0),
-            right: Radius.circular(12.0),
+            left: Radius.circular(8.0),
+            right: Radius.circular(8.0),
           ),
           color: Theme.of(context).colorScheme.primary,
           data: accessed,
@@ -71,10 +71,7 @@ class _PersonalSummaryState extends State<PersonalSummary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          borderRadius: const BorderRadius.horizontal(
-            left: Radius.circular(12.0),
-            right: Radius.circular(32.0),
-          ),
+          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
           color: Theme.of(context).colorScheme.secondary,
           data: failed,
           label: 'your failed\nattempts',

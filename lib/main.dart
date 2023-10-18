@@ -1,3 +1,4 @@
+import "package:csi_door_logs/providers/pible_provider.dart";
 import "package:csi_door_logs/providers/requests_provider.dart";
 import "package:flutter/material.dart";
 import "package:permission_handler/permission_handler.dart";
@@ -76,6 +77,14 @@ class MyApp extends StatelessWidget {
             // room?.setAuthUser(auth.user);
             // room?.setUser(auth.userData);
             return room ?? RoomProvider(auth: auth);
+          },
+        ),
+        ChangeNotifierProxyProvider<RoomProvider, PibleProvider>(
+          create: (ctx) => PibleProvider(),
+          update: (ctx, room, pible) {
+            pible?.setRooms(room.userRooms);
+
+            return pible ?? PibleProvider(rooms: room.userRooms);
           },
         ),
         ChangeNotifierProxyProvider<RoomProvider, RoleProvider>(
