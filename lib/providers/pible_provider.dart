@@ -1,39 +1,42 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:csi_door_logs/models/room.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-
-import 'package:csi_door_logs/models/pible_device.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:csi_door_logs/providers/room_provider.dart';
+import 'package:csi_door_logs/models/pible_device.dart';
+
 class PibleProvider with ChangeNotifier {
+  final _timerDuration = const Duration(seconds: 8);
+  final _scanDuration = const Duration(seconds: 5);
   final _flutterBlue = FlutterBluePlus.instance;
   final _serviceUuid = dotenv.env["SERVICE_UUID"];
 
   Timer? _periodicTimer;
 
-  final List<PibleDevice> _pibles = [];
-  List<Room> _rooms = [];
+  List<PibleDevice> _pibles = [];
   var _emptyResults = 0;
 
-  List<Room> get rooms => [..._rooms];
+  RoomProvider? _rooms;
+
+  RoomProvider? get rooms => _rooms;
   List<PibleDevice> get pibles => [..._pibles];
   Stream<List<ScanResult>> get scanResults => _flutterBlue.scanResults;
   Stream<bool> get isScanning => _flutterBlue.isScanning;
   bool get isActive => _periodicTimer?.isActive ?? false;
 
-  PibleProvider({List<Room>? rooms}) {
-    if (rooms != null && rooms.isNotEmpty) {
-      setRooms(rooms);
+  PibleProvider({RoomProvider? rooms}) {
+    if (rooms != null) {
+      setRoomProvider(rooms);
     }
 
     startTimer();
   }
 
-  void setRooms(List<Room> rooms) {
+  void setRoomProvider(RoomProvider rooms) {
     _rooms = rooms;
     _initScanSub();
 
@@ -46,7 +49,7 @@ class PibleProvider with ChangeNotifier {
     }
 
     _periodicScan();
-    _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _periodicTimer = Timer.periodic(_timerDuration, (_) {
       _periodicScan();
     });
 
@@ -76,7 +79,7 @@ class PibleProvider with ChangeNotifier {
 
     _flutterBlue.startScan(
       scanMode: ScanMode.balanced,
-      timeout: const Duration(seconds: 3),
+      timeout: _scanDuration,
       withServices: [Guid(_serviceUuid!)],
     );
   }
@@ -84,7 +87,11 @@ class PibleProvider with ChangeNotifier {
   void _initScanSub() {
     _flutterBlue.scanResults.skip(1).listen(
       (results) {
-        if (_emptyResults >= 3) {
+        if (_rooms == null) {
+          return;
+        }
+
+        if (_emptyResults >= 2) {
           _emptyResults = 0;
           _pibles.clear();
           notifyListeners();
@@ -97,31 +104,36 @@ class PibleProvider with ChangeNotifier {
           return;
         }
 
-        for (final result in results) {
-          if (_pibles.any((pible) => pible.device.id == result.device.id)) {
-            return;
-          }
+        // for (final result in results) {
+        //   if (_pibles.any(
+        //       (pible) => pible.name == result.advertisementData.localName)) {
+        //     return;
+        //   }
 
-          _pibles.add(
-            PibleDevice(
-              name: result.advertisementData.localName,
-              device: result.device,
-              hasAccess: rooms.any(
-                (room) =>
-                    room.name ==
-                    result.advertisementData.localName.replaceAll("PiBLE-", ""),
+        // _pibles.add(
+        //   PibleDevice(
+        //     name: result.advertisementData.localName,
+        //     device: result.device,
+        //     hasAccess: _rooms!.accessibleRooms.any(
+        //       (room) => result.advertisementData.localName.contains(room.name),
+        //     ),
+        //   ),
+        // );
+
+        _pibles = results
+            .map(
+              (result) => PibleDevice(
+                device: result.device,
+                name: result.advertisementData.localName,
+                hasAccess: _rooms!.accessibleRooms.any(
+                  (room) =>
+                      result.advertisementData.localName.contains(room.name),
+                ),
               ),
-            ),
-          );
-
-          _pibles.sort((a, b) => a.name.compareTo(b.name));
-          notifyListeners();
-        }
-
-        _pibles.removeWhere(
-          (pible) =>
-              !results.any((result) => result.device.id == pible.device.id),
-        );
+            )
+            .toList();
+        _pibles.sort((a, b) => a.name.compareTo(b.name));
+        // }
 
         notifyListeners();
       },

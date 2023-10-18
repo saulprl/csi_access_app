@@ -82,9 +82,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<RoomProvider, PibleProvider>(
           create: (ctx) => PibleProvider(),
           update: (ctx, room, pible) {
-            pible?.setRooms(room.userRooms);
+            pible?.setRoomProvider(room);
 
-            return pible ?? PibleProvider(rooms: room.userRooms);
+            return pible ?? PibleProvider(rooms: room);
           },
         ),
         ChangeNotifierProxyProvider<RoomProvider, RoleProvider>(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:csi_door_logs/models/room_role.dart';
 import 'package:csi_door_logs/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,7 @@ class RoomProvider with ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Room> _rooms = [];
   List<Room> _userRooms = [];
+  List<Room> _accessibleRooms = [];
   String _selectedRoom = "";
   bool _isRoomless = false;
   // User? _authUser;
@@ -25,8 +27,9 @@ class RoomProvider with ChangeNotifier {
 
   // UserModel? get user => _user;
   AuthProvider? get authProvider => _authProvider;
-  List<Room> get rooms => _rooms;
-  List<Room> get userRooms => _userRooms;
+  List<Room> get rooms => [..._rooms];
+  List<Room> get userRooms => [..._userRooms];
+  List<Room> get accessibleRooms => [..._accessibleRooms];
   String get selectedRoom => _selectedRoom;
   bool get isRoomless => _isRoomless;
 
@@ -73,13 +76,27 @@ class RoomProvider with ChangeNotifier {
         .collection("room_roles")
         .snapshots()
         .listen((userRooms) {
+      final roomRoles = userRooms.docs
+          .map((doc) => RoomRole.fromQueryDocSnapshot(doc))
+          .toList();
       final userRoomIds = userRooms.docs.map((room) => room.id).toList();
 
       if (_authProvider?.userData?.isRootUser ?? false) {
-        _userRooms = _rooms;
+        _userRooms = [..._rooms];
+        _accessibleRooms = [..._rooms];
       } else {
         _userRooms =
             _rooms.where((room) => userRoomIds.contains(room.key)).toList();
+
+        _accessibleRooms = _rooms.where(
+          (room) {
+            final access = roomRoles.any(
+              (role) => room.key == role.key && role.accessGranted,
+            );
+
+            return access;
+          },
+        ).toList();
       }
 
       if (_userRooms.isEmpty) {
@@ -127,6 +144,10 @@ class RoomProvider with ChangeNotifier {
           .doc(_authProvider!.userData!.key)
           .collection("room_roles")
           .get();
+
+      final roomRoles = userRooms.docs
+          .map((doc) => RoomRole.fromQueryDocSnapshot(doc))
+          .toList();
       final userRoomIds = userRooms.docs.map((room) => room.id).toList();
 
       final roomsSnapshot = await _firestore.collection("rooms").get();
@@ -140,9 +161,18 @@ class RoomProvider with ChangeNotifier {
 
       if (_authProvider?.userData?.isRootUser ?? false) {
         _userRooms = _rooms;
+        _accessibleRooms = [..._rooms];
       } else {
         _userRooms =
             roomsData.map((room) => Room.fromQueryDocSnapshot(room)).toList();
+
+        _accessibleRooms = _rooms
+            .where(
+              (room) => roomRoles.any(
+                (role) => room.key == role.key && role.accessGranted,
+              ),
+            )
+            .toList();
       }
 
       if (_userRooms.isEmpty) {

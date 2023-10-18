@@ -5,13 +5,19 @@ class Room {
   final String name;
   final String building;
   final String room;
+  bool? isAccessible;
 
   Room({
     required this.key,
     required this.name,
     required this.building,
     required this.room,
+    this.isAccessible,
   });
+
+  void setIsAccessible(bool isAccessible) {
+    this.isAccessible = isAccessible;
+  }
 
   Room.fromDocSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot)
       : key = snapshot.id,
