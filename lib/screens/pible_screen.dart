@@ -3,6 +3,7 @@ import "dart:convert";
 import "dart:io";
 import "dart:math";
 
+import "package:csi_door_logs/providers/pible_provider.dart";
 import "package:csi_door_logs/providers/room_provider.dart";
 import "package:csi_door_logs/utils/enums.dart";
 import "package:csi_door_logs/widgets/main/csi_appbar.dart";
@@ -55,18 +56,28 @@ class _PibleScreenState extends State<PibleScreen> {
   @override
   void didChangeDependencies() {
     if (!_isInit) {
-      flutterBlue.isOn.then((value) => setState(() => isBluetoothOn = value));
-      scanningSub = flutterBlue.isScanning.listen(
-        (state) => setState(() => isScanning = state),
-      );
+      flutterBlue.isOn.then((value) {
+        if (mounted) {
+          setState(() => isBluetoothOn = value);
+        }
+      });
+      scanningSub = flutterBlue.isScanning.listen((state) {
+        if (mounted) {
+          setState(() => isScanning = state);
+        }
+      });
 
       // Discover devices
-      discoverDevices();
+      _discoverDevices();
 
       _isInit = true;
     }
 
     super.didChangeDependencies();
+  }
+
+  void restartTimer() {
+    Provider.of<PibleProvider>(context, listen: false).startTimer();
   }
 
   void popBack() {
@@ -76,6 +87,8 @@ class _PibleScreenState extends State<PibleScreen> {
   }
 
   void schedulePopBack({int seconds = 2}) {
+    restartTimer();
+
     Future.delayed(
       Duration(seconds: seconds),
       () => popBack(),
@@ -94,11 +107,12 @@ class _PibleScreenState extends State<PibleScreen> {
     await scanResultsSub?.cancel();
     await deviceStateSub?.cancel();
 
-    discoverDevices();
+    _discoverDevices();
   }
 
   Future<void> discoverDevices() async {
     final roomsProvider = Provider.of<RoomProvider>(context, listen: false);
+    final pibleProvider = Provider.of<PibleProvider>(context, listen: false);
     final rooms = roomsProvider.userRooms;
 
     if (roomsProvider.selectedRoom.isEmpty || rooms.isEmpty) {
@@ -145,8 +159,9 @@ class _PibleScreenState extends State<PibleScreen> {
 
             pible = scanResult.device;
             pible!.connect(timeout: const Duration(seconds: 3));
+            pibleProvider.pauseTimer();
             Future.delayed(
-              const Duration(seconds: 3),
+              const Duration(seconds: 2),
               () => setState(() => canRescan = true),
             );
 
@@ -169,6 +184,77 @@ class _PibleScreenState extends State<PibleScreen> {
               if (error.code != "already_connected") {
                 rethrow;
               }
+            } finally {
+              restartTimer();
+            }
+          }
+        }
+      }
+    });
+  }
+
+  Future<void> _discoverDevices() async {
+    final roomsProvider = Provider.of<RoomProvider>(context, listen: false);
+    final pibleProvider = Provider.of<PibleProvider>(context, listen: false);
+    final rooms = roomsProvider.userRooms;
+
+    if (roomsProvider.selectedRoom.isEmpty || rooms.isEmpty) {
+      popBack();
+    }
+
+    final room = rooms.firstWhere(
+      (room) => room.key == roomsProvider.selectedRoom,
+    );
+
+    if (Platform.isAndroid) {
+      if (await Permission.bluetoothConnect.isGranted && !isBluetoothOn) {
+        flutterBlue.turnOn();
+      } else if (!isBluetoothOn) {
+        PermissionStatus status = await Permission.bluetoothConnect.request();
+        if (status == PermissionStatus.granted) {
+          flutterBlue.turnOn();
+        }
+      }
+    }
+
+    if (!await Permission.locationWhenInUse.isGranted) {
+      PermissionStatus status = await Permission.locationWhenInUse.request();
+      if (status == PermissionStatus.denied) {
+        popBack();
+      }
+    }
+
+    scanResultsSub = pibleProvider.scanResults.skip(1).listen((result) {
+      for (final scanResult in result) {
+        // debugPrint("Advertisement data: ${scanResult.advertisementData}");
+        if (scanResult.advertisementData.localName.contains(room.name) &&
+            scanResult.advertisementData.connectable) {
+          if (mounted) {
+            try {
+              pible = scanResult.device;
+              pible!.connect(timeout: const Duration(seconds: 3));
+              pibleProvider.pauseTimer();
+
+              deviceStateSub = pible!.state.listen(
+                (state) {
+                  if (mounted) {
+                    debugPrint("device_state -> $state");
+                    setState(() => deviceState = state);
+                  }
+
+                  if (state == BluetoothDeviceState.connected) {
+                    handleConnection();
+                  }
+                },
+              );
+            } on PlatformException catch (error) {
+              debugPrint("Error code: ${error.code}");
+
+              if (error.code != "already_connected") {
+                rethrow;
+              }
+            } finally {
+              restartTimer();
             }
           }
         }
@@ -190,7 +276,8 @@ class _PibleScreenState extends State<PibleScreen> {
 
       if (!await handleAuthentication()) {
         setState(() => authState = LocalAuthState.failed);
-        popBack();
+        schedulePopBack();
+        return;
       }
       setState(() => authState = LocalAuthState.done);
 
@@ -252,10 +339,6 @@ class _PibleScreenState extends State<PibleScreen> {
 
   @override
   void dispose() {
-    if (isScanning) {
-      flutterBlue.stopScan();
-    }
-
     scanningSub?.cancel();
     scanResultsSub?.cancel();
     deviceStateSub?.cancel();
@@ -278,9 +361,10 @@ class _PibleScreenState extends State<PibleScreen> {
               BluetoothBubble(isBluetoothOn: isBluetoothOn),
               ScanningBubble(
                 isScanning: isScanning,
-                onTap: !isScanning && pible == null || canRescan
-                    ? _restartScan
-                    : null,
+                onTap: null,
+                // !isScanning && pible == null || canRescan
+                //     ? _restartScan
+                //     : null,
               ),
               DeviceBubble(state: deviceState),
               ServicesBubble(state: servicesState),

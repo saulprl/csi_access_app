@@ -23,9 +23,9 @@ class DeviceBubble extends StatelessWidget {
       case BluetoothDeviceState.connecting:
         return Theme.of(context).colorScheme.tertiary.withOpacity(0.7);
       case BluetoothDeviceState.disconnected:
-        return deepGray;
+        return darkColor;
       case BluetoothDeviceState.disconnecting:
-        return deepGray.withOpacity(0.7);
+        return darkColor.withOpacity(0.7);
     }
   }
 

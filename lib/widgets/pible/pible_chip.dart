@@ -48,7 +48,7 @@ class _PibleChipState extends State<PibleChip> {
     Provider.of<PibleProvider>(context, listen: false).pauseTimer();
 
     try {
-      await pible.device.connect(timeout: const Duration(seconds: 3));
+      await pible.device.connect(timeout: const Duration(seconds: 4));
       List<BluetoothService> services = await pible.device.discoverServices();
 
       final service = services.firstWhere(

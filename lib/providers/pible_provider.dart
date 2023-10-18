@@ -57,6 +57,7 @@ class PibleProvider with ChangeNotifier {
   }
 
   void pauseTimer() {
+    _flutterBlue.stopScan();
     _periodicTimer?.cancel();
     notifyListeners();
   }
@@ -104,22 +105,6 @@ class PibleProvider with ChangeNotifier {
           return;
         }
 
-        // for (final result in results) {
-        //   if (_pibles.any(
-        //       (pible) => pible.name == result.advertisementData.localName)) {
-        //     return;
-        //   }
-
-        // _pibles.add(
-        //   PibleDevice(
-        //     name: result.advertisementData.localName,
-        //     device: result.device,
-        //     hasAccess: _rooms!.accessibleRooms.any(
-        //       (room) => result.advertisementData.localName.contains(room.name),
-        //     ),
-        //   ),
-        // );
-
         _pibles = results
             .map(
               (result) => PibleDevice(
@@ -133,7 +118,6 @@ class PibleProvider with ChangeNotifier {
             )
             .toList();
         _pibles.sort((a, b) => a.name.compareTo(b.name));
-        // }
 
         notifyListeners();
       },

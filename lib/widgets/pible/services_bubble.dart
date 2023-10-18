@@ -23,7 +23,7 @@ class ServicesBubble extends StatelessWidget {
       case BTServiceState.done:
         return Theme.of(context).colorScheme.tertiary;
       case BTServiceState.failed:
-        return deepGray;
+        return darkColor;
     }
   }
 

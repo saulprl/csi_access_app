@@ -14,7 +14,7 @@ class BluetoothBubble extends StatelessWidget {
 
     return PibleBubble(
       backgroundColor:
-          isBluetoothOn ? Theme.of(context).colorScheme.tertiary : deepGray,
+          isBluetoothOn ? Theme.of(context).colorScheme.tertiary : darkColor,
       children: [
         CustomSwitcher(
           transitionBuilder: (child, animation) {

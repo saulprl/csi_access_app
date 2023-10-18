@@ -23,7 +23,7 @@ class EncryptionBubble extends StatelessWidget {
       case EncryptionState.done:
         return Theme.of(context).colorScheme.tertiary;
       case EncryptionState.failed:
-        return deepGray;
+        return darkColor;
     }
   }
 

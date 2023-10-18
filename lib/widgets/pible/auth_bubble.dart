@@ -23,7 +23,7 @@ class AuthBubble extends StatelessWidget {
       case LocalAuthState.done:
         return Theme.of(context).colorScheme.tertiary;
       case LocalAuthState.failed:
-        return deepGray;
+        return darkColor;
     }
   }
 
