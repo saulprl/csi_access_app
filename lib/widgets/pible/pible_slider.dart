@@ -1,10 +1,12 @@
-import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
+import 'package:csi_door_logs/screens/csi_credentials_screen.dart';
+import 'package:csi_door_logs/utils/routes.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:csi_door_logs/providers/pible_provider.dart';
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
 import 'package:csi_door_logs/widgets/pible/pible_chip.dart';
 import 'package:csi_door_logs/utils/styles.dart';
 
@@ -16,29 +18,43 @@ class PibleSlider extends StatefulWidget {
 }
 
 class _PibleSliderState extends State<PibleSlider> {
-  final flutterBlue = FlutterBluePlus.instance;
-
   final serviceUuid = dotenv.env["SERVICE_UUID"];
+  final _storage = const FlutterSecureStorage();
+
+  var _isLoading = false;
+  var _hasStorage = false;
 
   @override
   void initState() {
-    // discoverDevices();
-    // Timer.periodic(const Duration(seconds: 5), (_) {
-    //   if (_isConnecting) {
-    //     return;
-    //   }
-
-    //   discoverDevices();
-    // });
-
     super.initState();
+
+    _readStorage();
   }
 
-  @override
-  void dispose() {
-    flutterBlue.stopScan();
+  Future<void> _readStorage() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    super.dispose();
+    final storage = await _storage.readAll();
+    if (storage.isNotEmpty) {
+      if (mounted) {
+        setState(() {
+          _hasStorage = storage.containsKey("CSIPRO-PASSCODE");
+          _isLoading = false;
+        });
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _hasStorage = false;
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -49,39 +65,65 @@ class _PibleSliderState extends State<PibleSlider> {
       children: [
         SizedBox(
           height: 48.0,
-          child: pibleProvider.pibles.isNotEmpty
-              ? ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  scrollDirection: Axis.horizontal,
-                  physics: const ClampingScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: pibleProvider.pibles.length,
-                  itemBuilder: (ctx, index) {
-                    final items = [...pibleProvider.pibles];
-                    items.sort(
-                      (a, b) => a.name.compareTo(b.name),
-                    );
+          child: _isLoading
+              ? null
+              : _hasStorage
+                  ? pibleProvider.pibles.isNotEmpty
+                      ? ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          scrollDirection: Axis.horizontal,
+                          physics: const ClampingScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: pibleProvider.pibles.length,
+                          itemBuilder: (ctx, index) {
+                            final items = [...pibleProvider.pibles];
+                            items.sort(
+                              (a, b) => a.name.compareTo(b.name),
+                            );
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: PibleChip(pible: items[index]),
-                    );
-                  },
-                )
-              : Center(
-                  child: Text(
-                    "no nearby rooms",
-                    style: pibleBubbleTextStyle.copyWith(
-                      fontWeight: FontWeight.normal,
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: PibleChip(
+                                pible: items[index],
+                                key: ValueKey(items[index].name),
+                              ),
+                            );
+                          },
+                        )
+                      : Center(
+                          child: Text(
+                            "no nearby rooms",
+                            style: pibleBubbleTextStyle.copyWith(
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        )
+                  : Center(
+                      child: FilledButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                        onPressed: () async {
+                          await Navigator.of(context).push(
+                            Routes.pushFromRight(const CSICredentialsScreen()),
+                          );
+                          _readStorage();
+                        },
+                        child: Text(
+                          "Finish setup",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
         ),
-        if (!pibleProvider.isActive)
-          Center(
-            child: AdaptiveSpinner(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+        if (!pibleProvider.isActive || _isLoading)
+          const Center(
+            child: AdaptiveSpinner(),
           ),
       ],
     );

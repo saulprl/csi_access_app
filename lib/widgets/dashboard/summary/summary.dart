@@ -1,17 +1,16 @@
-import 'package:csi_door_logs/providers/pible_provider.dart';
-import 'package:csi_door_logs/widgets/pible/pible_slider.dart';
 import "package:flutter/material.dart";
 
 import 'package:provider/provider.dart';
 
 import 'package:csi_door_logs/providers/logs_provider.dart';
+import 'package:csi_door_logs/providers/pible_provider.dart';
 import 'package:csi_door_logs/providers/room_provider.dart';
 
 import 'package:csi_door_logs/widgets/dashboard/summary/bubble.dart';
+import 'package:csi_door_logs/widgets/main/adaptive_spinner.dart';
+import 'package:csi_door_logs/widgets/pible/pible_slider.dart';
 
 import 'package:csi_door_logs/models/access_log.dart';
-
-import 'package:csi_door_logs/utils/utils.dart';
 
 class Summary extends StatefulWidget {
   const Summary({super.key});
@@ -114,28 +113,58 @@ class _SummaryState extends State<Summary> {
                                 ),
                                 borderRadius: BorderRadius.circular(4.0),
                               ),
-                              padding: const EdgeInsets.all(4.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
                               child: Center(
                                 child: StreamBuilder(
                                   stream: pibleProvider.isScanning,
                                   builder: (context, snapshot) {
                                     if (snapshot.hasData) {
                                       if (snapshot.data!) {
-                                        return const Text(
-                                          "Scanning",
-                                          style: TextStyle(color: Colors.white),
+                                        return const Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            SizedBox(
+                                              width: 12.0,
+                                              height: 12.0,
+                                              child: AdaptiveSpinner(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            SizedBox(width: 4.0),
+                                            Text(
+                                              "scanning",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ],
                                         );
                                       } else if (!pibleProvider.isActive) {
                                         return const Text(
-                                          "Connecting",
+                                          "connecting",
                                           style: TextStyle(color: Colors.white),
                                         );
                                       }
                                     }
 
-                                    return const Text(
-                                      "Stopped",
-                                      style: TextStyle(color: Colors.white),
+                                    return const Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.stop,
+                                          color: Colors.white,
+                                          size: 12.0,
+                                        ),
+                                        SizedBox(width: 4.0),
+                                        Text(
+                                          "stopped",
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ],
                                     );
                                   },
                                 ),

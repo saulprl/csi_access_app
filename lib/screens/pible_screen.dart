@@ -224,62 +224,83 @@ class _PibleScreenState extends State<PibleScreen> {
       }
     }
 
+    for (final pibleDev in pibleProvider.pibles) {
+      if (pibleDev.name.contains(room.name)) {
+        if (mounted) {
+          connect(pibleDev.device);
+        }
+      }
+    }
+
     scanResultsSub = pibleProvider.scanResults.skip(1).listen((result) {
       for (final scanResult in result) {
         // debugPrint("Advertisement data: ${scanResult.advertisementData}");
         if (scanResult.advertisementData.localName.contains(room.name) &&
             scanResult.advertisementData.connectable) {
           if (mounted) {
-            try {
-              pible = scanResult.device;
-              pible!.connect(timeout: const Duration(seconds: 3));
-              pibleProvider.pauseTimer();
-
-              deviceStateSub = pible!.state.listen(
-                (state) {
-                  if (mounted) {
-                    debugPrint("device_state -> $state");
-                    setState(() => deviceState = state);
-                  }
-
-                  if (state == BluetoothDeviceState.connected) {
-                    handleConnection();
-                  }
-                },
-              );
-            } on PlatformException catch (error) {
-              debugPrint("Error code: ${error.code}");
-
-              if (error.code != "already_connected") {
-                rethrow;
-              }
-            } finally {
-              restartTimer();
-            }
+            pible = scanResult.device;
+            connect(scanResult.device);
           }
         }
       }
     });
   }
 
+  void connect(BluetoothDevice pible) {
+    final pibleProvider = Provider.of<PibleProvider>(context, listen: false);
+
+    try {
+      this.pible = pible;
+      pible.connect();
+      pibleProvider.pauseTimer();
+
+      deviceStateSub = pible.state.listen(
+        (state) {
+          if (mounted) {
+            debugPrint("device_state -> $state");
+            setState(() => deviceState = state);
+          }
+
+          if (state == BluetoothDeviceState.connected) {
+            handleConnection();
+          }
+        },
+      );
+    } on PlatformException catch (error) {
+      debugPrint("Error code: ${error.code}");
+
+      if (error.code != "already_connected") {
+        rethrow;
+      }
+    } finally {
+      restartTimer();
+    }
+  }
+
   Future<void> handleConnection() async {
     try {
       if (pible == null) return;
 
-      setState(() => servicesState = BTServiceState.discovering);
+      if (mounted) {
+        setState(() => servicesState = BTServiceState.discovering);
+      }
       List<BluetoothService> services = await pible!.discoverServices();
 
       final service = services.firstWhere(
         (svc) => svc.uuid.toString() == serviceUuid,
       );
-      setState(() => servicesState = BTServiceState.done);
+      if (mounted) {
+        setState(() => servicesState = BTServiceState.done);
+      }
 
       if (!await handleAuthentication()) {
         setState(() => authState = LocalAuthState.failed);
         schedulePopBack();
         return;
       }
-      setState(() => authState = LocalAuthState.done);
+      if (mounted) {
+        setState(() => authState = LocalAuthState.done);
+      }
 
       try {
         await encryptData(service);

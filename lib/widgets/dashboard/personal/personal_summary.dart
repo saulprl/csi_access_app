@@ -7,8 +7,6 @@ import "package:csi_door_logs/providers/logs_provider.dart";
 
 import "package:csi_door_logs/widgets/dashboard/summary/bubble.dart";
 
-import "package:csi_door_logs/utils/utils.dart";
-
 class PersonalSummary extends StatefulWidget {
   const PersonalSummary({super.key});
 

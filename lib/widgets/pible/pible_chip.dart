@@ -48,7 +48,7 @@ class _PibleChipState extends State<PibleChip> {
     Provider.of<PibleProvider>(context, listen: false).pauseTimer();
 
     try {
-      await pible.device.connect(timeout: const Duration(seconds: 4));
+      await pible.device.connect(timeout: const Duration(seconds: 5));
       List<BluetoothService> services = await pible.device.discoverServices();
 
       final service = services.firstWhere(
@@ -82,7 +82,8 @@ class _PibleChipState extends State<PibleChip> {
 
   Future<bool> handleAuthentication() async {
     return await localAuth.authenticate(
-      localizedReason: "PiBLE requires authentication in order to continue.",
+      localizedReason:
+          "${pible.name} requires authentication in order to access.",
     );
   }
 

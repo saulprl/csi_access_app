@@ -170,7 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
         ),
-        floatingActionButton: !rooms.isRoomless ? floatingActionButton() : null,
+        // floatingActionButton: !rooms.isRoomless ? floatingActionButton() : null,
       ),
     );
   }
@@ -181,10 +181,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (details.delta.dx > 3) {
           Scaffold.of(ctx).openDrawer();
         }
-
-        if (details.delta.dx < -7 && !_isLoading) {
-          onAttemptAccess();
-        }
       },
       child: dashboardContent,
     );
@@ -192,7 +188,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Padding get dashboardContent {
     return const Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(4.0),
       child: Stack(
         children: [
           Column(
@@ -200,7 +196,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Summary(),
               PersonalSummary(),
-              SizedBox(height: 180.0),
+              SizedBox(height: 100.0),
             ],
           ),
         ],
