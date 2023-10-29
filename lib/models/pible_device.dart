@@ -12,6 +12,10 @@ class PibleDevice {
   });
 
   Future<void> connect() async {
-    await device.connect(timeout: const Duration(seconds: 3));
+    await device.connect(timeout: const Duration(seconds: 4));
+  }
+
+  Future<void> disconnect() async {
+    await device.disconnect();
   }
 }

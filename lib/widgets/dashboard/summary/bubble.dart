@@ -19,7 +19,7 @@ class Bubble extends StatefulWidget {
     required this.color,
     // required this.child,
     this.crossAlignment = CrossAxisAlignment.start,
-    this.padding = const EdgeInsets.all(24.0),
+    this.padding = const EdgeInsets.all(16.0),
     this.textAlign = TextAlign.start,
     this.reversed = false,
     this.duration = const Duration(milliseconds: 750),

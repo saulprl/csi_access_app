@@ -48,23 +48,23 @@ class _PibleChipState extends State<PibleChip> {
     Provider.of<PibleProvider>(context, listen: false).pauseTimer();
 
     try {
-      await pible.device.connect(timeout: const Duration(seconds: 5));
-      List<BluetoothService> services = await pible.device.discoverServices();
+      await pible.connect();
+      // List<BluetoothService> services = await pible.device.discoverServices();
 
-      final service = services.firstWhere(
-        (svc) => svc.uuid.toString() == serviceUuid,
-      );
+      // final service = services.firstWhere(
+      //   (svc) => svc.uuid.toString() == serviceUuid,
+      // );
 
       if (!await handleAuthentication()) {
         return;
       }
 
       try {
-        await encryptData(service);
+        // await encryptData(service);
       } catch (error) {
         rethrow;
       } finally {
-        await pible.device.disconnect();
+        await pible.disconnect();
       }
     } on PlatformException catch (error) {
       debugPrint(error.toString());
@@ -114,7 +114,7 @@ class _PibleChipState extends State<PibleChip> {
 
   @override
   void dispose() {
-    pible.device.disconnect();
+    pible.disconnect();
 
     super.dispose();
   }
@@ -124,22 +124,32 @@ class _PibleChipState extends State<PibleChip> {
     final isConnecting = !Provider.of<PibleProvider>(context).isActive;
     final isPressable = !isConnecting && pible.hasAccess;
 
-    return GestureDetector(
-      onTap: isPressable ? handleConnection : () {},
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4.0),
-          color: isPressable ? Colors.white : Colors.white.withOpacity(0.75),
-        ),
-        padding: const EdgeInsets.all(12.0),
-        child: Center(
-          child: Text(
-            pible.name.replaceAll("PiBLE-", ""),
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.tertiary,
-              fontWeight: isPressable ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
+    // return GestureDetector(
+    //   onTap: isPressable ? handleConnection : () {},
+    //   child: Container(
+    //     decoration: BoxDecoration(
+    //       borderRadius: BorderRadius.circular(4.0),
+    //       color: isPressable ? Colors.white : Colors.white.withOpacity(0.75),
+    //     ),
+    //     padding: const EdgeInsets.all(12.0),
+    //     child: Center(
+    //       child: Text(
+    //         pible.name.replaceAll("PiBLE-", ""),
+    //         style: TextStyle(
+    //           color: Theme.of(context).colorScheme.tertiary,
+    //           fontWeight: isPressable ? FontWeight.bold : FontWeight.normal,
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // );
+    return ElevatedButton(
+      onPressed: isPressable ? handleConnection : () {},
+      child: Text(
+        pible.name.replaceAll("PiBLE-", ""),
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.tertiary,
+          fontWeight: isPressable ? FontWeight.bold : FontWeight.normal,
         ),
       ),
     );

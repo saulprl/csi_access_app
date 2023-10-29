@@ -77,9 +77,6 @@ class _PibleSliderState extends State<PibleSlider> {
                           itemCount: pibleProvider.pibles.length,
                           itemBuilder: (ctx, index) {
                             final items = [...pibleProvider.pibles];
-                            items.sort(
-                              (a, b) => a.name.compareTo(b.name),
-                            );
 
                             return Padding(
                               padding:
@@ -121,7 +118,8 @@ class _PibleSliderState extends State<PibleSlider> {
                       ),
                     ),
         ),
-        if (!pibleProvider.isActive || _isLoading)
+        if ((!pibleProvider.isActive && pibleProvider.isConnecting) ||
+            _isLoading)
           const Center(
             child: AdaptiveSpinner(),
           ),

@@ -95,94 +95,130 @@ class _SummaryState extends State<Summary> {
                     color: Theme.of(context).colorScheme.tertiary,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 32.0, left: 12.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2.0,
-                                ),
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
-                              ),
-                              child: Center(
-                                child: StreamBuilder(
-                                  stream: pibleProvider.isScanning,
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      if (snapshot.data!) {
-                                        return const Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.center,
-                                          children: [
-                                            SizedBox(
-                                              width: 12.0,
-                                              height: 12.0,
-                                              child: AdaptiveSpinner(
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                            SizedBox(width: 4.0),
-                                            Text(
-                                              "scanning",
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                          ],
-                                        );
-                                      } else if (!pibleProvider.isActive) {
-                                        return const Text(
-                                          "connecting",
-                                          style: TextStyle(color: Colors.white),
-                                        );
-                                      }
-                                    }
-
-                                    return const Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.stop,
-                                          color: Colors.white,
-                                          size: 12.0,
-                                        ),
-                                        SizedBox(width: 4.0),
-                                        Text(
-                                          "stopped",
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            const Text(
-                              "nearby rooms",
-                              style: TextStyle(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
                                 color: Colors.white,
-                                fontSize: 20.0,
-                                overflow: TextOverflow.clip,
+                                width: 2.0,
+                              ),
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 4.0,
+                            ),
+                            child: Center(
+                              child: StreamBuilder(
+                                stream: pibleProvider.isScanning,
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    if (snapshot.data!) {
+                                      return const Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 12.0,
+                                            height: 12.0,
+                                            child: AdaptiveSpinner(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4.0),
+                                          Text(
+                                            "scanning",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ],
+                                      );
+                                    } else if (!pibleProvider.isActive &&
+                                        pibleProvider.isConnecting) {
+                                      return const Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 12.0,
+                                            height: 12.0,
+                                            child: AdaptiveSpinner(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(width: 4.0),
+                                          Text(
+                                            "connecting",
+                                            style:
+                                                TextStyle(color: Colors.white),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                  }
+
+                                  return const Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.stop,
+                                        color: Colors.white,
+                                        size: 12.0,
+                                      ),
+                                      SizedBox(width: 4.0),
+                                      Text(
+                                        "stopped",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const Text(
+                            "nearby rooms",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20.0,
+                              overflow: TextOverflow.clip,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12.0),
                       const PibleSlider(),
+                      const SizedBox(height: 12.0),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          onPressed: pibleProvider.isActive
+                              ? pibleProvider.pauseTimer
+                              : pibleProvider.startTimer,
+                          style: ButtonStyle(
+                            side: MaterialStateProperty.all<BorderSide>(
+                              const BorderSide(
+                                color: Colors.white,
+                                width: 2.0,
+                              ),
+                            ),
+                          ),
+                          icon: Icon(
+                            pibleProvider.isActive
+                                ? Icons.pause
+                                : Icons.play_arrow,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -206,10 +242,6 @@ class _SummaryState extends State<Summary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32.0,
-            vertical: 16.0,
-          ),
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
           color: Theme.of(context).colorScheme.primary,
           data: accessCount,
@@ -227,10 +259,6 @@ class _SummaryState extends State<Summary> {
       child: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Bubble(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32.0,
-            vertical: 16.0,
-          ),
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
           color: Theme.of(context).colorScheme.tertiary,
           data: bluetoothCount,

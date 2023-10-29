@@ -10,12 +10,13 @@ import 'package:csi_door_logs/providers/room_provider.dart';
 import 'package:csi_door_logs/models/pible_device.dart';
 
 class PibleProvider with ChangeNotifier {
-  final _timerDuration = const Duration(seconds: 6);
-  final _scanDuration = const Duration(seconds: 2);
+  final _timerDuration = const Duration(seconds: 7);
+  final _scanDuration = const Duration(seconds: 3);
   final _flutterBlue = FlutterBluePlus.instance;
   final _serviceUuid = dotenv.env["SERVICE_UUID"];
 
   Timer? _periodicTimer;
+  bool _isConnecting = false;
 
   List<PibleDevice> _pibles = [];
   var _emptyResults = 0;
@@ -27,6 +28,7 @@ class PibleProvider with ChangeNotifier {
   Stream<List<ScanResult>> get scanResults => _flutterBlue.scanResults;
   Stream<bool> get isScanning => _flutterBlue.isScanning;
   bool get isActive => _periodicTimer?.isActive ?? false;
+  bool get isConnecting => _isConnecting;
 
   PibleProvider({RoomProvider? rooms}) {
     if (rooms != null) {
@@ -44,6 +46,7 @@ class PibleProvider with ChangeNotifier {
   }
 
   void startTimer() {
+    _isConnecting = false;
     if (_periodicTimer?.isActive ?? false) {
       return;
     }
@@ -56,7 +59,8 @@ class PibleProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void pauseTimer() {
+  void pauseTimer({bool isConnecting = false}) {
+    _isConnecting = isConnecting;
     _flutterBlue.stopScan();
     _periodicTimer?.cancel();
     notifyListeners();
@@ -79,7 +83,6 @@ class PibleProvider with ChangeNotifier {
     await _flutterBlue.stopScan();
 
     _flutterBlue.startScan(
-      scanMode: ScanMode.balanced,
       timeout: _scanDuration,
       withServices: [Guid(_serviceUuid!)],
     );
