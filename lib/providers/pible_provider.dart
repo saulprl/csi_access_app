@@ -10,8 +10,8 @@ import 'package:csi_door_logs/providers/room_provider.dart';
 import 'package:csi_door_logs/models/pible_device.dart';
 
 class PibleProvider with ChangeNotifier {
-  final _timerDuration = const Duration(seconds: 7);
-  final _scanDuration = const Duration(seconds: 3);
+  final _timerDuration = const Duration(seconds: 8);
+  final _scanDuration = const Duration(seconds: 2);
   final _flutterBlue = FlutterBluePlus.instance;
   final _serviceUuid = dotenv.env["SERVICE_UUID"];
 

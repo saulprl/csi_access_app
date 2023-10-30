@@ -45,22 +45,24 @@ class _PibleChipState extends State<PibleChip> {
   }
 
   Future<void> handleConnection() async {
-    Provider.of<PibleProvider>(context, listen: false).pauseTimer();
+    Provider.of<PibleProvider>(context, listen: false).pauseTimer(
+      isConnecting: true,
+    );
 
     try {
       await pible.connect();
-      // List<BluetoothService> services = await pible.device.discoverServices();
+      List<BluetoothService> services = await pible.device.discoverServices();
 
-      // final service = services.firstWhere(
-      //   (svc) => svc.uuid.toString() == serviceUuid,
-      // );
+      final service = services.firstWhere(
+        (svc) => svc.uuid.toString() == serviceUuid,
+      );
 
       if (!await handleAuthentication()) {
         return;
       }
 
       try {
-        // await encryptData(service);
+        await encryptData(service);
       } catch (error) {
         rethrow;
       } finally {
@@ -92,7 +94,7 @@ class _PibleChipState extends State<PibleChip> {
     String uid = await _storage.read(key: "CSIPRO-ACCESS-FIREBASE-UID") ?? "";
     String passcode = await _storage.read(key: "CSIPRO-PASSCODE") ?? "";
     int expiryDate =
-        DateTime.now().add(const Duration(seconds: 30)).millisecondsSinceEpoch;
+        DateTime.now().add(const Duration(seconds: 15)).millisecondsSinceEpoch;
     String concatenated = "$nonce:$uid:$passcode:$expiryDate";
     final cipher = AesCrypt(
       padding: PaddingAES.pkcs7,
@@ -124,27 +126,13 @@ class _PibleChipState extends State<PibleChip> {
     final isConnecting = !Provider.of<PibleProvider>(context).isActive;
     final isPressable = !isConnecting && pible.hasAccess;
 
-    // return GestureDetector(
-    //   onTap: isPressable ? handleConnection : () {},
-    //   child: Container(
-    //     decoration: BoxDecoration(
-    //       borderRadius: BorderRadius.circular(4.0),
-    //       color: isPressable ? Colors.white : Colors.white.withOpacity(0.75),
-    //     ),
-    //     padding: const EdgeInsets.all(12.0),
-    //     child: Center(
-    //       child: Text(
-    //         pible.name.replaceAll("PiBLE-", ""),
-    //         style: TextStyle(
-    //           color: Theme.of(context).colorScheme.tertiary,
-    //           fontWeight: isPressable ? FontWeight.bold : FontWeight.normal,
-    //         ),
-    //       ),
-    //     ),
-    //   ),
-    // );
     return ElevatedButton(
-      onPressed: isPressable ? handleConnection : () {},
+      onPressed: isPressable ? handleConnection : null,
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all<Color>(
+          isPressable ? Colors.white : Colors.white.withOpacity(0.75),
+        ),
+      ),
       child: Text(
         pible.name.replaceAll("PiBLE-", ""),
         style: TextStyle(

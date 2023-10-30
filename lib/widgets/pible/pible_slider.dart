@@ -70,7 +70,6 @@ class _PibleSliderState extends State<PibleSlider> {
               : _hasStorage
                   ? pibleProvider.pibles.isNotEmpty
                       ? ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           scrollDirection: Axis.horizontal,
                           physics: const ClampingScrollPhysics(),
                           shrinkWrap: true,
@@ -79,8 +78,7 @@ class _PibleSliderState extends State<PibleSlider> {
                             final items = [...pibleProvider.pibles];
 
                             return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              padding: const EdgeInsets.only(right: 8.0),
                               child: PibleChip(
                                 pible: items[index],
                                 key: ValueKey(items[index].name),
@@ -118,8 +116,7 @@ class _PibleSliderState extends State<PibleSlider> {
                       ),
                     ),
         ),
-        if ((!pibleProvider.isActive && pibleProvider.isConnecting) ||
-            _isLoading)
+        if (_isLoading)
           const Center(
             child: AdaptiveSpinner(),
           ),
