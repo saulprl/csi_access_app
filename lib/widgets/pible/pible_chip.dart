@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:csi_door_logs/models/pible_device.dart';
 import 'package:csi_door_logs/providers/pible_provider.dart';
+import 'package:csi_door_logs/utils/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -45,9 +46,8 @@ class _PibleChipState extends State<PibleChip> {
   }
 
   Future<void> handleConnection() async {
-    Provider.of<PibleProvider>(context, listen: false).pauseTimer(
-      isConnecting: true,
-    );
+    final pibleProvider = Provider.of<PibleProvider>(context, listen: false);
+    pibleProvider.pauseTimer(isConnecting: true);
 
     try {
       await pible.connect();
@@ -58,27 +58,39 @@ class _PibleChipState extends State<PibleChip> {
       );
 
       if (!await handleAuthentication()) {
+        pibleProvider.startTimer();
+        _showSnackBar("Authentication failed");
+
         return;
       }
 
       try {
         await encryptData(service);
+        pibleProvider.stopTimer();
+
+        _showSnackBar("Welcome in!", backgroundColor: successColor);
       } catch (error) {
-        rethrow;
+        _showSnackBar("Something went wrong while encrypting your data");
       } finally {
         await pible.disconnect();
       }
     } on PlatformException catch (error) {
+      pibleProvider.startTimer();
       debugPrint(error.toString());
+      _showSnackBar("Error while attempting to connect");
     } on TimeoutException catch (error) {
+      pibleProvider.startTimer();
       debugPrint(error.toString());
+      _showSnackBar("Connection timed out");
     } on StateError catch (_) {
-      rethrow;
+      pibleProvider.startTimer();
+      _showSnackBar("Something went wrong");
+      // rethrow;
     } catch (error) {
-      debugPrint(error.toString());
-      rethrow;
-    } finally {
-      Provider.of<PibleProvider>(context, listen: false).startTimer();
+      pibleProvider.startTimer();
+
+      _showSnackBar("Something went wrong");
+      // rethrow;
     }
   }
 
@@ -112,6 +124,13 @@ class _PibleChipState extends State<PibleChip> {
     );
 
     await tokenCharacteristic.write(encryptedString.codeUnits);
+  }
+
+  void _showSnackBar(String message, {Color? backgroundColor}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      backgroundColor: backgroundColor,
+      content: Text(message, style: baseTextStyle),
+    ));
   }
 
   @override

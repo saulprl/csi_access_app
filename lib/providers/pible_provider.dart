@@ -9,6 +9,12 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:csi_door_logs/providers/room_provider.dart';
 import 'package:csi_door_logs/models/pible_device.dart';
 
+enum PibleState {
+  scanning,
+  connecting,
+  stopped,
+}
+
 class PibleProvider with ChangeNotifier {
   final _timerDuration = const Duration(seconds: 8);
   final _scanDuration = const Duration(seconds: 2);
@@ -16,10 +22,12 @@ class PibleProvider with ChangeNotifier {
   final _serviceUuid = dotenv.env["SERVICE_UUID"];
 
   Timer? _periodicTimer;
-  bool _isConnecting = false;
+  PibleState _pibleState = PibleState.stopped;
 
   List<PibleDevice> _pibles = [];
   var _emptyResults = 0;
+  var _scans = 0;
+  final _scanLimit = 3;
 
   RoomProvider? _rooms;
 
@@ -28,7 +36,8 @@ class PibleProvider with ChangeNotifier {
   Stream<List<ScanResult>> get scanResults => _flutterBlue.scanResults;
   Stream<bool> get isScanning => _flutterBlue.isScanning;
   bool get isActive => _periodicTimer?.isActive ?? false;
-  bool get isConnecting => _isConnecting;
+  PibleState get pibleState => _pibleState;
+  int get scans => _scans;
 
   PibleProvider({RoomProvider? rooms}) {
     if (rooms != null) {
@@ -46,7 +55,7 @@ class PibleProvider with ChangeNotifier {
   }
 
   void startTimer() {
-    _isConnecting = false;
+    _scans = 0;
     if (_periodicTimer?.isActive ?? false) {
       return;
     }
@@ -60,13 +69,25 @@ class PibleProvider with ChangeNotifier {
   }
 
   void pauseTimer({bool isConnecting = false}) {
-    _isConnecting = isConnecting;
+    if (isConnecting) {
+      _pibleState = PibleState.connecting;
+    }
+
     _flutterBlue.stopScan();
     _periodicTimer?.cancel();
     notifyListeners();
   }
 
+  void stopTimer() {
+    _periodicTimer?.cancel();
+    _pibleState = PibleState.stopped;
+    notifyListeners();
+  }
+
   Future<void> _periodicScan() async {
+    _pibleState = PibleState.scanning;
+
+    _scans++;
     final isBluetoothOn = await _flutterBlue.isOn;
 
     if (Platform.isAndroid) {
@@ -81,6 +102,12 @@ class PibleProvider with ChangeNotifier {
     }
 
     await _flutterBlue.stopScan();
+
+    if (_scans > _scanLimit) {
+      stopTimer();
+
+      return;
+    }
 
     _flutterBlue.startScan(
       timeout: _scanDuration,
@@ -130,6 +157,7 @@ class PibleProvider with ChangeNotifier {
   @override
   void dispose() {
     _periodicTimer?.cancel();
+    _pibleState = PibleState.stopped;
 
     super.dispose();
   }

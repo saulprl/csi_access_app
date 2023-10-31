@@ -128,7 +128,8 @@ class _SummaryState extends State<Summary> {
                               vertical: 4.0,
                             ),
                             child: Center(
-                              child: pibleProvider.isConnecting
+                              child: (pibleProvider.pibleState ==
+                                      PibleState.connecting)
                                   ? const Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
@@ -176,19 +177,25 @@ class _SummaryState extends State<Summary> {
                                           }
                                         }
 
-                                        return const Row(
+                                        return Row(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              Icons.stop,
+                                              pibleProvider.pibleState ==
+                                                      PibleState.stopped
+                                                  ? Icons.stop
+                                                  : Icons.pause,
                                               color: Colors.white,
                                               size: 12.0,
                                             ),
-                                            SizedBox(width: 4.0),
+                                            const SizedBox(width: 4.0),
                                             Text(
-                                              "stopped",
-                                              style: TextStyle(
+                                              pibleProvider.pibleState ==
+                                                      PibleState.stopped
+                                                  ? "stopped"
+                                                  : "paused",
+                                              style: const TextStyle(
                                                 color: Colors.white,
                                               ),
                                             ),
@@ -198,23 +205,33 @@ class _SummaryState extends State<Summary> {
                                     ),
                             ),
                           ),
-                          IconButton(
-                            onPressed: pibleProvider.isActive
-                                ? pibleProvider.pauseTimer
-                                : pibleProvider.startTimer,
-                            style: ButtonStyle(
-                              side: MaterialStateProperty.all<BorderSide>(
-                                const BorderSide(
-                                  color: Colors.white,
-                                  width: 2.0,
+                          Tooltip(
+                            message: pibleProvider.isActive
+                                ? "Pause auto-scan"
+                                : pibleProvider.pibleState == PibleState.stopped
+                                    ? "Restart auto-scan"
+                                    : "Start auto-scan",
+                            child: IconButton(
+                              onPressed: pibleProvider.isActive
+                                  ? pibleProvider.pauseTimer
+                                  : pibleProvider.startTimer,
+                              style: ButtonStyle(
+                                side: MaterialStateProperty.all<BorderSide>(
+                                  const BorderSide(
+                                    color: Colors.white,
+                                    width: 2.0,
+                                  ),
                                 ),
                               ),
-                            ),
-                            icon: Icon(
-                              pibleProvider.isActive
-                                  ? Icons.pause
-                                  : Icons.play_arrow,
-                              color: Colors.white,
+                              icon: Icon(
+                                pibleProvider.isActive
+                                    ? Icons.pause
+                                    : pibleProvider.pibleState ==
+                                            PibleState.stopped
+                                        ? Icons.refresh
+                                        : Icons.play_arrow,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ],
